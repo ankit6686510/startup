@@ -1,0 +1,772 @@
+/jobs:
+  get:
+    tags:
+      - Jobs
+    summary: List jobs
+    description: Get a paginated list of job postings with optional filtering
+    operationId: getJobs
+    parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/LimitParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/SearchParam'
+      - name: type
+        in: query
+        description: Filter by employment type
+        required: false
+        schema:
+          type: string
+          enum: [full-time, part-time, contract, internship, freelance]
+      - name: remote
+        in: query
+        description: Filter by remote availability
+        required: false
+        schema:
+          type: boolean
+      - name: location
+        in: query
+        description: Filter by location
+        required: false
+        schema:
+          type: string
+      - name: company
+        in: query
+        description: Filter by company name
+        required: false
+        schema:
+          type: string
+      - name: experienceLevel
+        in: query
+        description: Filter by experience level
+        required: false
+        schema:
+          type: string
+          enum: [entry, mid, senior, lead, executive]
+      - name: skills
+        in: query
+        description: Filter by required skills (comma-separated)
+        required: false
+        schema:
+          type: string
+          example: "JavaScript,React,Node.js"
+      - name: salaryMin
+        in: query
+        description: Minimum salary filter
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+      - name: salaryMax
+        in: query
+        description: Maximum salary filter
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+      - name: postedSince
+        in: query
+        description: Filter by posting date
+        required: false
+        schema:
+          type: string
+          enum: [today, week, month]
+    responses:
+      '200':
+        description: List of jobs retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Job'
+                    pagination:
+                      $ref: '#/components/schemas/Pagination'
+                    filters:
+                      type: object
+                      description: Applied filters summary
+            example:
+              success: true
+              data:
+                - id: "123e4567-e89b-12d3-a456-426614174000"
+                  title: "Senior Software Engineer"
+                  description: "We are looking for a senior software engineer..."
+                  company: "TechStartup Inc"
+                  location: "San Francisco, CA"
+                  type: "full-time"
+                  remote: true
+                  salary:
+                    min: 120000
+                    max: 180000
+                    currency: "USD"
+                    period: "yearly"
+                  skills: ["JavaScript", "React", "Node.js"]
+                  experienceLevel: "senior"
+                  createdAt: "2023-10-12T10:30:00Z"
+              pagination:
+                page: 1
+                limit: 20
+                total: 250
+                pages: 13
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+  post:
+    tags:
+      - Jobs
+    summary: Create a new job posting
+    description: Create a new job posting (requires authentication)
+    operationId: createJob
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - title
+              - description
+              - company
+            properties:
+              title:
+                type: string
+                minLength: 1
+                maxLength: 100
+                description: Job title
+                example: "Senior Software Engineer"
+              description:
+                type: string
+                minLength: 50
+                maxLength: 5000
+                description: Job description
+                example: "We are looking for a senior software engineer to join our team..."
+              company:
+                type: string
+                minLength: 1
+                maxLength: 100
+                description: Company name
+                example: "TechStartup Inc"
+              location:
+                type: string
+                maxLength: 100
+                description: Job location
+                example: "San Francisco, CA"
+              type:
+                type: string
+                enum: [full-time, part-time, contract, internship, freelance]
+                description: Employment type
+                example: "full-time"
+              remote:
+                type: boolean
+                description: Whether the job is remote
+                example: true
+              salary:
+                type: object
+                properties:
+                  min:
+                    type: integer
+                    minimum: 0
+                    description: Minimum salary
+                    example: 120000
+                  max:
+                    type: integer
+                    minimum: 0
+                    description: Maximum salary
+                    example: 180000
+                  currency:
+                    type: string
+                    enum: [USD, EUR, GBP, CAD, AUD]
+                    default: USD
+                    example: "USD"
+                  period:
+                    type: string
+                    enum: [hourly, monthly, yearly]
+                    default: yearly
+                    example: "yearly"
+              requirements:
+                type: array
+                items:
+                  type: string
+                description: Job requirements
+                example: ["5+ years of experience", "Bachelor's degree in CS"]
+              benefits:
+                type: array
+                items:
+                  type: string
+                description: Job benefits
+                example: ["Health insurance", "401k", "Flexible hours"]
+              skills:
+                type: array
+                items:
+                  type: string
+                description: Required skills
+                example: ["JavaScript", "React", "Node.js"]
+              experienceLevel:
+                type: string
+                enum: [entry, mid, senior, lead, executive]
+                description: Required experience level
+                example: "senior"
+              applicationDeadline:
+                type: string
+                format: date
+                description: Application deadline
+                example: "2023-12-31"
+              startupId:
+                type: string
+                format: uuid
+                description: Associated startup ID (optional)
+    responses:
+      '201':
+        description: Job created successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/Job'
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/jobs/{id}:
+  get:
+    tags:
+      - Jobs
+    summary: Get job by ID
+    description: Retrieve detailed information about a specific job
+    operationId: getJobById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Job ID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Job retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      allOf:
+                        - $ref: '#/components/schemas/Job'
+                        - type: object
+                          properties:
+                            applicationCount:
+                              type: integer
+                              description: Number of applications received
+                            viewCount:
+                              type: integer
+                              description: Number of views
+                            isBookmarked:
+                              type: boolean
+                              description: Whether current user bookmarked this job
+                            hasApplied:
+                              type: boolean
+                              description: Whether current user has applied
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+  put:
+    tags:
+      - Jobs
+    summary: Update job posting
+    description: Update job information (only by job poster or admin)
+    operationId: updateJob
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Job ID
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+                minLength: 1
+                maxLength: 100
+              description:
+                type: string
+                minLength: 50
+                maxLength: 5000
+              location:
+                type: string
+                maxLength: 100
+              type:
+                type: string
+                enum: [full-time, part-time, contract, internship, freelance]
+              remote:
+                type: boolean
+              salary:
+                type: object
+                properties:
+                  min:
+                    type: integer
+                    minimum: 0
+                  max:
+                    type: integer
+                    minimum: 0
+                  currency:
+                    type: string
+                    enum: [USD, EUR, GBP, CAD, AUD]
+                  period:
+                    type: string
+                    enum: [hourly, monthly, yearly]
+              requirements:
+                type: array
+                items:
+                  type: string
+              benefits:
+                type: array
+                items:
+                  type: string
+              skills:
+                type: array
+                items:
+                  type: string
+              experienceLevel:
+                type: string
+                enum: [entry, mid, senior, lead, executive]
+              applicationDeadline:
+                type: string
+                format: date
+              isActive:
+                type: boolean
+                description: Whether the job is active
+    responses:
+      '200':
+        description: Job updated successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/Job'
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '403':
+        $ref: '#/components/responses/ForbiddenError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+  delete:
+    tags:
+      - Jobs
+    summary: Delete job posting
+    description: Delete a job posting (only by job poster or admin)
+    operationId: deleteJob
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Job ID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Job deleted successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Job deleted successfully"
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '403':
+        $ref: '#/components/responses/ForbiddenError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/jobs/{id}/apply:
+  post:
+    tags:
+      - Jobs
+    summary: Apply to job
+    description: Submit an application for a job posting
+    operationId: applyToJob
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Job ID
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - coverLetter
+            properties:
+              coverLetter:
+                type: string
+                minLength: 50
+                maxLength: 2000
+                description: Cover letter
+                example: "I am very interested in this position because..."
+              resume:
+                type: string
+                format: uri
+                description: Resume URL or file path
+                example: "https://example.com/resume.pdf"
+              portfolioUrl:
+                type: string
+                format: uri
+                description: Portfolio URL
+                example: "https://portfolio.example.com"
+              expectedSalary:
+                type: integer
+                minimum: 0
+                description: Expected salary
+                example: 150000
+              availableStartDate:
+                type: string
+                format: date
+                description: Available start date
+                example: "2024-01-15"
+              additionalInfo:
+                type: string
+                maxLength: 1000
+                description: Additional information
+    responses:
+      '201':
+        description: Application submitted successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        applicationId:
+                          type: string
+                          format: uuid
+                          description: Application ID
+                        status:
+                          type: string
+                          enum: [pending, reviewing, interviewed, rejected, accepted]
+                          description: Application status
+                        submittedAt:
+                          type: string
+                          format: date-time
+                          description: Submission timestamp
+                    message:
+                      type: string
+                      example: "Application submitted successfully"
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '409':
+        description: Already applied to this job
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "You have already applied to this job"
+              code: "ALREADY_APPLIED"
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/jobs/{id}/bookmark:
+  post:
+    tags:
+      - Jobs
+    summary: Bookmark job
+    description: Bookmark a job for later reference
+    operationId: bookmarkJob
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Job ID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Job bookmarked successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Job bookmarked successfully"
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '409':
+        description: Job already bookmarked
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "Job is already bookmarked"
+              code: "ALREADY_BOOKMARKED"
+
+  delete:
+    tags:
+      - Jobs
+    summary: Remove bookmark
+    description: Remove job from bookmarks
+    operationId: removeBookmark
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Job ID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Bookmark removed successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Bookmark removed successfully"
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+
+/jobs/search:
+  get:
+    tags:
+      - Jobs
+    summary: Advanced job search
+    description: Perform advanced search with multiple filters and sorting options
+    operationId: searchJobs
+    parameters:
+      - name: q
+        in: query
+        description: Search query (searches title, description, company)
+        required: false
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 100
+      - name: location
+        in: query
+        description: Location search (supports partial matching)
+        required: false
+        schema:
+          type: string
+      - name: radius
+        in: query
+        description: Search radius in miles (when location is specified)
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: skills
+        in: query
+        description: Required skills (comma-separated, OR logic)
+        required: false
+        schema:
+          type: string
+      - name: skillsAll
+        in: query
+        description: Required skills (comma-separated, AND logic)
+        required: false
+        schema:
+          type: string
+      - name: salaryRange
+        in: query
+        description: Salary range filter (format: "min-max")
+        required: false
+        schema:
+          type: string
+          pattern: '^\d+-\d+$'
+          example: "80000-120000"
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/LimitParam'
+      - name: sortBy
+        in: query
+        description: Sort field
+        required: false
+        schema:
+          type: string
+          enum: [relevance, date, salary, company, title]
+          default: relevance
+      - name: sortOrder
+        in: query
+        description: Sort order
+        required: false
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: desc
+    responses:
+      '200':
+        description: Search results retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        allOf:
+                          - $ref: '#/components/schemas/Job'
+                          - type: object
+                            properties:
+                              relevanceScore:
+                                type: number
+                                description: Search relevance score (0-1)
+                              matchedSkills:
+                                type: array
+                                items:
+                                  type: string
+                                description: Skills that matched the search
+                    pagination:
+                      $ref: '#/components/schemas/Pagination'
+                    searchMeta:
+                      type: object
+                      properties:
+                        query:
+                          type: string
+                          description: Original search query
+                        totalResults:
+                          type: integer
+                          description: Total number of results
+                        searchTime:
+                          type: number
+                          description: Search execution time in milliseconds
+                        suggestions:
+                          type: array
+                          items:
+                            type: string
+                          description: Search suggestions
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/jobs/trending:
+  get:
+    tags:
+      - Jobs
+    summary: Get trending jobs
+    description: Get a list of trending job postings based on views and applications
+    operationId: getTrendingJobs
+    parameters:
+      - name: period
+        in: query
+        description: Time period for trending calculation
+        required: false
+        schema:
+          type: string
+          enum: [day, week, month]
+          default: week
+      - $ref: '#/components/parameters/LimitParam'
+    responses:
+      '200':
+        description: Trending jobs retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        allOf:
+                          - $ref: '#/components/schemas/Job'
+                          - type: object
+                            properties:
+                              trendingScore:
+                                type: number
+                                description: Trending score (0-100)
+                              viewCount:
+                                type: integer
+                                description: Number of views in the period
+                              applicationCount:
+                                type: integer
+                                description: Number of applications in the period
+      '429':
+        $ref: '#/components/responses/RateLimitError'

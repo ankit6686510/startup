@@ -1,0 +1,429 @@
+/auth/register:
+  post:
+    tags:
+      - Authentication
+    summary: Register a new user
+    description: Create a new user account with email verification
+    operationId: registerUser
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+              - firstName
+              - lastName
+            properties:
+              email:
+                type: string
+                format: email
+                description: User email address
+                example: john.doe@example.com
+              password:
+                type: string
+                minLength: 8
+                description: User password (minimum 8 characters)
+                example: SecurePassword123!
+              firstName:
+                type: string
+                minLength: 1
+                maxLength: 50
+                description: User first name
+                example: John
+              lastName:
+                type: string
+                minLength: 1
+                maxLength: 50
+                description: User last name
+                example: Doe
+              role:
+                type: string
+                enum: [user, admin]
+                default: user
+                description: User role
+    responses:
+      '201':
+        description: User registered successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        user:
+                          $ref: '#/components/schemas/User'
+                        token:
+                          type: string
+                          description: JWT authentication token
+                        refreshToken:
+                          type: string
+                          description: Refresh token for token renewal
+            example:
+              success: true
+              data:
+                user:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  email: "john.doe@example.com"
+                  firstName: "John"
+                  lastName: "Doe"
+                  role: "user"
+                  isVerified: false
+                  createdAt: "2023-10-12T10:30:00Z"
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '409':
+        description: User already exists
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "User with this email already exists"
+              code: "USER_EXISTS"
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/auth/login:
+  post:
+    tags:
+      - Authentication
+    summary: User login
+    description: Authenticate user and return JWT token
+    operationId: loginUser
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+                description: User email address
+                example: john.doe@example.com
+              password:
+                type: string
+                description: User password
+                example: SecurePassword123!
+              rememberMe:
+                type: boolean
+                default: false
+                description: Whether to extend token expiration
+    responses:
+      '200':
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        user:
+                          $ref: '#/components/schemas/User'
+                        token:
+                          type: string
+                          description: JWT authentication token
+                        refreshToken:
+                          type: string
+                          description: Refresh token for token renewal
+                        expiresIn:
+                          type: integer
+                          description: Token expiration time in seconds
+            example:
+              success: true
+              data:
+                user:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  email: "john.doe@example.com"
+                  firstName: "John"
+                  lastName: "Doe"
+                  role: "user"
+                  isVerified: true
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                expiresIn: 3600
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '401':
+        description: Invalid credentials
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "Invalid email or password"
+              code: "INVALID_CREDENTIALS"
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/auth/refresh:
+  post:
+    tags:
+      - Authentication
+    summary: Refresh JWT token
+    description: Get a new JWT token using refresh token
+    operationId: refreshToken
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - refreshToken
+            properties:
+              refreshToken:
+                type: string
+                description: Valid refresh token
+    responses:
+      '200':
+        description: Token refreshed successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        token:
+                          type: string
+                          description: New JWT authentication token
+                        refreshToken:
+                          type: string
+                          description: New refresh token
+                        expiresIn:
+                          type: integer
+                          description: Token expiration time in seconds
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '401':
+        description: Invalid refresh token
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "Invalid or expired refresh token"
+              code: "INVALID_REFRESH_TOKEN"
+
+/auth/logout:
+  post:
+    tags:
+      - Authentication
+    summary: User logout
+    description: Invalidate user session and tokens
+    operationId: logoutUser
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Logout successful
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Logged out successfully"
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+
+/auth/forgot-password:
+  post:
+    tags:
+      - Authentication
+    summary: Request password reset
+    description: Send password reset email to user
+    operationId: forgotPassword
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+                format: email
+                description: User email address
+                example: john.doe@example.com
+    responses:
+      '200':
+        description: Password reset email sent
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Password reset email sent"
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/auth/reset-password:
+  post:
+    tags:
+      - Authentication
+    summary: Reset password
+    description: Reset user password using reset token
+    operationId: resetPassword
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - token
+              - password
+            properties:
+              token:
+                type: string
+                description: Password reset token from email
+              password:
+                type: string
+                minLength: 8
+                description: New password (minimum 8 characters)
+                example: NewSecurePassword123!
+    responses:
+      '200':
+        description: Password reset successful
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Password reset successfully"
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '401':
+        description: Invalid or expired reset token
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "Invalid or expired reset token"
+              code: "INVALID_RESET_TOKEN"
+
+/auth/verify-email:
+  post:
+    tags:
+      - Authentication
+    summary: Verify email address
+    description: Verify user email using verification token
+    operationId: verifyEmail
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - token
+            properties:
+              token:
+                type: string
+                description: Email verification token
+    responses:
+      '200':
+        description: Email verified successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Email verified successfully"
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '401':
+        description: Invalid or expired verification token
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "Invalid or expired verification token"
+              code: "INVALID_VERIFICATION_TOKEN"
+
+/auth/resend-verification:
+  post:
+    tags:
+      - Authentication
+    summary: Resend verification email
+    description: Send a new email verification link
+    operationId: resendVerification
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Verification email sent
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Verification email sent"
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '409':
+        description: Email already verified
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "Email is already verified"
+              code: "EMAIL_ALREADY_VERIFIED"
+      '429':
+        $ref: '#/components/responses/RateLimitError'

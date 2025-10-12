@@ -1,0 +1,44 @@
+{
+  "name": "startup-platform",
+  "version": "1.0.0",
+  "description": "Comprehensive startup information platform with real-time updates",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "frontend/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=api-gateway\" \"npm run dev --workspace=startup-service\" \"npm run dev --workspace=web-app\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "start": "npm run start --workspaces",
+    "install:all": "npm install --workspaces",
+    "clean": "npm run clean --workspaces && rm -rf node_modules",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.0.1",
+    "typescript": "^5.2.2",
+    "@types/node": "^20.8.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "startup",
+    "platform",
+    "microservices",
+    "funding",
+    "jobs",
+    "real-time"
+  ],
+  "author": "Startup Platform Team",
+  "license": "MIT"
+}

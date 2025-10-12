@@ -1,0 +1,578 @@
+/startups:
+  get:
+    tags:
+      - Startups
+    summary: List startups
+    description: Get a paginated list of startups with optional filtering
+    operationId: getStartups
+    parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/LimitParam'
+      - $ref: '#/components/parameters/SortParam'
+      - $ref: '#/components/parameters/SearchParam'
+      - name: industry
+        in: query
+        description: Filter by industry
+        required: false
+        schema:
+          type: string
+          enum: [Technology, Healthcare, Finance, Education, E-commerce, Gaming, Media, Transportation, Energy, Other]
+      - name: stage
+        in: query
+        description: Filter by funding stage
+        required: false
+        schema:
+          type: string
+          enum: [idea, prototype, mvp, seed, series-a, series-b, series-c, growth, ipo]
+      - name: location
+        in: query
+        description: Filter by location
+        required: false
+        schema:
+          type: string
+      - name: foundedYear
+        in: query
+        description: Filter by founded year
+        required: false
+        schema:
+          type: integer
+          minimum: 1900
+          maximum: 2030
+      - name: employeeCount
+        in: query
+        description: Filter by employee count range
+        required: false
+        schema:
+          type: string
+          enum: [1-10, 11-50, 51-200, 201-500, 500+]
+    responses:
+      '200':
+        description: List of startups retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Startup'
+                    pagination:
+                      $ref: '#/components/schemas/Pagination'
+            example:
+              success: true
+              data:
+                - id: "123e4567-e89b-12d3-a456-426614174000"
+                  name: "TechStartup Inc"
+                  description: "Revolutionary AI-powered platform"
+                  industry: "Technology"
+                  stage: "series-a"
+                  location: "San Francisco, CA"
+                  website: "https://techstartup.com"
+                  foundedYear: 2020
+                  employeeCount: 25
+                  tags: ["AI", "Machine Learning", "SaaS"]
+                  createdAt: "2023-01-15T10:30:00Z"
+              pagination:
+                page: 1
+                limit: 20
+                total: 150
+                pages: 8
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+  post:
+    tags:
+      - Startups
+    summary: Create a new startup
+    description: Create a new startup profile
+    operationId: createStartup
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - description
+              - industry
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 100
+                description: Startup name
+                example: "TechStartup Inc"
+              description:
+                type: string
+                minLength: 10
+                maxLength: 2000
+                description: Startup description
+                example: "Revolutionary AI-powered platform that transforms how businesses operate"
+              industry:
+                type: string
+                enum: [Technology, Healthcare, Finance, Education, E-commerce, Gaming, Media, Transportation, Energy, Other]
+                description: Industry category
+                example: "Technology"
+              stage:
+                type: string
+                enum: [idea, prototype, mvp, seed, series-a, series-b, series-c, growth, ipo]
+                description: Current funding stage
+                example: "seed"
+              location:
+                type: string
+                maxLength: 100
+                description: Startup location
+                example: "San Francisco, CA"
+              website:
+                type: string
+                format: uri
+                description: Startup website URL
+                example: "https://techstartup.com"
+              foundedYear:
+                type: integer
+                minimum: 1900
+                maximum: 2030
+                description: Year the startup was founded
+                example: 2020
+              employeeCount:
+                type: integer
+                minimum: 1
+                description: Number of employees
+                example: 25
+              tags:
+                type: array
+                items:
+                  type: string
+                description: Startup tags/keywords
+                example: ["AI", "Machine Learning", "SaaS"]
+              socialMedia:
+                type: object
+                properties:
+                  twitter:
+                    type: string
+                    example: "@techstartup"
+                  linkedin:
+                    type: string
+                    example: "https://linkedin.com/company/techstartup"
+                  facebook:
+                    type: string
+                    example: "https://facebook.com/techstartup"
+    responses:
+      '201':
+        description: Startup created successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/Startup'
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '409':
+        description: Startup with this name already exists
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "Startup with this name already exists"
+              code: "STARTUP_EXISTS"
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/startups/{id}:
+  get:
+    tags:
+      - Startups
+    summary: Get startup by ID
+    description: Retrieve detailed information about a specific startup
+    operationId: getStartupById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Startup ID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Startup retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/Startup'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+  put:
+    tags:
+      - Startups
+    summary: Update startup
+    description: Update startup information (only by founder or admin)
+    operationId: updateStartup
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Startup ID
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 100
+              description:
+                type: string
+                minLength: 10
+                maxLength: 2000
+              industry:
+                type: string
+                enum: [Technology, Healthcare, Finance, Education, E-commerce, Gaming, Media, Transportation, Energy, Other]
+              stage:
+                type: string
+                enum: [idea, prototype, mvp, seed, series-a, series-b, series-c, growth, ipo]
+              location:
+                type: string
+                maxLength: 100
+              website:
+                type: string
+                format: uri
+              foundedYear:
+                type: integer
+                minimum: 1900
+                maximum: 2030
+              employeeCount:
+                type: integer
+                minimum: 1
+              tags:
+                type: array
+                items:
+                  type: string
+              socialMedia:
+                type: object
+                properties:
+                  twitter:
+                    type: string
+                  linkedin:
+                    type: string
+                  facebook:
+                    type: string
+    responses:
+      '200':
+        description: Startup updated successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/Startup'
+      '400':
+        $ref: '#/components/responses/ValidationError'
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '403':
+        $ref: '#/components/responses/ForbiddenError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+  delete:
+    tags:
+      - Startups
+    summary: Delete startup
+    description: Delete a startup (only by founder or admin)
+    operationId: deleteStartup
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Startup ID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Startup deleted successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Startup deleted successfully"
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '403':
+        $ref: '#/components/responses/ForbiddenError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/startups/{id}/follow:
+  post:
+    tags:
+      - Startups
+    summary: Follow startup
+    description: Follow a startup to receive updates
+    operationId: followStartup
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Startup ID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Startup followed successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Startup followed successfully"
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '409':
+        description: Already following this startup
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              success: false
+              error: "Already following this startup"
+              code: "ALREADY_FOLLOWING"
+
+  delete:
+    tags:
+      - Startups
+    summary: Unfollow startup
+    description: Stop following a startup
+    operationId: unfollowStartup
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Startup ID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Startup unfollowed successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Startup unfollowed successfully"
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+
+/startups/{id}/jobs:
+  get:
+    tags:
+      - Startups
+    summary: Get startup jobs
+    description: Get all job listings for a specific startup
+    operationId: getStartupJobs
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Startup ID
+        schema:
+          type: string
+          format: uuid
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/LimitParam'
+      - name: type
+        in: query
+        description: Filter by job type
+        required: false
+        schema:
+          type: string
+          enum: [full-time, part-time, contract, internship, freelance]
+      - name: remote
+        in: query
+        description: Filter by remote availability
+        required: false
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: Startup jobs retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Job'
+                    pagination:
+                      $ref: '#/components/schemas/Pagination'
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/startups/{id}/funding:
+  get:
+    tags:
+      - Startups
+    summary: Get startup funding history
+    description: Get all funding rounds for a specific startup
+    operationId: getStartupFunding
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Startup ID
+        schema:
+          type: string
+          format: uuid
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/LimitParam'
+      - $ref: '#/components/parameters/SortParam'
+    responses:
+      '200':
+        description: Startup funding history retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/FundingRound'
+                    pagination:
+                      $ref: '#/components/schemas/Pagination'
+                    summary:
+                      type: object
+                      properties:
+                        totalFunding:
+                          type: number
+                          description: Total funding raised
+                        totalRounds:
+                          type: integer
+                          description: Total number of funding rounds
+                        latestRound:
+                          type: string
+                          description: Latest funding round type
+                        latestValuation:
+                          type: number
+                          description: Latest company valuation
+      '404':
+        $ref: '#/components/responses/NotFoundError'
+      '429':
+        $ref: '#/components/responses/RateLimitError'
+
+/startups/trending:
+  get:
+    tags:
+      - Startups
+    summary: Get trending startups
+    description: Get a list of trending startups based on activity and engagement
+    operationId: getTrendingStartups
+    parameters:
+      - name: period
+        in: query
+        description: Time period for trending calculation
+        required: false
+        schema:
+          type: string
+          enum: [day, week, month]
+          default: week
+      - $ref: '#/components/parameters/LimitParam'
+    responses:
+      '200':
+        description: Trending startups retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Success'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        allOf:
+                          - $ref: '#/components/schemas/Startup'
+                          - type: object
+                            properties:
+                              trendingScore:
+                                type: number
+                                description: Trending score (0-100)
+                              trendingReason:
+                                type: string
+                                description: Reason for trending
+      '429':
+        $ref: '#/components/responses/RateLimitError'

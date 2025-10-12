@@ -1,0 +1,339 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: startupcompass-postgres
+    environment:
+      POSTGRES_DB: startup_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_MULTIPLE_DATABASES: startup_platform,startup_platform_users,startup_platform_jobs,startup_platform_funding,startup_platform_notifications
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - startupcompass-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and queues
+  redis:
+    image: redis:7-alpine
+    container_name: startupcompass-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - startupcompass-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: startupcompass-api-gateway
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - JWT_EXPIRES_IN=7d
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STARTUP_SERVICE_URL=http://startup-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+      - JOB_SERVICE_URL=http://job-service:3003
+      - FUNDING_SERVICE_URL=http://funding-service:3004
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3005
+      - NEWS_AGGREGATOR_URL=http://news-aggregator:3006
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+    networks:
+      - startupcompass-network
+    volumes:
+      - ./services/api-gateway:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Startup Service
+  startup-service:
+    build:
+      context: ./services/startup-service
+      dockerfile: Dockerfile
+    container_name: startupcompass-startup-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=startup_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - startupcompass-network
+    volumes:
+      - ./services/startup-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # User Service
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: startupcompass-user-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=startup_platform_users
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - JWT_EXPIRES_IN=7d
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_SECURE=false
+      - SMTP_USER=your-email@gmail.com
+      - SMTP_PASS=your-app-password
+      - FROM_EMAIL=noreply@startupcompass.com
+      - FROM_NAME=StartupCompass
+      - FRONTEND_URL=http://localhost:3000
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - startupcompass-network
+    volumes:
+      - ./services/user-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Job Service
+  job-service:
+    build:
+      context: ./services/job-service
+      dockerfile: Dockerfile
+    container_name: startupcompass-job-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=startup_platform_jobs
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STARTUP_SERVICE_URL=http://startup-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3005
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - startupcompass-network
+    volumes:
+      - ./services/job-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Funding Service
+  funding-service:
+    build:
+      context: ./services/funding-service
+      dockerfile: Dockerfile
+    container_name: startupcompass-funding-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=startup_platform_funding
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STARTUP_SERVICE_URL=http://startup-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3005
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    ports:
+      - "3004:3004"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - startupcompass-network
+    volumes:
+      - ./services/funding-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: startupcompass-notification-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=startup_platform_notifications
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_SECURE=false
+      - SMTP_USER=your-email@gmail.com
+      - SMTP_PASS=your-app-password
+      - FROM_EMAIL=noreply@startupcompass.com
+      - FROM_NAME=StartupCompass
+      - USER_SERVICE_URL=http://user-service:3002
+      - STARTUP_SERVICE_URL=http://startup-service:3001
+      - JOB_SERVICE_URL=http://job-service:3003
+      - FUNDING_SERVICE_URL=http://funding-service:3004
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    ports:
+      - "3005:3005"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - startupcompass-network
+    volumes:
+      - ./services/notification-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # News Aggregator
+  news-aggregator:
+    build:
+      context: ./news-aggregator
+      dockerfile: Dockerfile
+    container_name: startupcompass-news-aggregator
+    environment:
+      - NODE_ENV=development
+      - PORT=3006
+      - FETCH_INTERVAL_MINUTES=30
+      - MAX_ARTICLES_PER_SOURCE=50
+      - NEWSAPI_KEY=your-newsapi-key
+      - MEDIASTACK_KEY=your-mediastack-key
+      - GUARDIAN_API_KEY=your-guardian-key
+    ports:
+      - "3006:3006"
+    networks:
+      - startupcompass-network
+    volumes:
+      - ./news-aggregator:/app
+      - /app/node_modules
+      - news_data:/app/data
+      - news_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: startupcompass-frontend
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - NEXT_PUBLIC_API_GATEWAY_URL=http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - startupcompass-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  news_data:
+    driver: local
+  news_logs:
+    driver: local
+
+networks:
+  startupcompass-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

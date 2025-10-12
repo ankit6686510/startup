@@ -1,0 +1,28 @@
+{
+  "name": "startup-news-aggregator",
+  "version": "1.0.0",
+  "description": "Aggregates startup, funding, and tech news from multiple free sources",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest",
+    "fetch": "node src/aggregator.js"
+  },
+  "keywords": ["startup", "news", "aggregator", "funding", "tech"],
+  "author": "StartupFlow",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "fast-xml-parser": "^4.3.2",
+    "node-cron": "^3.0.3",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.7.0"
+  }
+}

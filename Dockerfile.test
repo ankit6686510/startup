@@ -1,0 +1,43 @@
+FROM node:18-alpine
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy test files and configuration
+COPY tests/ ./tests/
+COPY jest.config.js ./
+COPY .env.test ./
+
+# Copy service package files for testing
+COPY services/*/package*.json ./services/*/
+
+# Install service dependencies
+RUN cd services/api-gateway && npm ci --only=production && \
+    cd ../user-service && npm ci --only=production && \
+    cd ../job-service && npm ci --only=production && \
+    cd ../funding-service && npm ci --only=production && \
+    cd ../notification-service && npm ci --only=production
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S testuser -u 1001
+
+# Change ownership of the app directory
+RUN chown -R testuser:nodejs /app
+USER testuser
+
+# Expose port for test results server (if needed)
+EXPOSE 8080
+
+# Default command
+CMD ["npm", "run", "test"]

@@ -1,0 +1,301 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security checks daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  dependency-scan:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Install service dependencies and audit
+        run: |
+          cd services/api-gateway && npm ci && npm audit --audit-level=moderate
+          cd ../user-service && npm ci && npm audit --audit-level=moderate
+          cd ../job-service && npm ci && npm audit --audit-level=moderate
+          cd ../funding-service && npm ci && npm audit --audit-level=moderate
+          cd ../notification-service && npm ci && npm audit --audit-level=moderate
+
+  snyk-scan:
+    name: Snyk Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule' || github.repository_owner == 'startup-compass'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --all-projects
+
+      - name: Upload Snyk results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: snyk.sarif
+
+  codeql-analysis:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:${{matrix.language}}"
+
+  docker-security-scan:
+    name: Docker Security Scan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, user-service, job-service, funding-service, notification-service]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ matrix.service }}:latest ./services/${{ matrix.service }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ matrix.service }}:latest'
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.service }}.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ matrix.service }}.sarif'
+
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  license-check:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install license checker
+        run: npm install -g license-checker
+
+      - name: Check licenses
+        run: |
+          license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD' --excludePrivatePackages
+
+      - name: Generate license report
+        run: |
+          license-checker --csv --out licenses.csv
+          license-checker --json --out licenses.json
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v3
+        with:
+          name: license-report
+          path: |
+            licenses.csv
+            licenses.json
+
+  security-policy-check:
+    name: Security Policy Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for SECURITY.md
+        run: |
+          if [ ! -f SECURITY.md ]; then
+            echo "❌ SECURITY.md file is missing"
+            exit 1
+          else
+            echo "✅ SECURITY.md file exists"
+          fi
+
+      - name: Check for security headers in Docker files
+        run: |
+          echo "Checking Dockerfiles for security best practices..."
+          for dockerfile in services/*/Dockerfile; do
+            echo "Checking $dockerfile"
+            
+            # Check for non-root user
+            if ! grep -q "USER" "$dockerfile"; then
+              echo "⚠️  $dockerfile: Consider adding a non-root USER directive"
+            fi
+            
+            # Check for COPY --chown
+            if grep -q "COPY.*--chown" "$dockerfile"; then
+              echo "✅ $dockerfile: Uses --chown in COPY directive"
+            fi
+            
+            # Check for specific versions in FROM
+            if grep -q "FROM.*:latest" "$dockerfile"; then
+              echo "⚠️  $dockerfile: Consider using specific version tags instead of 'latest'"
+            fi
+          done
+
+      - name: Check environment variable handling
+        run: |
+          echo "Checking for potential environment variable security issues..."
+          
+          # Check for hardcoded secrets (basic patterns)
+          if grep -r -i "password.*=" --include="*.ts" --include="*.js" --include="*.json" .; then
+            echo "⚠️  Found potential hardcoded passwords"
+          fi
+          
+          if grep -r -i "secret.*=" --include="*.ts" --include="*.js" --include="*.json" .; then
+            echo "⚠️  Found potential hardcoded secrets"
+          fi
+          
+          if grep -r -i "api.*key.*=" --include="*.ts" --include="*.js" --include="*.json" .; then
+            echo "⚠️  Found potential hardcoded API keys"
+          fi
+
+  security-report:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, snyk-scan, codeql-analysis, docker-security-scan, secrets-scan, license-check, security-policy-check]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate security summary
+        run: |
+          echo "# Security Scan Summary" > security-report.md
+          echo "" >> security-report.md
+          echo "**Scan Date:** $(date)" >> security-report.md
+          echo "**Repository:** ${{ github.repository }}" >> security-report.md
+          echo "**Branch:** ${{ github.ref_name }}" >> security-report.md
+          echo "**Commit:** ${{ github.sha }}" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "## Scan Results" >> security-report.md
+          echo "" >> security-report.md
+          echo "| Check | Status |" >> security-report.md
+          echo "|-------|--------|" >> security-report.md
+          echo "| Dependency Scan | ${{ needs.dependency-scan.result }} |" >> security-report.md
+          echo "| Snyk Scan | ${{ needs.snyk-scan.result }} |" >> security-report.md
+          echo "| CodeQL Analysis | ${{ needs.codeql-analysis.result }} |" >> security-report.md
+          echo "| Docker Security Scan | ${{ needs.docker-security-scan.result }} |" >> security-report.md
+          echo "| Secrets Scan | ${{ needs.secrets-scan.result }} |" >> security-report.md
+          echo "| License Check | ${{ needs.license-check.result }} |" >> security-report.md
+          echo "| Security Policy Check | ${{ needs.security-policy-check.result }} |" >> security-report.md
+          echo "" >> security-report.md
+          
+          if [[ "${{ needs.dependency-scan.result }}" == "failure" || "${{ needs.snyk-scan.result }}" == "failure" || "${{ needs.codeql-analysis.result }}" == "failure" || "${{ needs.docker-security-scan.result }}" == "failure" || "${{ needs.secrets-scan.result }}" == "failure" ]]; then
+            echo "## ⚠️ Security Issues Found" >> security-report.md
+            echo "" >> security-report.md
+            echo "One or more security scans have failed. Please review the individual job logs for details." >> security-report.md
+            echo "" >> security-report.md
+            echo "### Recommended Actions:" >> security-report.md
+            echo "- Review and fix any high-severity vulnerabilities" >> security-report.md
+            echo "- Update dependencies to latest secure versions" >> security-report.md
+            echo "- Address any secrets or sensitive data exposure" >> security-report.md
+            echo "- Ensure Docker images follow security best practices" >> security-report.md
+          else
+            echo "## ✅ All Security Checks Passed" >> security-report.md
+            echo "" >> security-report.md
+            echo "No critical security issues were found in this scan." >> security-report.md
+          fi
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.md
+
+      - name: Comment on PR with security summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('security-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
