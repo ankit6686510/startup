@@ -1,0 +1,275 @@
+{
+  "info": {
+    "name": "Application Management API",
+    "description": "Complete API for managing job applications with resume uploads, status tracking, notifications, bulk operations, and analytics.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Document Management",
+      "item": [
+        {
+          "name": "Upload Resume",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "resume.pdf"
+                },
+                {
+                  "key": "documentType",
+                  "value": "resume"
+                },
+                {
+                  "key": "isPrimary",
+                  "value": "true"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/applications/550e8400-e29b-41d4-a716-446655440000/documents"
+          }
+        },
+        {
+          "name": "Get Application Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "user123"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/applications/550e8400-e29b-41d4-a716-446655440000/documents"
+          }
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "user123"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/applications/550e8400-e29b-41d4-a716-446655440000/documents/doc-uuid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Status Management",
+      "item": [
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "recruiter123"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SHORTLISTED\",\n  \"reason\": \"Strong technical skills\",\n  \"notes\": \"Schedule for technical interview\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/applications/550e8400-e29b-41d4-a716-446655440000/status"
+          }
+        },
+        {
+          "name": "Get Application Status History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "user123"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/applications/550e8400-e29b-41d4-a716-446655440000/history"
+          }
+        },
+        {
+          "name": "Get Application Timeline",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "user123"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/applications/550e8400-e29b-41d4-a716-446655440000/timeline"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bulk Operations",
+      "item": [
+        {
+          "name": "Bulk Apply to Jobs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "user123"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobIds\": [\n    \"550e8400-e29b-41d4-a716-446655440001\",\n    \"550e8400-e29b-41d4-a716-446655440002\",\n    \"550e8400-e29b-41d4-a716-446655440003\"\n  ],\n  \"commonData\": {\n    \"emailAddress\": \"john@example.com\",\n    \"fullName\": \"John Doe\",\n    \"coverLetter\": \"I am interested in these positions...\",\n    \"yearsOfExperience\": 5\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/applications/bulk/apply"
+          }
+        },
+        {
+          "name": "Bulk Update Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "recruiter123"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicationIds\": [\n    \"550e8400-e29b-41d4-a716-446655440010\",\n    \"550e8400-e29b-41d4-a716-446655440011\"\n  ],\n  \"status\": \"SHORTLISTED\",\n  \"reason\": \"Passed initial screening\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/applications/bulk/status"
+          }
+        },
+        {
+          "name": "Get Applications (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "recruiter123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications?status=SHORTLISTED&sortBy=newest&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "applications"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SHORTLISTED"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "newest"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Application Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "user123"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/applications/550e8400-e29b-41d4-a716-446655440000/analytics"
+          }
+        },
+        {
+          "name": "Get Pipeline Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "recruiter123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications/analytics/pipeline?startupId=550e8400-e29b-41d4-a716-446655440100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "applications", "analytics", "pipeline"],
+              "query": [
+                {
+                  "key": "startupId",
+                  "value": "550e8400-e29b-41d4-a716-446655440100"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Quality Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "recruiter123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications/analytics/quality?startupId=550e8400-e29b-41d4-a716-446655440100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "applications", "analytics", "quality"],
+              "query": [
+                {
+                  "key": "startupId",
+                  "value": "550e8400-e29b-41d4-a716-446655440100"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3003"
+    }
+  ]
+}

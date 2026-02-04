@@ -3,7 +3,7 @@ import { DataSource } from '@startup-platform/types';
 import { Startup } from './Startup';
 
 @Entity('startup_metrics')
-@Index(['startup_id', 'metric_date'])
+@Index(['startupId', 'metricDate'])
 export class StartupMetrics {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

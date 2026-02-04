@@ -1,0 +1,936 @@
+{
+  "info": {
+    "name": "Startup Profiles & Discovery API",
+    "description": "Complete collection for Startup Profiles and Discovery endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Profile Management",
+      "item": [
+        {
+          "name": "Get Complete Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile"]
+            },
+            "description": "Retrieve complete startup profile with team, photos, and verification"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"We're building the future of AI\",\n  \"mission\": \"Democratize AI for everyone\",\n  \"vision\": \"A world where AI is accessible to all\",\n  \"values\": [\"Innovation\", \"Integrity\", \"Impact\"],\n  \"website\": \"https://startup.com\",\n  \"linkedinUrl\": \"https://linkedin.com/company/startup\",\n  \"twitterUrl\": \"https://twitter.com/startup\",\n  \"culture\": \"Remote-first, collaborative, innovative\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile Completion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/completion",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "completion"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "analytics"]
+            }
+          }
+        },
+        {
+          "name": "Get Featured Content",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/featured-content",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "featured-content"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Team Management",
+      "item": [
+        {
+          "name": "Get Team Members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/team",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "team"]
+            }
+          }
+        },
+        {
+          "name": "Add Team Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"title\": \"Chief Technology Officer\",\n  \"role\": \"CTO\",\n  \"bio\": \"10+ years of experience in cloud infrastructure and distributed systems\",\n  \"email\": \"john@startup.com\",\n  \"phone\": \"+1-555-0100\",\n  \"linkedinUrl\": \"https://linkedin.com/in/johndoe\",\n  \"twitterUrl\": \"https://twitter.com/johndoe\",\n  \"githubUrl\": \"https://github.com/johndoe\",\n  \"profileImageUrl\": \"https://s3.amazonaws.com/bucket/profile.jpg\",\n  \"expertise\": [\"Cloud Computing\", \"DevOps\", \"Kubernetes\", \"Go\"],\n  \"education\": [\"BS Computer Science from MIT\", \"MBA from Stanford\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/team",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "team"]
+            }
+          }
+        },
+        {
+          "name": "Update Team Member",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"15+ years of experience in cloud infrastructure and distributed systems\",\n  \"isFeatured\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/team/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "team", "{{memberId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Team Member",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/team/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "team", "{{memberId}}"]
+            }
+          }
+        },
+        {
+          "name": "Reorder Team",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberIds\": [\"uuid1\", \"uuid2\", \"uuid3\", \"uuid4\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/team/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "team", "reorder"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Photo Gallery",
+      "item": [
+        {
+          "name": "Get Gallery",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/gallery",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "gallery"]
+            }
+          }
+        },
+        {
+          "name": "Get Gallery by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/gallery?category=TEAM",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "gallery"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "TEAM"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Team at Conference\",\n  \"caption\": \"Our team at TechCrunch Disrupt 2023\",\n  \"category\": \"TEAM\",\n  \"imageUrl\": \"https://s3.amazonaws.com/bucket/photo.jpg\",\n  \"thumbnailUrl\": \"https://s3.amazonaws.com/bucket/photo-thumb.jpg\",\n  \"altText\": \"Team standing together at tech conference\",\n  \"width\": 1920,\n  \"height\": 1080,\n  \"mimeType\": \"image/jpeg\",\n  \"fileSize\": 2048576\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/gallery",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "gallery"]
+            }
+          }
+        },
+        {
+          "name": "Update Photo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Our Amazing Team 2023\",\n  \"isFeatured\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/gallery/{{photoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "gallery", "{{photoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Photo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/gallery/{{photoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "gallery", "{{photoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Reorder Gallery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"photoIds\": [\"uuid1\", \"uuid2\", \"uuid3\", \"uuid4\", \"uuid5\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/gallery/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "gallery", "reorder"]
+            }
+          }
+        },
+        {
+          "name": "Like Photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/gallery/{{photoId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "gallery", "{{photoId}}", "like"]
+            }
+          }
+        },
+        {
+          "name": "Unlike Photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/gallery/{{photoId}}/unlike",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "gallery", "{{photoId}}", "unlike"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verification",
+      "item": [
+        {
+          "name": "Get Verification Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/verification",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "verification"]
+            }
+          }
+        },
+        {
+          "name": "Start Email Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@startup.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/verification/email",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "verification", "email"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Email Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/verification/email/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "verification", "email", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "Submit Documents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registrationNumber\": \"C12345678\",\n  \"documentUrl\": \"https://s3.amazonaws.com/bucket/registration.pdf\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/verification/documents",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "verification", "documents"]
+            }
+          }
+        },
+        {
+          "name": "Approve Verification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Documentation verified successfully. All checks passed.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/verification/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "verification", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Verification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{adminUserId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Registration documents are unclear. Please resubmit with certified copies.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/profile/verification/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "profile", "verification", "reject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search & Discovery",
+      "item": [
+        {
+          "name": "Search Startups (All Filters)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/search?keyword=AI&industry=technology&stage=seed,series-a&location=san-francisco&fundingMin=1000000&fundingMax=10000000&hasVerification=true&sortBy=trending&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "search"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "AI"
+                },
+                {
+                  "key": "industry",
+                  "value": "technology"
+                },
+                {
+                  "key": "stage",
+                  "value": "seed,series-a"
+                },
+                {
+                  "key": "location",
+                  "value": "san-francisco"
+                },
+                {
+                  "key": "fundingMin",
+                  "value": "1000000"
+                },
+                {
+                  "key": "fundingMax",
+                  "value": "10000000"
+                },
+                {
+                  "key": "hasVerification",
+                  "value": "true"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "trending"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search by Keyword",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/search?keyword=machine learning&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "search"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "machine learning"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Trending Startups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/trending?limit=10&days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "trending"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "days",
+                  "value": "7"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Discovery Page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/discovery?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "discovery"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Similar Startups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/similar?limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "similar"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/recommendations?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "recommendations"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Filter Options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/filters/options",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "filters", "options"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Follow & Bookmark",
+      "item": [
+        {
+          "name": "Follow Startup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metadata\": {\n    \"followedFrom\": \"discovery\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/follow",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "follow"]
+            }
+          }
+        },
+        {
+          "name": "Unfollow Startup",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/follow",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "follow"]
+            }
+          }
+        },
+        {
+          "name": "Get Follow Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/follow/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "follow", "status"]
+            }
+          }
+        },
+        {
+          "name": "Bookmark Startup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/bookmark",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "bookmark"]
+            }
+          }
+        },
+        {
+          "name": "Remove Bookmark",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/bookmark",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "bookmark"]
+            }
+          }
+        },
+        {
+          "name": "Get User Follows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/user/{{userId}}/follows?limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "user", "{{userId}}", "follows"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Bookmarks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/user/{{userId}}/bookmarks?limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "user", "{{userId}}", "bookmarks"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Followers Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/followers/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "followers", "count"]
+            }
+          }
+        },
+        {
+          "name": "Get Top Followers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/followers/top?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "followers", "top"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Trending Score",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/trending-score",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "trending-score"]
+            }
+          }
+        },
+        {
+          "name": "Track View Action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/track/view",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "track", "view"]
+            }
+          }
+        },
+        {
+          "name": "Track Search Action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/startups/{{startupId}}/track/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["startups", "{{startupId}}", "track", "search"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+    {
+      "key": "startupId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "photoId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

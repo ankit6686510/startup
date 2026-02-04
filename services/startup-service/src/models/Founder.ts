@@ -2,13 +2,12 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { Startup } from './Startup';
 
 @Entity('founders')
-@Index(['startup_id'])
+@Index(['startupId'])
 export class Founder {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ name: 'startup_id' })
-  @Index()
   startupId!: string;
 
   @Column({ length: 100 })

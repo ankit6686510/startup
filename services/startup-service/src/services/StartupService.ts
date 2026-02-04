@@ -11,7 +11,8 @@ import {
   StartupSummary,
   GetStartupResponse,
   Industry,
-  DataSource
+  DataSource,
+  StartupStage
 } from '@startup-platform/types';
 import { 
   ValidationError, 
@@ -87,6 +88,7 @@ export class StartupService {
         description: data.description.trim(),
         website: data.website,
         industry: data.industry,
+        stage: (data as any).stage || StartupStage.MVP,
         foundedYear: data.foundedYear,
         vision: data.vision,
         mission: data.mission,

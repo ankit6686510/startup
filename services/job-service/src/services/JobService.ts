@@ -1,9 +1,11 @@
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder, Between, MoreThan } from 'typeorm';
 import { AppDataSource } from '@/config/database';
 import { Job } from '@/models/Job';
 import { JobApplication, ApplicationStatus } from '@/models/JobApplication';
 import { SavedJob } from '@/models/SavedJob';
 import { JobAlert } from '@/models/JobAlert';
+import { JobView } from '@/models/JobView';
+import { JobAnalytics } from '@/models/JobAnalytics';
 import { logger } from '@/utils/logger';
 import { 
   JobType, 
@@ -100,12 +102,16 @@ export class JobService {
   private applicationRepository: Repository<JobApplication>;
   private savedJobRepository: Repository<SavedJob>;
   private alertRepository: Repository<JobAlert>;
+  private viewRepository: Repository<JobView>;
+  private analyticsRepository: Repository<JobAnalytics>;
 
   constructor() {
     this.jobRepository = AppDataSource.getRepository(Job);
     this.applicationRepository = AppDataSource.getRepository(JobApplication);
     this.savedJobRepository = AppDataSource.getRepository(SavedJob);
     this.alertRepository = AppDataSource.getRepository(JobAlert);
+    this.viewRepository = AppDataSource.getRepository(JobView);
+    this.analyticsRepository = AppDataSource.getRepository(JobAnalytics);
   }
 
   async createJob(data: JobCreateData): Promise<Job> {
@@ -522,6 +528,485 @@ export class JobService {
     const expiredCount = result.affected || 0;
     if (expiredCount > 0) {
       logger.info(`Expired ${expiredCount} old jobs`);
+
+  // ==================== VIEW TRACKING & ANALYTICS ====================
+
+  /**
+   * Track a job view with detailed analytics
+   */
+  async trackJobView(jobId: string, viewData: {
+    userId?: string;
+    sessionId?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    referrer?: string;
+    utmParams?: any;
+  }): Promise<JobView> {
+    const job = await this.jobRepository.findOne({ where: { id: jobId } });
+    
+    if (!job) {
+      throw new Error('Job not found');
+    }
+
+    // Create view record
+    const jobView = this.viewRepository.create({
+      jobId,
+      ...viewData,
+      deviceType: this.detectDeviceType(viewData.userAgent),
+      browser: this.detectBrowser(viewData.userAgent)
+    });
+
+    const savedView = await this.viewRepository.save(jobView);
+
+    // Update job view count
+    job.incrementViewCount();
+    await this.jobRepository.save(job);
+
+    // Update daily analytics
+    await this.updateDailyAnalytics(jobId, {
+      view: true,
+      isAuthenticated: !!viewData.userId,
+      utmSource: viewData.utmParams?.source,
+      deviceType: jobView.deviceType
+    });
+
+    return savedView;
+  }
+
+  /**
+   * Update engagement metrics for a view
+   */
+  async updateViewEngagement(viewId: string, engagementData: {
+    timeSpent?: number;
+    clickedApply?: boolean;
+    clickedSave?: boolean;
+    clickedShare?: boolean;
+    scrolledPercentage?: number;
+  }): Promise<JobView> {
+    const view = await this.viewRepository.findOne({ where: { id: viewId } });
+    
+    if (!view) {
+      throw new Error('View not found');
+    }
+
+    view.updateEngagement(engagementData);
+    return await this.viewRepository.save(view);
+  }
+
+  /**
+   * Get job analytics for a specific period
+   */
+  async getJobAnalytics(jobId: string, startDate?: Date, endDate?: Date): Promise<{
+    overview: any;
+    daily: JobAnalytics[];
+    totalViews: number;
+    totalApplications: number;
+    conversionRate: number;
+  }> {
+    const job = await this.jobRepository.findOne({ where: { id: jobId } });
+    
+    if (!job) {
+      throw new Error('Job not found');
+    }
+
+    // Set default dates if not provided
+    if (!startDate) {
+      startDate = new Date(job.createdAt);
+    }
+    if (!endDate) {
+      endDate = new Date();
+    }
+
+    // Get daily analytics
+    const dailyAnalytics = await this.analyticsRepository.find({
+      where: {
+        jobId,
+        date: Between(startDate, endDate)
+      },
+      order: { date: 'ASC' }
+    });
+
+    // Calculate totals
+    const totalViews = dailyAnalytics.reduce((sum, day) => sum + day.totalViews, 0);
+    const totalApplications = dailyAnalytics.reduce((sum, day) => sum + day.totalApplications, 0);
+    const totalSaves = dailyAnalytics.reduce((sum, day) => sum + day.saveCount, 0);
+    const totalShares = dailyAnalytics.reduce((sum, day) => sum + day.shareCount, 0);
+
+    const conversionRate = totalViews > 0 ? (totalApplications / totalViews) * 100 : 0;
+
+    // Get traffic sources aggregation
+    const trafficSources: Record<string, number> = {};
+    const deviceBreakdown = { mobile: 0, tablet: 0, desktop: 0 };
+
+    dailyAnalytics.forEach(day => {
+      Object.entries(day.trafficSources || {}).forEach(([source, count]) => {
+        trafficSources[source] = (trafficSources[source] || 0) + (count as number);
+      });
+
+      Object.entries(day.deviceBreakdown || {}).forEach(([device, count]) => {
+        const key = device as keyof typeof deviceBreakdown;
+        deviceBreakdown[key] = (deviceBreakdown[key] || 0) + (count as number);
+      });
+    });
+
+    return {
+      overview: {
+        totalViews,
+        uniqueViews: job.viewCount,
+        totalApplications,
+        totalSaves,
+        totalShares,
+        conversionRate: parseFloat(conversionRate.toFixed(2)),
+        avgTimeSpent: dailyAnalytics.length > 0 
+          ? dailyAnalytics.reduce((sum, d) => sum + parseFloat(d.avgTimeSpentSeconds.toString()), 0) / dailyAnalytics.length 
+          : 0
+      },
+      daily: dailyAnalytics,
+      totalViews,
+      totalApplications,
+      conversionRate: parseFloat(conversionRate.toFixed(2))
+    };
+  }
+
+  /**
+   * Get analytics dashboard for multiple jobs (for startups)
+   */
+  async getStartupJobAnalytics(startupId: string, period: number = 30): Promise<any> {
+    const sinceDate = new Date();
+    sinceDate.setDate(sinceDate.getDate() - period);
+
+    const jobs = await this.jobRepository.find({
+      where: { startupId }
+    });
+
+    const jobIds = jobs.map(j => j.id);
+
+    // Get analytics for all jobs
+    const analytics = await this.analyticsRepository
+      .createQueryBuilder('analytics')
+      .where('analytics.jobId IN (:...jobIds)', { jobIds })
+      .andWhere('analytics.date >= :sinceDate', { sinceDate })
+      .getMany();
+
+    // Aggregate metrics
+    const totalViews = analytics.reduce((sum, a) => sum + a.totalViews, 0);
+    const totalApplications = analytics.reduce((sum, a) => sum + a.totalApplications, 0);
+    const avgConversionRate = analytics.length > 0
+      ? analytics.reduce((sum, a) => sum + parseFloat(a.conversionRate.toString()), 0) / analytics.length
+      : 0;
+
+    // Top performing jobs
+    const jobPerformance = jobs.map(job => {
+      const jobAnalytics = analytics.filter(a => a.jobId === job.id);
+      const views = jobAnalytics.reduce((sum, a) => sum + a.totalViews, 0);
+      const applications = jobAnalytics.reduce((sum, a) => sum + a.totalApplications, 0);
+
+      return {
+        id: job.id,
+        title: job.title,
+        views,
+        applications,
+        conversionRate: views > 0 ? (applications / views) * 100 : 0
+      };
+    }).sort((a, b) => b.views - a.views);
+
+    return {
+      period,
+      totalJobs: jobs.length,
+      activeJobs: jobs.filter(j => j.isActive).length,
+      totalViews,
+      totalApplications,
+      avgConversionRate: parseFloat(avgConversionRate.toFixed(2)),
+      topPerformingJobs: jobPerformance.slice(0, 5)
+    };
+  }
+
+  /**
+   * Update daily analytics (called when events occur)
+   */
+  private async updateDailyAnalytics(jobId: string, event: {
+    view?: boolean;
+    application?: boolean;
+    save?: boolean;
+    share?: boolean;
+    applyClick?: boolean;
+    isAuthenticated?: boolean;
+    utmSource?: string;
+    deviceType?: string;
+  }): Promise<void> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find or create today's analytics record
+    let analytics = await this.analyticsRepository.findOne({
+      where: { jobId, date: today }
+    });
+
+    if (!analytics) {
+      analytics = this.analyticsRepository.create({
+        jobId,
+        date: today
+      });
+    }
+
+    // Update metrics
+    if (event.view) {
+      analytics.incrementView(event.isAuthenticated);
+    }
+
+    if (event.application) {
+      analytics.incrementApplication();
+    }
+
+    if (event.save) {
+      analytics.incrementSave();
+    }
+
+    if (event.share) {
+      analytics.incrementShare();
+    }
+
+    if (event.applyClick) {
+      analytics.incrementApplyClick();
+    }
+
+    if (event.utmSource) {
+      analytics.addTrafficSource(event.utmSource);
+    }
+
+    if (event.deviceType) {
+      analytics.addDevice(event.deviceType);
+    }
+
+    await this.analyticsRepository.save(analytics);
+  }
+
+  /**
+   * Track when user saves a job (for analytics)
+   */
+  async trackJobSave(jobId: string): Promise<void> {
+    await this.updateDailyAnalytics(jobId, { save: true });
+  }
+
+  /**
+   * Track when user shares a job (for analytics)
+   */
+  async trackJobShare(jobId: string, platform?: string): Promise<void> {
+    await this.updateDailyAnalytics(jobId, { share: true });
+  }
+
+  /**
+   * Track when user clicks apply button (for analytics)
+   */
+  async trackApplyClick(jobId: string): Promise<void> {
+    await this.updateDailyAnalytics(jobId, { applyClick: true });
+  }
+
+  // ==================== ADVANCED SEARCH & FILTERING ====================
+
+  /**
+   * Advanced job search with faceted filters
+   */
+  async advancedSearch(params: {
+    query?: string;
+    filters?: JobFilters;
+    sort?: 'relevance' | 'date' | 'salary' | 'applications';
+    page?: number;
+    limit?: number;
+    includeFacets?: boolean;
+  }): Promise<{
+    jobs: Job[];
+    total: number;
+    facets?: any;
+  }> {
+    const page = params.page || 1;
+    const limit = params.limit || 20;
+    const sort = params.sort || 'relevance';
+
+    let queryBuilder = this.createJobQueryBuilder(params.filters || {});
+
+    // Apply search query with relevance scoring
+    if (params.query) {
+      queryBuilder = this.applySearchWithRelevance(queryBuilder, params.query);
+    }
+
+    // Apply sorting
+    queryBuilder = this.applySorting(queryBuilder, sort, params.query);
+
+    // Pagination
+    const offset = (page - 1) * limit;
+    queryBuilder.skip(offset).take(limit);
+
+    const [jobs, total] = await queryBuilder.getManyAndCount();
+
+    // Build facets if requested
+    let facets;
+    if (params.includeFacets) {
+      facets = await this.buildSearchFacets(params.filters || {});
+    }
+
+    return { jobs, total, facets };
+  }
+
+  /**
+   * Apply search with relevance scoring
+   */
+  private applySearchWithRelevance(
+    queryBuilder: SelectQueryBuilder<Job>,
+    searchQuery: string
+  ): SelectQueryBuilder<Job> {
+    // Add relevance scoring using PostgreSQL full-text search
+    queryBuilder.addSelect(
+      `(
+        CASE 
+          WHEN job.title ILIKE :exactMatch THEN 100
+          WHEN job.title ILIKE :startsWith THEN 80
+          WHEN job.title ILIKE :contains THEN 60
+          WHEN job.skills && :skillArray THEN 40
+          WHEN job.description ILIKE :contains THEN 20
+          ELSE 0
+        END
+      )`,
+      'relevance_score'
+    );
+
+    queryBuilder.setParameters({
+      exactMatch: searchQuery,
+      startsWith: `${searchQuery}%`,
+      contains: `%${searchQuery}%`,
+      skillArray: [searchQuery]
+    });
+
+    queryBuilder.andWhere(
+      `(
+        job.title ILIKE :searchPattern 
+        OR job.description ILIKE :searchPattern 
+        OR job.skills && :searchArray
+        OR job.tags && :searchArray
+      )`,
+      {
+        searchPattern: `%${searchQuery}%`,
+        searchArray: [searchQuery]
+      }
+    );
+
+    return queryBuilder;
+  }
+
+  /**
+   * Apply sorting to query
+   */
+  private applySorting(
+    queryBuilder: SelectQueryBuilder<Job>,
+    sort: string,
+    searchQuery?: string
+  ): SelectQueryBuilder<Job> {
+    switch (sort) {
+      case 'relevance':
+        if (searchQuery) {
+          queryBuilder.orderBy('relevance_score', 'DESC');
+        } else {
+          queryBuilder.orderBy('job.isFeatured', 'DESC')
+                     .addOrderBy('job.createdAt', 'DESC');
+        }
+        break;
+      
+      case 'date':
+        queryBuilder.orderBy('job.createdAt', 'DESC');
+        break;
+      
+      case 'salary':
+        queryBuilder.orderBy('job.salaryMax', 'DESC', 'NULLS LAST');
+        break;
+      
+      case 'applications':
+        queryBuilder.orderBy('job.applicationCount', 'DESC');
+        break;
+      
+      default:
+        queryBuilder.orderBy('job.createdAt', 'DESC');
+    }
+
+    return queryBuilder;
+  }
+
+  /**
+   * Build search facets for filtering
+   */
+  private async buildSearchFacets(currentFilters: JobFilters): Promise<any> {
+    const baseQuery = this.createJobQueryBuilder({});
+
+    // Get facet counts
+    const [
+      categories,
+      types,
+      experienceLevels,
+      locations
+    ] = await Promise.all([
+      // Category facets
+      baseQuery.clone()
+        .select('job.category', 'category')
+        .addSelect('COUNT(*)', 'count')
+        .groupBy('job.category')
+        .getRawMany(),
+
+      // Job type facets
+      baseQuery.clone()
+        .select('job.type', 'type')
+        .addSelect('COUNT(*)', 'count')
+        .groupBy('job.type')
+        .getRawMany(),
+
+      // Experience level facets
+      baseQuery.clone()
+        .select('job.experienceLevel', 'level')
+        .addSelect('COUNT(*)', 'count')
+        .groupBy('job.experienceLevel')
+        .getRawMany(),
+
+      // Location facets (top cities)
+      baseQuery.clone()
+        .select('job.locationCity', 'city')
+        .addSelect('job.locationCountry', 'country')
+        .addSelect('COUNT(*)', 'count')
+        .where('job.locationCity IS NOT NULL')
+        .groupBy('job.locationCity')
+        .addGroupBy('job.locationCountry')
+        .orderBy('count', 'DESC')
+        .limit(10)
+        .getRawMany()
+    ]);
+
+    return {
+      categories: categories.map(c => ({ value: c.category, count: parseInt(c.count) })),
+      types: types.map(t => ({ value: t.type, count: parseInt(t.count) })),
+      experienceLevels: experienceLevels.map(e => ({ value: e.level, count: parseInt(e.count) })),
+      locations: locations.map(l => ({ 
+        city: l.city, 
+        country: l.country, 
+        count: parseInt(l.count) 
+      }))
+    };
+  }
+
+  // Helper methods for device/browser detection
+  private detectDeviceType(userAgent?: string): string {
+    if (!userAgent) return 'unknown';
+    
+    if (/mobile/i.test(userAgent)) return 'mobile';
+    if (/tablet|ipad/i.test(userAgent)) return 'tablet';
+    return 'desktop';
+  }
+
+  private detectBrowser(userAgent?: string): string {
+    if (!userAgent) return 'unknown';
+    
+    if (/chrome/i.test(userAgent)) return 'chrome';
+    if (/firefox/i.test(userAgent)) return 'firefox';
+    if (/safari/i.test(userAgent)) return 'safari';
+    if (/edge/i.test(userAgent)) return 'edge';
+    return 'other';
+  }
     }
 
     return expiredCount;

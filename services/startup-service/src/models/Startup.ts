@@ -1,13 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne, Index } from 'typeorm';
 import { StartupStatus, StartupStage, Industry, DataSource } from '@startup-platform/types';
 import { Founder } from './Founder';
 import { StartupMetrics } from './StartupMetrics';
+import { StartupTeam } from './StartupTeam';
+import { StartupPhoto } from './StartupPhoto';
+import { StartupVerification } from './StartupVerification';
+import { StartupFollow } from './StartupFollow';
 
 @Entity('startups')
 @Index(['industry', 'status'])
-@Index(['location_country', 'status'])
-@Index(['founded_year'])
-@Index(['total_funding'])
+@Index(['locationCountry', 'status'])
+@Index(['foundedYear'])
+@Index(['totalFunding'])
 export class Startup {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -29,6 +33,12 @@ export class Startup {
   @Column('text', { nullable: true })
   mission?: string;
 
+  @Column('text', { nullable: true })
+  culture?: string;
+
+  @Column('text', { name: 'company_values', array: true, default: '{}' })
+  companyValues: string[];
+
   @Column({ nullable: true })
   website?: string;
 
@@ -39,7 +49,6 @@ export class Startup {
     type: 'enum',
     enum: Industry
   })
-  @Index()
   industry: Industry;
 
   @Column({
@@ -47,7 +56,6 @@ export class Startup {
     enum: StartupStatus,
     default: StartupStatus.ACTIVE
   })
-  @Index()
   status: StartupStatus;
 
   @Column({
@@ -57,12 +65,10 @@ export class Startup {
   stage: StartupStage;
 
   @Column({ name: 'founded_year' })
-  @Index()
   foundedYear: number;
 
   // Location fields
   @Column({ name: 'location_country' })
-  @Index()
   locationCountry: string;
 
   @Column({ name: 'location_country_code', length: 2 })
@@ -90,11 +96,9 @@ export class Startup {
   employeeCount?: number;
 
   @Column({ type: 'bigint', nullable: true })
-  @Index()
   valuation?: number;
 
   @Column({ name: 'total_funding', type: 'bigint', nullable: true })
-  @Index()
   totalFunding?: number;
 
   @Column({
@@ -106,8 +110,13 @@ export class Startup {
   dataSource: DataSource;
 
   @Column({ default: false })
-  @Index()
   verified: boolean;
+
+  @Column({ name: 'view_count', default: 0 })
+  viewCount: number;
+
+  @Column({ name: 'follow_count', default: 0 })
+  followCount: number;
 
   @Column({ name: 'claimed_by', nullable: true })
   claimedBy?: string;
@@ -140,6 +149,18 @@ export class Startup {
 
   @OneToMany(() => StartupMetrics, metrics => metrics.startup)
   metrics: StartupMetrics[];
+
+  @OneToMany(() => StartupTeam, member => member.startup)
+  teamMembers: StartupTeam[];
+
+  @OneToMany(() => StartupPhoto, photo => photo.startup)
+  photos: StartupPhoto[];
+
+  @OneToOne(() => StartupVerification, verification => verification.startup)
+  verification: StartupVerification;
+
+  @OneToMany(() => StartupFollow, follow => follow.startup)
+  followers: StartupFollow[];
 
   // Virtual getters for location object
   get location() {
