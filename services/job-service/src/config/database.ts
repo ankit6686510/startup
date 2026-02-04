@@ -3,6 +3,8 @@ import { Job } from '@/models/Job';
 import { JobApplication } from '@/models/JobApplication';
 import { SavedJob } from '@/models/SavedJob';
 import { JobAlert } from '@/models/JobAlert';
+import { JobView } from '@/models/JobView';
+import { JobAnalytics } from '@/models/JobAnalytics';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -17,7 +19,9 @@ export const AppDataSource = new DataSource({
     Job,
     JobApplication,
     SavedJob,
-    JobAlert
+    JobAlert,
+    JobView,
+    JobAnalytics
   ],
   migrations: ['src/migrations/*.ts'],
   subscribers: ['src/subscribers/*.ts'],

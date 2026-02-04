@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRightIcon, SearchIcon, TrendingUpIcon, UsersIcon, BriefcaseIcon } from 'lucide-react';
+import { ArrowRightIcon, SearchIcon, TrendingUpIcon, CommandIcon, PlayCircleIcon, UsersIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -16,104 +16,156 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-blue-400/10 to-purple-600/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-green-400/10 to-blue-600/10 rounded-full blur-3xl" />
+    <section className="relative overflow-hidden bg-background text-foreground min-h-[90vh] flex items-center border-b border-border">
+      {/* Background Gradients - Adjusted for Beige Theme */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-accent/20 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-muted/30 blur-[120px]" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-20">
-        <div className="text-center max-w-5xl mx-auto">
-          {/* Main Heading */}
-          <div className="mb-8 animate-fade-in">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              Discover the{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Future
-              </span>{' '}
-              of{' '}
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Innovation
+      <div className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 w-full pt-20 pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left Column: Content */}
+          <div className="space-y-8">
+            <div className="inline-flex items-center space-x-2 bg-white/40 border border-border rounded-full px-3 py-1 backdrop-blur-md shadow-sm">
+              <span className="flex h-2 w-2 rounded-full bg-green-600 animate-pulse" />
+              <span className="text-sm font-medium text-foreground/80">Live Market Intelligence</span>
+            </div>
+
+            <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
+              Decide with
+              <span className="block text-foreground/90 font-serif italic">
+                Certainty
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Explore the world's most innovative startups, connect with visionary founders, 
-              and discover your next career opportunity in the startup ecosystem.
-            </p>
-          </div>
 
-          {/* Search Bar */}
-          <div className="mb-12 animate-slide-in" style={{ animationDelay: '0.2s' }}>
-            <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto">
-              <div className="relative group">
-                <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+            <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
+              Access real-time data on 10,000+ startups. Track funding rounds, analyze growth metrics, and discover the next unicorn before anyone else.
+            </p>
+
+            <form onSubmit={handleSearch} className="max-w-md relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-accent to-muted rounded-lg blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+              <div className="relative flex items-center bg-white border border-input rounded-lg p-1.5 shadow-sm">
+                <SearchIcon className="ml-3 h-5 w-5 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search startups, founders, or industries..."
+                  placeholder="Search startups, investors, or trends..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="w-full px-4 py-3 bg-transparent text-foreground placeholder-muted-foreground focus:outline-none"
                 />
                 <Button
                   type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all duration-300 shadow-md hover:shadow-lg"
+                  size="sm"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium px-4"
                 >
                   Search
-                  <ArrowRightIcon className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </form>
-          </div>
 
-          {/* CTA Buttons */}
-          <div className="mb-16 animate-slide-in" style={{ animationDelay: '0.4s' }}>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-wrap gap-4 pt-4">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-8 h-12 rounded-full border-0 shadow-md"
                 onClick={() => window.location.href = '/startups'}
               >
-                Explore Startups
-                <TrendingUpIcon className="ml-2 h-5 w-5" />
+                Start Exploring
+                <ArrowRightIcon className="ml-2 h-4 w-4" />
               </Button>
               <Button
-                variant="outline"
                 size="lg"
-                className="border-gray-300 dark:border-gray-600 px-8 py-4 text-lg rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
-                onClick={() => window.location.href = '/jobs'}
+                variant="outline"
+                className="h-12 rounded-full px-8 border-input text-foreground hover:bg-muted/50"
+                onClick={() => window.location.href = '/demo'}
               >
-                Find Jobs
-                <BriefcaseIcon className="ml-2 h-5 w-5" />
+                <PlayCircleIcon className="mr-2 h-4 w-4" />
+                Watch Demo
               </Button>
             </div>
+
+            <div className="pt-8 flex items-center gap-8 text-muted-foreground text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <CommandIcon className="h-4 w-4" />
+                <span>Enterprise API</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <UsersIcon className="h-4 w-4" />
+                <span>25k+ Investors</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <TrendingUpIcon className="h-4 w-4" />
+                <span>Real-time Sync</span>
+              </div>
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto animate-slide-in" style={{ animationDelay: '0.6s' }}>
-            <div className="text-center p-6 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-all duration-300">
-              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">10K+</div>
-              <div className="text-gray-600 dark:text-gray-300 font-medium">Startups</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Across all industries</div>
+          {/* Right Column: Visual */}
+          <div className="relative hidden lg:block">
+            {/* Absolute decorative elements */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-gradient-to-tr from-accent/20 to-muted/20 rounded-full blur-3xl" />
+
+            <div className="relative bg-white/60 border border-white/40 rounded-2xl p-6 backdrop-blur-xl shadow-2xl skew-y-[-2deg] hover:skew-y-0 transition duration-500 ring-1 ring-black/5">
+              {/* Header of the mock card */}
+              <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg">N</div>
+                  <div>
+                    <h3 className="font-bold text-foreground">NeuralFlow AI</h3>
+                    <p className="text-xs text-muted-foreground">Series B • San Francisco</p>
+                  </div>
+                </div>
+                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full border border-green-200">
+                  +124% Growth
+                </span>
+              </div>
+
+              {/* Chart Mock */}
+              <div className="space-y-4">
+                <div className="flex items-end justify-between h-32 gap-2 px-2">
+                  {[40, 65, 45, 80, 55, 90, 75, 100].map((h, i) => (
+                    <div
+                      key={i}
+                      style={{ height: `${h}%` }}
+                      className="w-full bg-primary/80 rounded-t-sm"
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground pt-2 border-t border-border">
+                  <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-4 mt-8">
+                <div className="bg-white/50 p-4 rounded-xl border border-white/60 shadow-sm">
+                  <p className="text-xs text-muted-foreground mb-1">Total Funding</p>
+                  <p className="text-2xl font-bold text-foreground">$45.2M</p>
+                </div>
+                <div className="bg-white/50 p-4 rounded-xl border border-white/60 shadow-sm">
+                  <p className="text-xs text-muted-foreground mb-1">Valuation</p>
+                  <p className="text-2xl font-bold text-foreground">$420M</p>
+                </div>
+              </div>
             </div>
-            <div className="text-center p-6 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-all duration-300">
-              <div className="text-3xl md:text-4xl font-bold text-purple-600 mb-2">25K+</div>
-              <div className="text-gray-600 dark:text-gray-300 font-medium">Founders</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Building the future</div>
-            </div>
-            <div className="text-center p-6 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-all duration-300">
-              <div className="text-3xl md:text-4xl font-bold text-green-600 mb-2">$50B+</div>
-              <div className="text-gray-600 dark:text-gray-300 font-medium">Raised</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Total funding tracked</div>
+
+            {/* Floating Card */}
+            <div className="absolute -bottom-10 -left-10 bg-white/80 p-4 rounded-xl border border-white/40 backdrop-blur-md shadow-xl w-64 animate-bounce duration-[3000ms] ring-1 ring-black/5">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                  <TrendingUpIcon className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">New Investment</p>
+                  <p className="text-sm font-bold text-foreground">Sequoia Cap.</p>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Just invested <span className="text-foreground font-bold">$12M</span> in GreenTech
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 border-2 border-gray-400 dark:border-gray-600 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-gray-400 dark:bg-gray-600 rounded-full mt-2 animate-pulse" />
         </div>
       </div>
     </section>

@@ -1,19 +1,17 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 @Entity('startup_claims')
-@Index(['startup_id'])
-@Index(['user_id'])
+@Index(['startupId'])
+@Index(['userId'])
 @Index(['status'])
 export class StartupClaim {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ name: 'startup_id' })
-  @Index()
   startupId!: string;
 
   @Column({ name: 'user_id' })
-  @Index()
   userId!: string;
 
   @Column()
@@ -27,7 +25,6 @@ export class StartupClaim {
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   })
-  @Index()
   status!: 'pending' | 'approved' | 'rejected';
 
   @Column('text', { array: true, nullable: true, name: 'proof_documents' })

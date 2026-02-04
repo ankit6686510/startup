@@ -1,0 +1,479 @@
+{
+  "info": {
+    "name": "Job Management API",
+    "description": "Complete API collection for Job Service with CRUD, Search, Recommendations, Analytics, and Saved Jobs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3003",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "user-123",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Job CRUD",
+      "item": [
+        {
+          "name": "Create Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startupId\": \"startup-456\",\n  \"title\": \"Senior Full Stack Engineer\",\n  \"description\": \"We're looking for an experienced full-stack engineer to join our growing team. You'll work on cutting-edge technologies and help build products that impact millions of users.\",\n  \"requirements\": \"5+ years of experience with React and Node.js. Strong TypeScript skills required.\",\n  \"type\": \"FULL_TIME\",\n  \"locationType\": \"HYBRID\",\n  \"experienceLevel\": \"SENIOR\",\n  \"category\": \"ENGINEERING\",\n  \"locationCountry\": \"United States\",\n  \"locationCity\": \"San Francisco\",\n  \"isRemoteAllowed\": true,\n  \"salaryMin\": 120000,\n  \"salaryMax\": 180000,\n  \"salaryCurrency\": \"USD\",\n  \"skills\": [\"React\", \"Node.js\", \"TypeScript\", \"PostgreSQL\", \"AWS\"],\n  \"tags\": [\"startup\", \"fintech\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs"]
+            }
+          }
+        },
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "{{jobId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Job",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salaryMax\": 200000,\n  \"isUrgent\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "{{jobId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Job",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "{{jobId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search & Filtering",
+      "item": [
+        {
+          "name": "Advanced Search with Facets",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/search/advanced?q=engineer&category=ENGINEERING&salaryMin=100000&sort=relevance&includeFacets=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "search", "advanced"],
+              "query": [
+                { "key": "q", "value": "engineer" },
+                { "key": "category", "value": "ENGINEERING" },
+                { "key": "salaryMin", "value": "100000" },
+                { "key": "sort", "value": "relevance" },
+                { "key": "includeFacets", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Skills",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs?skills[]=React&skills[]=TypeScript",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                { "key": "skills[]", "value": "React" },
+                { "key": "skills[]", "value": "TypeScript" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remote Jobs Only",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs?isRemote=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                { "key": "isRemote", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Featured Jobs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/featured?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "featured"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recommendations",
+      "item": [
+        {
+          "name": "Get Personalized Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userProfile\": {\n    \"skills\": [\"React\", \"TypeScript\", \"Node.js\", \"AWS\"],\n    \"experience\": 5,\n    \"location\": {\n      \"country\": \"United States\",\n      \"city\": \"San Francisco\"\n    },\n    \"preferences\": {\n      \"jobTypes\": [\"FULL_TIME\"],\n      \"categories\": [\"ENGINEERING\"],\n      \"salaryMin\": 120000,\n      \"remoteOnly\": false\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/recommendations/for-you?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "recommendations", "for-you"],
+              "query": [
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Similar Jobs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/recommendations/similar/{{jobId}}?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "recommendations", "similar", "{{jobId}}"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Trending Jobs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/recommendations/trending?limit=20&timeWindow=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "recommendations", "trending"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "timeWindow", "value": "7" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Missed Jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/recommendations/missed?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "recommendations", "missed"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics & Tracking",
+      "item": [
+        {
+          "name": "Track Job View",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"session-789\",\n  \"utmParams\": {\n    \"source\": \"linkedin\",\n    \"medium\": \"social\",\n    \"campaign\": \"q1-hiring\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/{{jobId}}/track/view",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "{{jobId}}", "track", "view"]
+            }
+          }
+        },
+        {
+          "name": "Update View Engagement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timeSpent\": 125,\n  \"scrolledPercentage\": 85,\n  \"clickedApply\": true,\n  \"clickedSave\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/track/view/{{viewId}}/engagement",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "track", "view", "{{viewId}}", "engagement"]
+            }
+          }
+        },
+        {
+          "name": "Get Job Analytics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/{{jobId}}/analytics?startDate=2026-01-01&endDate=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "{{jobId}}", "analytics"],
+              "query": [
+                { "key": "startDate", "value": "2026-01-01" },
+                { "key": "endDate", "value": "2026-01-31" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Startup Analytics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/analytics/startup/{{startupId}}?period=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "analytics", "startup", "{{startupId}}"],
+              "query": [
+                { "key": "period", "value": "30" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Track Job Save",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/{{jobId}}/track/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "{{jobId}}", "track", "save"]
+            }
+          }
+        },
+        {
+          "name": "Track Job Share",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"linkedin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/{{jobId}}/track/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "{{jobId}}", "track", "share"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Saved Jobs",
+      "item": [
+        {
+          "name": "Save Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Perfect match for my skills!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/{{jobId}}/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "{{jobId}}", "save"]
+            }
+          }
+        },
+        {
+          "name": "Unsave Job",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/{{jobId}}/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "{{jobId}}", "save"]
+            }
+          }
+        },
+        {
+          "name": "Get My Saved Jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-user-id",
+                "value": "{{userId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/saved/my-jobs?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "saved", "my-jobs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Statistics",
+      "item": [
+        {
+          "name": "Get Job Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Jobs by Startup",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs/startup/{{startupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs", "startup", "{{startupId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

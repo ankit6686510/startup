@@ -10,6 +10,15 @@ router.get('/', startupController.getAllStartups);
 // GET /api/v1/startups/search - Search startups
 router.get('/search', startupController.searchStartups);
 
+// GET /api/v1/startups/discovery/search - Discovery search
+router.get('/discovery/search', startupController.searchDiscoveryStartups);
+
+// GET /api/v1/startups/discovery/trending - Trending startups
+router.get('/discovery/trending', startupController.getTrendingStartups);
+
+// GET /api/v1/startups/discovery/facets - Search facets
+router.get('/discovery/facets', startupController.getDiscoveryFacets);
+
 // GET /api/v1/startups/featured - Get featured startups
 router.get('/featured', startupController.getFeaturedStartups);
 
@@ -27,6 +36,15 @@ router.get('/slug/:slug', startupController.getStartupBySlug);
 
 // POST /api/v1/startups - Create new startup
 router.post('/', startupController.createStartup);
+
+// POST /api/v1/startups/profiles/:startupId/team - Add team member
+router.post('/profiles/:startupId/team', startupController.addTeamMember);
+
+// POST /api/v1/startups/profiles/:startupId/follow - Follow startup
+router.post('/profiles/:startupId/follow', startupController.followStartup);
+
+// GET /api/v1/startups/profiles/:startupId - Get startup profile
+router.get('/profiles/:startupId', startupController.getStartupProfile);
 
 // PUT /api/v1/startups/:id - Update startup
 router.put('/:id', startupController.updateStartup);
