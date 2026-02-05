@@ -3,7 +3,7 @@ import { AppDataSource } from '@/config/database';
 import { Notification, NotificationType, NotificationStatus, NotificationPriority, NotificationCategory } from '@/models/Notification';
 import { NotificationTemplate } from '@/models/NotificationTemplate';
 import { NotificationPreference } from '@/models/NotificationPreference';
-import { NotificationLog, LogAction } from '@/models/NotificationLog';
+import { NotificationLog, LogAction, LogLevel } from '@/models/NotificationLog';
 import { EmailProvider } from '@/providers/EmailProvider';
 import { PushProvider } from '@/providers/PushProvider';
 import { SmsProvider } from '@/providers/SmsProvider';
@@ -85,7 +85,7 @@ export class NotificationService {
   async createNotification(data: NotificationCreateData): Promise<Notification> {
     // Check user preferences
     const preferences = await this.getUserPreferences(data.recipientId, data.type, data.category);
-    
+
     if (!preferences?.canReceiveNotification({
       senderId: undefined,
       priority: data.priority || NotificationPriority.NORMAL,
@@ -326,6 +326,12 @@ export class NotificationService {
     );
   }
 
+  async getNotificationById(id: string): Promise<Notification | null> {
+    return await this.notificationRepository.findOne({
+      where: { id }
+    });
+  }
+
   async markAsDelivered(notificationId: string, providerData?: any): Promise<void> {
     const notification = await this.notificationRepository.findOne({
       where: { id: notificationId }
@@ -532,7 +538,7 @@ export class NotificationService {
   ): Promise<void> {
     const log = this.logRepository.create({
       notificationId,
-      level: 'info',
+      level: LogLevel.INFO,
       action,
       message,
       details: details ? JSON.stringify(details) : undefined,

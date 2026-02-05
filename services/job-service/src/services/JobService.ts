@@ -7,11 +7,11 @@ import { JobAlert } from '@/models/JobAlert';
 import { JobView } from '@/models/JobView';
 import { JobAnalytics } from '@/models/JobAnalytics';
 import { logger } from '@/utils/logger';
-import { 
-  JobType, 
-  WorkLocation, 
-  ExperienceLevel, 
-  JobCategory 
+import {
+  JobType,
+  WorkLocation,
+  ExperienceLevel,
+  JobCategory
 } from '@startup-platform/types';
 
 export interface JobFilters {
@@ -139,13 +139,13 @@ export class JobService {
 
     const savedJob = await this.jobRepository.save(job);
     logger.info(`Job created: ${savedJob.id} - ${savedJob.title}`);
-    
+
     return savedJob;
   }
 
   async updateJob(id: string, data: Partial<JobCreateData>, updatedBy: string): Promise<Job> {
     const job = await this.jobRepository.findOne({ where: { id } });
-    
+
     if (!job) {
       throw new Error('Job not found');
     }
@@ -156,10 +156,10 @@ export class JobService {
     }
 
     Object.assign(job, data);
-    
+
     const updatedJob = await this.jobRepository.save(job);
     logger.info(`Job updated: ${updatedJob.id} - ${updatedJob.title}`);
-    
+
     return updatedJob;
   }
 
@@ -185,14 +185,14 @@ export class JobService {
 
   async getJobs(filters: JobFilters, page: number = 1, limit: number = 20): Promise<{ jobs: Job[], total: number }> {
     const queryBuilder = this.createJobQueryBuilder(filters);
-    
+
     // Pagination
     const offset = (page - 1) * limit;
     queryBuilder.skip(offset).take(limit);
 
     // Default sorting by created date (newest first), then by featured status
     queryBuilder.orderBy('job.isFeatured', 'DESC')
-               .addOrderBy('job.createdAt', 'DESC');
+      .addOrderBy('job.createdAt', 'DESC');
 
     const [jobs, total] = await queryBuilder.getManyAndCount();
     return { jobs, total };
@@ -200,9 +200,9 @@ export class JobService {
 
   async getFeaturedJobs(limit: number = 10): Promise<Job[]> {
     return await this.jobRepository.find({
-      where: { 
+      where: {
         isActive: true,
-        isFeatured: true 
+        isFeatured: true
       },
       order: { createdAt: 'DESC' },
       take: limit,
@@ -293,9 +293,9 @@ export class JobService {
   }
 
   async updateApplicationStatus(
-    applicationId: string, 
-    status: ApplicationStatus, 
-    updatedBy: string, 
+    applicationId: string,
+    status: ApplicationStatus,
+    updatedBy: string,
     notes?: string
   ): Promise<JobApplication> {
     const application = await this.applicationRepository.findOne({
@@ -363,7 +363,7 @@ export class JobService {
       ...alertData
     });
 
-    return await this.alertRepository.save(alert);
+    return await this.alertRepository.save(alert as any);
   }
 
   async getUserJobAlerts(userId: string): Promise<JobAlert[]> {
@@ -436,7 +436,7 @@ export class JobService {
     if (filters.search) {
       queryBuilder.andWhere(
         '(job.title ILIKE :search OR job.description ILIKE :search OR job.skills && :searchArray)',
-        { 
+        {
           search: `%${filters.search}%`,
           searchArray: [filters.search]
         }
@@ -499,7 +499,7 @@ export class JobService {
 
   async deleteJob(id: string, deletedBy: string): Promise<void> {
     const job = await this.jobRepository.findOne({ where: { id } });
-    
+
     if (!job) {
       throw new Error('Job not found');
     }
@@ -528,6 +528,9 @@ export class JobService {
     const expiredCount = result.affected || 0;
     if (expiredCount > 0) {
       logger.info(`Expired ${expiredCount} old jobs`);
+    }
+    return expiredCount;
+  }
 
   // ==================== VIEW TRACKING & ANALYTICS ====================
 
@@ -543,7 +546,7 @@ export class JobService {
     utmParams?: any;
   }): Promise<JobView> {
     const job = await this.jobRepository.findOne({ where: { id: jobId } });
-    
+
     if (!job) {
       throw new Error('Job not found');
     }
@@ -584,7 +587,7 @@ export class JobService {
     scrolledPercentage?: number;
   }): Promise<JobView> {
     const view = await this.viewRepository.findOne({ where: { id: viewId } });
-    
+
     if (!view) {
       throw new Error('View not found');
     }
@@ -604,7 +607,7 @@ export class JobService {
     conversionRate: number;
   }> {
     const job = await this.jobRepository.findOne({ where: { id: jobId } });
-    
+
     if (!job) {
       throw new Error('Job not found');
     }
@@ -627,10 +630,10 @@ export class JobService {
     });
 
     // Calculate totals
-    const totalViews = dailyAnalytics.reduce((sum, day) => sum + day.totalViews, 0);
-    const totalApplications = dailyAnalytics.reduce((sum, day) => sum + day.totalApplications, 0);
-    const totalSaves = dailyAnalytics.reduce((sum, day) => sum + day.saveCount, 0);
-    const totalShares = dailyAnalytics.reduce((sum, day) => sum + day.shareCount, 0);
+    const totalViews = dailyAnalytics.reduce((sum: number, day: any) => sum + (day.totalViews || 0), 0);
+    const totalApplications = dailyAnalytics.reduce((sum: number, day: any) => sum + (day.totalApplications || 0), 0);
+    const totalSaves = dailyAnalytics.reduce((sum: number, day: any) => sum + (day.saveCount || 0), 0);
+    const totalShares = dailyAnalytics.reduce((sum: number, day: any) => sum + (day.shareCount || 0), 0);
 
     const conversionRate = totalViews > 0 ? (totalApplications / totalViews) * 100 : 0;
 
@@ -638,7 +641,7 @@ export class JobService {
     const trafficSources: Record<string, number> = {};
     const deviceBreakdown = { mobile: 0, tablet: 0, desktop: 0 };
 
-    dailyAnalytics.forEach(day => {
+    dailyAnalytics.forEach((day: any) => {
       Object.entries(day.trafficSources || {}).forEach(([source, count]) => {
         trafficSources[source] = (trafficSources[source] || 0) + (count as number);
       });
@@ -657,8 +660,8 @@ export class JobService {
         totalSaves,
         totalShares,
         conversionRate: parseFloat(conversionRate.toFixed(2)),
-        avgTimeSpent: dailyAnalytics.length > 0 
-          ? dailyAnalytics.reduce((sum, d) => sum + parseFloat(d.avgTimeSpentSeconds.toString()), 0) / dailyAnalytics.length 
+        avgTimeSpent: dailyAnalytics.length > 0
+          ? dailyAnalytics.reduce((sum, d) => sum + parseFloat(d.avgTimeSpentSeconds.toString()), 0) / dailyAnalytics.length
           : 0
       },
       daily: dailyAnalytics,
@@ -689,10 +692,10 @@ export class JobService {
       .getMany();
 
     // Aggregate metrics
-    const totalViews = analytics.reduce((sum, a) => sum + a.totalViews, 0);
-    const totalApplications = analytics.reduce((sum, a) => sum + a.totalApplications, 0);
+    const totalViews = analytics.reduce((sum: number, a: any) => sum + (a.totalViews || 0), 0);
+    const totalApplications = analytics.reduce((sum: number, a: any) => sum + (a.totalApplications || 0), 0);
     const avgConversionRate = analytics.length > 0
-      ? analytics.reduce((sum, a) => sum + parseFloat(a.conversionRate.toString()), 0) / analytics.length
+      ? analytics.reduce((sum: number, a: any) => sum + parseFloat(a.conversionRate.toString()), 0) / analytics.length
       : 0;
 
     // Top performing jobs
@@ -907,22 +910,22 @@ export class JobService {
           queryBuilder.orderBy('relevance_score', 'DESC');
         } else {
           queryBuilder.orderBy('job.isFeatured', 'DESC')
-                     .addOrderBy('job.createdAt', 'DESC');
+            .addOrderBy('job.createdAt', 'DESC');
         }
         break;
-      
+
       case 'date':
         queryBuilder.orderBy('job.createdAt', 'DESC');
         break;
-      
+
       case 'salary':
         queryBuilder.orderBy('job.salaryMax', 'DESC', 'NULLS LAST');
         break;
-      
+
       case 'applications':
         queryBuilder.orderBy('job.applicationCount', 'DESC');
         break;
-      
+
       default:
         queryBuilder.orderBy('job.createdAt', 'DESC');
     }
@@ -981,10 +984,10 @@ export class JobService {
       categories: categories.map(c => ({ value: c.category, count: parseInt(c.count) })),
       types: types.map(t => ({ value: t.type, count: parseInt(t.count) })),
       experienceLevels: experienceLevels.map(e => ({ value: e.level, count: parseInt(e.count) })),
-      locations: locations.map(l => ({ 
-        city: l.city, 
-        country: l.country, 
-        count: parseInt(l.count) 
+      locations: locations.map(l => ({
+        city: l.city,
+        country: l.country,
+        count: parseInt(l.count)
       }))
     };
   }
@@ -992,7 +995,7 @@ export class JobService {
   // Helper methods for device/browser detection
   private detectDeviceType(userAgent?: string): string {
     if (!userAgent) return 'unknown';
-    
+
     if (/mobile/i.test(userAgent)) return 'mobile';
     if (/tablet|ipad/i.test(userAgent)) return 'tablet';
     return 'desktop';
@@ -1000,15 +1003,12 @@ export class JobService {
 
   private detectBrowser(userAgent?: string): string {
     if (!userAgent) return 'unknown';
-    
+
     if (/chrome/i.test(userAgent)) return 'chrome';
     if (/firefox/i.test(userAgent)) return 'firefox';
     if (/safari/i.test(userAgent)) return 'safari';
     if (/edge/i.test(userAgent)) return 'edge';
     return 'other';
   }
-    }
 
-    return expiredCount;
-  }
 }

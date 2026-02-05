@@ -18,7 +18,7 @@ export class TemplateEngine {
   async render(template: NotificationTemplate, data: Record<string, any>, language?: string): Promise<RenderedTemplate> {
     try {
       const templateContent = template.getContent(language);
-      
+
       const rendered: RenderedTemplate = {
         content: this.compileAndRender(templateContent.content, data),
       };
@@ -56,16 +56,16 @@ export class TemplateEngine {
     Handlebars.registerHelper('formatDate', (date: Date | string, format?: string) => {
       const d = typeof date === 'string' ? new Date(date) : date;
       if (!d || isNaN(d.getTime())) return '';
-      
+
       switch (format) {
         case 'short':
           return d.toLocaleDateString();
         case 'long':
-          return d.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+          return d.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
           });
         case 'time':
           return d.toLocaleTimeString();
@@ -77,7 +77,7 @@ export class TemplateEngine {
     // Currency formatting helper
     Handlebars.registerHelper('formatCurrency', (amount: number, currency: string = 'USD') => {
       if (typeof amount !== 'number') return '';
-      
+
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: currency,
@@ -87,7 +87,7 @@ export class TemplateEngine {
     // Number formatting helper
     Handlebars.registerHelper('formatNumber', (number: number, decimals?: number) => {
       if (typeof number !== 'number') return '';
-      
+
       return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
@@ -178,7 +178,7 @@ export class TemplateEngine {
     });
 
     // Loop helpers
-    Handlebars.registerHelper('times', function(n: number, options: any) {
+    Handlebars.registerHelper('times', function (n: number, options: any) {
       let result = '';
       for (let i = 0; i < n; i++) {
         result += options.fn({ index: i, count: i + 1 });
@@ -187,7 +187,7 @@ export class TemplateEngine {
     });
 
     // Range helper
-    Handlebars.registerHelper('range', function(start: number, end: number, options: any) {
+    Handlebars.registerHelper('range', function (start: number, end: number, options: any) {
       let result = '';
       for (let i = start; i <= end; i++) {
         result += options.fn({ value: i, index: i - start });
@@ -215,7 +215,7 @@ export class TemplateEngine {
 
   precompileTemplate(templateString: string): string {
     try {
-      return Handlebars.precompile(templateString);
+      return Handlebars.precompile(templateString) as any as string;
     } catch (error) {
       throw new Error(`Template precompilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -224,7 +224,7 @@ export class TemplateEngine {
   getAvailableHelpers(): string[] {
     return [
       'formatDate',
-      'formatCurrency', 
+      'formatCurrency',
       'formatNumber',
       'capitalize',
       'uppercase',

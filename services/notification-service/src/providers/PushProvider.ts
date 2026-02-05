@@ -16,12 +16,19 @@ export interface PushData {
 export class PushProvider {
   constructor() {
     // Configure VAPID keys for web push
-    if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-      webpush.setVapidDetails(
-        process.env.VAPID_SUBJECT || 'mailto:admin@startupcompass.com',
-        process.env.VAPID_PUBLIC_KEY,
-        process.env.VAPID_PRIVATE_KEY
-      );
+    const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT } = process.env;
+    if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && !VAPID_PUBLIC_KEY.includes('your-vapid')) {
+      try {
+        webpush.setVapidDetails(
+          VAPID_SUBJECT || 'mailto:admin@startupcompass.com',
+          VAPID_PUBLIC_KEY,
+          VAPID_PRIVATE_KEY
+        );
+      } catch (error) {
+        logger.warn('Failed to set VAPID details. Web push might not work correctly.', error);
+      }
+    } else {
+      logger.warn('VAPID keys not configured or are placeholders. Web push will be disabled.');
     }
   }
 
@@ -46,7 +53,7 @@ export class PushProvider {
 
       // TODO: Implement actual push notification sending
       // This would involve getting user's push subscriptions and sending to each
-      
+
       logger.info(`Push notification sent to user ${data.userId}`, {
         title: data.title,
         trackingId: data.trackingId,

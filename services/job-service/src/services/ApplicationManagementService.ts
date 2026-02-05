@@ -1,7 +1,7 @@
 import { Repository, In, Between } from 'typeorm';
 import { AppDataSource } from '@/config/database';
 import { JobApplication, ApplicationStatus } from '@/models/JobApplication';
-import { ApplicationStatusHistory } from '@/models/ApplicationStatusHistory';
+import { ApplicationStatusHistory, ApplicationHistoryStatus } from '@/models/ApplicationStatusHistory';
 import { ApplicationDocument } from '@/models/ApplicationDocument';
 import { ApplicationAnalytics } from '@/models/ApplicationAnalytics';
 import { Job } from '@/models/Job';
@@ -161,8 +161,8 @@ export class ApplicationManagementService {
     // Record status history
     const history = this.statusHistoryRepository.create({
       applicationId,
-      status: newStatus as any,
-      previousStatus,
+      status: newStatus as unknown as ApplicationHistoryStatus,
+      previousStatus: previousStatus as string,
       changedBy,
       changeReason,
       notes,
@@ -170,13 +170,13 @@ export class ApplicationManagementService {
         timestamp: new Date().toISOString(),
         changedVia: 'api'
       }
-    });
+    } as any);
 
-    const savedHistory = await this.statusHistoryRepository.save(history);
+    const savedHistory = await this.statusHistoryRepository.save(history as any);
 
     // Update application status
     application.status = newStatus;
-    
+
     // Update relevant timestamp fields
     const now = new Date();
     if (newStatus === ApplicationStatus.UNDER_REVIEW) {
@@ -249,7 +249,7 @@ export class ApplicationManagementService {
           to: h.status,
           reason: h.changeReason,
           notes: h.notes
-        }
+        } as any
       });
     });
 
@@ -266,7 +266,7 @@ export class ApplicationManagementService {
     });
 
     // Sort by timestamp
-    return timeline.sort((a, b) => 
+    return timeline.sort((a, b) =>
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
   }
@@ -326,15 +326,15 @@ export class ApplicationManagementService {
         });
 
         const saved = await this.applicationRepository.save(application);
-        
+
         // Create analytics record
-        await this.createApplicationAnalytics(saved);
-        
+        await this.createApplicationAnalytics(saved as any);
+
         // Increment job application count
         job.incrementApplicationCount();
         await this.jobRepository.save(job);
 
-        successful.push(saved);
+        successful.push(saved as any);
       } catch (error) {
         failed.push({
           jobId,
@@ -405,16 +405,16 @@ export class ApplicationManagementService {
     }
 
     if (filters.applicantId) {
-      queryBuilder.andWhere('app.applicantId = :applicantId', { 
-        applicantId: filters.applicantId 
+      queryBuilder.andWhere('app.applicantId = :applicantId', {
+        applicantId: filters.applicantId
       });
     }
 
     if (filters.startupId) {
       queryBuilder.innerJoin('jobs', 'j', 'j.id = app.jobId')
-                 .andWhere('j.startupId = :startupId', { 
-                   startupId: filters.startupId 
-                 });
+        .andWhere('j.startupId = :startupId', {
+          startupId: filters.startupId
+        });
     }
 
     if (filters.createdAfter || filters.createdBefore) {
@@ -571,7 +571,7 @@ export class ApplicationManagementService {
     // Calculate average timings
     const nonNullTimings = analytics.filter(a => a.daysToDecision !== null);
     if (nonNullTimings.length > 0) {
-      timings.avgTimeToDecision = 
+      timings.avgTimeToDecision =
         nonNullTimings.reduce((sum, a) => sum + (a.daysToDecision || 0), 0) / nonNullTimings.length;
     }
 
@@ -602,8 +602,8 @@ export class ApplicationManagementService {
       .filter(a => a.matchScore !== null)
       .map(a => parseFloat(a.matchScore?.toString() || '0'));
 
-    const avgMatchScore = scores.length > 0 
-      ? scores.reduce((a, b) => a + b, 0) / scores.length 
+    const avgMatchScore = scores.length > 0
+      ? scores.reduce((a, b) => a + b, 0) / scores.length
       : 0;
 
     const topApplicants = analytics

@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { 
-  GridIcon, 
-  ListIcon, 
-  FilterIcon, 
-  SortDescIcon, 
+import {
+  GridIcon,
+  ListIcon,
+  FilterIcon,
+  SortDescIcon,
   SearchIcon,
   XIcon,
   TrendingUpIcon,
@@ -16,33 +16,12 @@ import { Button } from '@/components/ui/button';
 import { LoadingGrid, LoadingSkeleton } from '@/components/ui/loading';
 import { useSearchFilters, usePagination, useSort } from '@/hooks/useUrlState';
 import { cn } from '@/lib/utils';
-import { StartupCard } from './StartupCard';
+import { StartupCard } from '@/features/startups/components/StartupCardComponent';
 import { StartupListItem } from './StartupListItem';
 import { FilterSidebar } from './FilterSidebar';
 import { StartupFilters } from './StartupFilters';
 
-interface Startup {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  industry: string;
-  location: string;
-  foundedYear: number;
-  logo?: string;
-  website?: string;
-  totalFunding?: string;
-  stage: string;
-  employeeCount?: number;
-  verified: boolean;
-  trending: boolean;
-  founders: Array<{
-    name: string;
-    title: string;
-    imageUrl?: string;
-  }>;
-  tags: string[];
-}
+import { Startup } from '@/features/startups/types';
 
 type ViewMode = 'grid' | 'list';
 type SortOption = 'relevance' | 'trending' | 'funding' | 'recent' | 'alphabetical';
@@ -69,18 +48,24 @@ export function StartupListingPage() {
       slug: 'neuralflow-ai',
       description: 'Revolutionary AI platform that automates complex data analysis and provides real-time insights for enterprise decision making.',
       industry: 'AI & Machine Learning',
-      location: 'San Francisco, CA',
-      foundedYear: 2023,
+      location: { city: 'San Francisco', country: 'USA' },
+      founded: '2023-01-01',
       logo: 'https://ui-avatars.com/api/?name=NeuralFlow+AI&background=6366f1&color=fff&size=128',
       website: 'https://neuralflow.ai',
-      totalFunding: '$15.2M',
-      stage: 'Series A',
-      employeeCount: 45,
+      totalFunded: 15200000,
+      fundingStage: 'SERIES_A',
+      employeeCount: '11-50',
       verified: true,
       trending: true,
+      status: 'ACTIVE',
+      tagline: 'AI for Enterprise Decisions',
+      foundersCount: 2,
+      followersCount: 5000,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       founders: [
-        { name: 'Sarah Chen', title: 'CEO & Co-founder' },
-        { name: 'Marcus Rodriguez', title: 'CTO & Co-founder' }
+        { id: 'f1', name: 'Sarah Chen', role: 'CEO & Co-founder' },
+        { id: 'f2', name: 'Marcus Rodriguez', role: 'CTO & Co-founder' }
       ],
       tags: ['AI', 'Enterprise', 'Analytics', 'B2B']
     },
@@ -90,18 +75,24 @@ export function StartupListingPage() {
       slug: 'greentech-solutions',
       description: 'Building sustainable energy storage solutions using revolutionary battery technology for renewable energy systems.',
       industry: 'CleanTech',
-      location: 'Berlin, Germany',
-      foundedYear: 2022,
+      location: { city: 'Berlin', country: 'Germany' },
+      founded: '2022-03-15',
       logo: 'https://ui-avatars.com/api/?name=GreenTech+Solutions&background=10b981&color=fff&size=128',
       website: 'https://greentechsolutions.com',
-      totalFunding: '$22.5M',
-      stage: 'Series B',
-      employeeCount: 78,
+      totalFunded: 22500000,
+      fundingStage: 'SERIES_B',
+      employeeCount: '51-100',
       verified: true,
       trending: false,
+      status: 'ACTIVE',
+      tagline: 'Sustainable Energy for Tomorrow',
+      foundersCount: 2,
+      followersCount: 3400,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       founders: [
-        { name: 'Dr. Elena Kowalski', title: 'CEO & Founder' },
-        { name: 'James Mitchell', title: 'Head of Engineering' }
+        { id: 'f3', name: 'Dr. Elena Kowalski', role: 'CEO & Founder' },
+        { id: 'f4', name: 'James Mitchell', role: 'Head of Engineering' }
       ],
       tags: ['CleanTech', 'Energy', 'Sustainability', 'Hardware']
     },
@@ -111,18 +102,24 @@ export function StartupListingPage() {
       slug: 'healthbridge',
       description: 'Connecting patients with healthcare providers through AI-powered telemedicine platform with real-time health monitoring.',
       industry: 'HealthTech',
-      location: 'London, UK',
-      foundedYear: 2024,
+      location: { city: 'London', country: 'UK' },
+      founded: '2024-02-01',
       logo: 'https://ui-avatars.com/api/?name=HealthBridge&background=ef4444&color=fff&size=128',
       website: 'https://healthbridge.io',
-      totalFunding: '$8.7M',
-      stage: 'Seed',
-      employeeCount: 28,
+      totalFunded: 8700000,
+      fundingStage: 'SEED',
+      employeeCount: '11-50',
       verified: true,
       trending: true,
+      status: 'ACTIVE',
+      tagline: 'Connecting Patients & Providers',
+      foundersCount: 2,
+      followersCount: 1200,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       founders: [
-        { name: 'Dr. Amara Okafor', title: 'CEO & Co-founder' },
-        { name: 'Thomas Anderson', title: 'CPO & Co-founder' }
+        { id: 'f5', name: 'Dr. Amara Okafor', role: 'CEO & Co-founder' },
+        { id: 'f6', name: 'Thomas Anderson', role: 'CPO & Co-founder' }
       ],
       tags: ['HealthTech', 'Telemedicine', 'AI', 'SaaS']
     },
@@ -133,16 +130,25 @@ export function StartupListingPage() {
       slug: `startup-${i + 4}`,
       description: `Innovative company working on cutting-edge technology solutions for modern businesses and consumers.`,
       industry: ['Fintech', 'EdTech', 'E-Commerce', 'Mobility'][i % 4],
-      location: ['New York, NY', 'Austin, TX', 'Toronto, CA', 'Singapore'][i % 4],
-      foundedYear: 2020 + (i % 5),
+      location: {
+        city: ['New York', 'Austin', 'Toronto', 'Singapore'][i % 4],
+        country: ['USA', 'USA', 'Canada', 'Singapore'][i % 4]
+      },
+      founded: '2020-01-01',
       logo: `https://ui-avatars.com/api/?name=Startup+${i + 4}&background=${['3b82f6', '8b5cf6', 'f59e0b', 'ef4444'][i % 4]}&color=fff&size=128`,
-      totalFunding: ['$2.1M', '$5.4M', '$12.8M', '$25.6M'][i % 4],
-      stage: ['Pre-Seed', 'Seed', 'Series A', 'Series B'][i % 4],
-      employeeCount: 10 + (i * 5),
+      totalFunded: [2100000, 5400000, 12800000, 25600000][i % 4],
+      fundingStage: ['SEED', 'SERIES_A', 'SERIES_B', 'GROWTH'][i % 4] as any,
+      employeeCount: ['1-10', '11-50', '51-100', '101-500'][i % 4] as any,
       verified: i % 3 === 0,
       trending: i % 4 === 0,
+      status: 'ACTIVE' as const,
+      tagline: 'Leading Innovation',
+      foundersCount: 1,
+      followersCount: 100 * (i + 1),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       founders: [
-        { name: `Founder ${i + 1}`, title: 'CEO' }
+        { id: `f-${i}`, name: `Founder ${i + 1}`, role: 'CEO' }
       ],
       tags: ['Tech', 'Innovation']
     }))
@@ -155,11 +161,11 @@ export function StartupListingPage() {
     // Apply filters
     if (filters.q) {
       const query = filters.q.toLowerCase();
-      filtered = filtered.filter(startup => 
+      filtered = filtered.filter(startup =>
         startup.name.toLowerCase().includes(query) ||
         startup.description.toLowerCase().includes(query) ||
         startup.industry.toLowerCase().includes(query) ||
-        startup.tags.some(tag => tag.toLowerCase().includes(query))
+        (startup.tags && startup.tags.some(tag => tag.toLowerCase().includes(query)))
       );
     }
 
@@ -168,26 +174,30 @@ export function StartupListingPage() {
     }
 
     if (filters.location) {
-      filtered = filtered.filter(startup => 
-        startup.location.toLowerCase().includes(filters.location.toLowerCase())
+      filtered = filtered.filter(startup =>
+        startup.location.city.toLowerCase().includes(filters.location.toLowerCase()) ||
+        startup.location.country.toLowerCase().includes(filters.location.toLowerCase())
       );
     }
 
     if (filters.fundingStage) {
-      filtered = filtered.filter(startup => startup.stage === filters.fundingStage);
+      filtered = filtered.filter(startup => startup.fundingStage === filters.fundingStage);
     }
 
     if (filters.foundedYear) {
+      const getYear = (dateStr: string) => new Date(dateStr).getFullYear();
+
       if (filters.foundedYear === 'before-2010') {
-        filtered = filtered.filter(startup => startup.foundedYear < 2010);
+        filtered = filtered.filter(startup => getYear(startup.founded) < 2010);
       } else if (filters.foundedYear.includes('-')) {
         const [start, end] = filters.foundedYear.split('-').map(Number);
-        filtered = filtered.filter(startup => 
-          startup.foundedYear >= start && startup.foundedYear <= end
-        );
+        filtered = filtered.filter(startup => {
+          const year = getYear(startup.founded);
+          return year >= start && year <= end;
+        });
       } else {
-        filtered = filtered.filter(startup => 
-          startup.foundedYear === parseInt(filters.foundedYear)
+        filtered = filtered.filter(startup =>
+          getYear(startup.founded) === parseInt(filters.foundedYear)
         );
       }
     }
@@ -207,13 +217,13 @@ export function StartupListingPage() {
         break;
       case 'funding':
         filtered.sort((a, b) => {
-          const aFunding = parseFloat(a.totalFunding?.replace(/[$M]/g, '') || '0');
-          const bFunding = parseFloat(b.totalFunding?.replace(/[$M]/g, '') || '0');
+          const aFunding = a.totalFunded || 0;
+          const bFunding = b.totalFunded || 0;
           return bFunding - aFunding;
         });
         break;
       case 'recent':
-        filtered.sort((a, b) => b.foundedYear - a.foundedYear);
+        filtered.sort((a, b) => new Date(b.founded).getTime() - new Date(a.founded).getTime());
         break;
       case 'alphabetical':
         filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -266,7 +276,7 @@ export function StartupListingPage() {
     { value: 'alphabetical', label: 'A-Z', icon: <SortDescIcon className="h-4 w-4" /> },
   ];
 
-  const activeFiltersCount = Object.values(filters).filter(value => 
+  const activeFiltersCount = Object.values(filters).filter(value =>
     value !== '' && value !== false && value !== 1 && value !== 12 && value !== 'relevance'
   ).length;
 
@@ -284,7 +294,7 @@ export function StartupListingPage() {
                 {filteredAndSortedStartups.length.toLocaleString()} innovative companies
               </p>
             </div>
-            
+
             {/* Controls */}
             <div className="flex items-center gap-3">
               {/* Sort Dropdown */}
@@ -351,7 +361,7 @@ export function StartupListingPage() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex gap-6">
           {/* Filter Sidebar */}
-          <FilterSidebar 
+          <FilterSidebar
             isOpen={showFilters}
             onClose={() => setShowFilters(false)}
             filters={filters}
@@ -361,7 +371,7 @@ export function StartupListingPage() {
           {/* Main Content */}
           <div className="flex-1">
             {/* Active Filters */}
-            <StartupFilters 
+            <StartupFilters
               filters={filters}
               setFilters={setFilters}
               activeFiltersCount={activeFiltersCount}
@@ -376,22 +386,20 @@ export function StartupListingPage() {
               <>
                 <div className={cn(
                   'transition-all duration-300',
-                  viewMode === 'grid' 
+                  viewMode === 'grid'
                     ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
                     : 'space-y-4'
                 )}>
                   {startups.map((startup, index) => (
                     viewMode === 'grid' ? (
-                      <StartupCard 
-                        key={startup.id} 
+                      <StartupCard
+                        key={startup.id}
                         startup={startup}
-                        index={index}
                       />
                     ) : (
-                      <StartupListItem 
-                        key={startup.id} 
+                      <StartupListItem
+                        key={startup.id}
                         startup={startup}
-                        index={index}
                       />
                     )
                   ))}
@@ -426,14 +434,14 @@ export function StartupListingPage() {
 }
 
 // Empty State Component
-function EmptyState({ 
-  filters, 
-  setFilters 
-}: { 
-  filters: any; 
-  setFilters: (filters: any) => void; 
+function EmptyState({
+  filters,
+  setFilters
+}: {
+  filters: any;
+  setFilters: (filters: any) => void;
 }) {
-  const hasActiveFilters = Object.values(filters).some(value => 
+  const hasActiveFilters = Object.values(filters).some(value =>
     value !== '' && value !== false && value !== 1 && value !== 12 && value !== 'relevance'
   );
 
@@ -457,7 +465,7 @@ function EmptyState({
           No startups found
         </h3>
         <p className="mt-2 text-gray-500 dark:text-gray-400">
-          {hasActiveFilters 
+          {hasActiveFilters
             ? "Try adjusting your filters to see more results."
             : "No startups match your current search criteria."
           }

@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   Index
 } from 'typeorm';
 
@@ -47,11 +47,8 @@ export enum NotificationCategory {
 }
 
 @Entity('notifications')
-@Index(['recipient_id'])
 @Index(['type', 'status'])
 @Index(['category', 'priority'])
-@Index(['scheduled_at'])
-@Index(['created_at'])
 export class Notification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -249,6 +246,7 @@ export class Notification {
   metadata: Record<string, any>;
 
   @CreateDateColumn({ name: 'created_at' })
+  @Index()
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
@@ -264,9 +262,9 @@ export class Notification {
   }
 
   get canRetry(): boolean {
-    return this.retryCount < this.maxRetries && 
-           this.status === NotificationStatus.FAILED &&
-           !this.isExpired;
+    return this.retryCount < this.maxRetries &&
+      this.status === NotificationStatus.FAILED &&
+      !this.isExpired;
   }
 
   get deliveryTime(): number | null {
@@ -294,11 +292,11 @@ export class Notification {
     this.status = NotificationStatus.SENT;
     this.sentAt = new Date();
     this.analyticsData.sentAt = this.sentAt;
-    
+
     if (providerMessageId) {
       this.providerMessageId = providerMessageId;
     }
-    
+
     if (providerResponse) {
       this.providerResponse = providerResponse;
     }
@@ -378,7 +376,7 @@ export class Notification {
 
   getNextRetryAt(): Date | null {
     if (!this.canRetry) return null;
-    
+
     // Exponential backoff: delay * (2 ^ retryCount)
     const delay = this.retryDelay * Math.pow(2, this.retryCount);
     return new Date(Date.now() + delay);

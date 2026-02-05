@@ -24,7 +24,7 @@ export class EmailProvider {
     this.fromEmail = process.env.FROM_EMAIL || 'noreply@startupcompass.com';
     this.fromName = process.env.FROM_NAME || 'StartupCompass';
 
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: process.env.SMTP_SECURE === 'true',
@@ -37,7 +37,7 @@ export class EmailProvider {
 
   async send(data: EmailData): Promise<boolean> {
     try {
-      const mailOptions = {
+      const mailOptions: any = {
         from: data.from || `"${this.fromName}" <${this.fromEmail}>`,
         to: data.to,
         subject: data.subject,
@@ -48,13 +48,13 @@ export class EmailProvider {
         bcc: data.bcc,
         attachments: data.attachments?.map(url => ({ path: url })),
         headers: {
-          'X-Tracking-ID': data.trackingId,
+          'X-Tracking-ID': data.trackingId || '',
           'X-Metadata': JSON.stringify(data.metadata || {}),
         },
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      
+
       logger.info(`Email sent successfully to ${data.to}`, {
         messageId: result.messageId,
         trackingId: data.trackingId,

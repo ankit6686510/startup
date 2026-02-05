@@ -1,8 +1,8 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -10,9 +10,8 @@ import {
 import { Job } from './Job';
 
 @Entity('job_views')
-@Index(['job_id', 'created_at'])
-@Index(['user_id', 'job_id'])
-@Index(['created_at'])
+@Index(['jobId', 'createdAt'])
+@Index(['userId', 'jobId'])
 export class JobView {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -74,6 +73,7 @@ export class JobView {
   scrolledPercentage: number;
 
   @CreateDateColumn({ name: 'created_at' })
+  @Index()
   createdAt: Date;
 
   // Relations

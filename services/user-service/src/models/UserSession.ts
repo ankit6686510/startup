@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -11,15 +11,10 @@ import {
 import { User } from './User';
 
 @Entity('user_sessions')
-@Index(['user_id'])
-@Index(['token'])
-@Index(['expires_at'])
+@Entity('user_sessions')
 export class UserSession {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'user_id' })
-  userId: string;
 
   @Column({ length: 500, unique: true })
   @Index()
@@ -81,6 +76,7 @@ export class UserSession {
   // Relations
   @ManyToOne(() => User, user => user.sessions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
+  @Index()
   user: User;
 
   // Methods

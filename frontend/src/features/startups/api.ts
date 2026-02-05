@@ -11,15 +11,28 @@ import {
   StartupJob,
   StartupNews,
 } from './types';
+import {
+  PaginatedStartupResponseSchema,
+  StartupDetailSchema,
+  StartupSearchResultSchema,
+  TrendingStartupSchema,
+  StartupSchema,
+  IndustryStatsSchema,
+  StartupComparisonSchema,
+  StartupJobSchema,
+  StartupNewsSchema,
+} from './schemas';
+import { z } from 'zod';
 
 class StartupsAPI {
   private api: AxiosInstance;
 
   constructor() {
     this.api = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
+      baseURL: '/api',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     });
 
@@ -58,103 +71,103 @@ class StartupsAPI {
     }
 
     const response = await this.api.get<PaginatedResponse<Startup>>(
-      `/api/startups?${params.toString()}`
+      `startups?${params.toString()}`
     );
-    return response.data;
+    return PaginatedStartupResponseSchema.parse(response.data);
   }
 
   // Get startup by ID
   async getStartupById(id: string): Promise<StartupDetail> {
-    const response = await this.api.get<StartupDetail>(`/api/startups/${id}`);
-    return response.data;
+    const response = await this.api.get<StartupDetail>(`startups/${id}`);
+    return StartupDetailSchema.parse(response.data);
   }
 
   // Search startups (quick search)
   async searchStartups(query: string, limit: number = 10): Promise<StartupSearchResult[]> {
-    const response = await this.api.get<StartupSearchResult[]>(`/api/startups/search`, {
+    const response = await this.api.get<StartupSearchResult[]>(`startups/search`, {
       params: { q: query, limit },
     });
-    return response.data;
+    return z.array(StartupSearchResultSchema).parse(response.data);
   }
 
   // Get trending startups
   async getTrendingStartups(limit: number = 10, timeframe: 'week' | 'month' | 'all' = 'week'): Promise<TrendingStartup[]> {
-    const response = await this.api.get<TrendingStartup[]>(`/api/startups/trending`, {
+    const response = await this.api.get<TrendingStartup[]>(`startups/trending`, {
       params: { limit, timeframe },
     });
-    return response.data;
+    return z.array(TrendingStartupSchema).parse(response.data);
   }
 
   // Get startups by industry
   async getStartupsByIndustry(industry: string, limit: number = 20): Promise<Startup[]> {
-    const response = await this.api.get<Startup[]>(`/api/startups/industry/${industry}`, {
+    const response = await this.api.get<Startup[]>(`/startups/industry/${industry}`, {
       params: { limit },
     });
-    return response.data;
+    return z.array(StartupSchema).parse(response.data);
   }
 
   // Get industry statistics
   async getIndustryStats(): Promise<IndustryStats[]> {
-    const response = await this.api.get<IndustryStats[]>(`/api/startups/stats/industries`);
-    return response.data;
+    const response = await this.api.get<IndustryStats[]>(`startups/stats/industries`);
+    return z.array(IndustryStatsSchema).parse(response.data);
   }
 
   // Compare startups
   async compareStartups(startupIds: string[]): Promise<StartupComparison> {
-    const response = await this.api.post<StartupComparison>(`/api/startups/compare`, {
+    const response = await this.api.post<StartupComparison>(`startups/compare`, {
       startupIds,
     });
-    return response.data;
+    return StartupComparisonSchema.parse(response.data);
   }
 
   // Get startup jobs
   async getStartupJobs(startupId: string): Promise<StartupJob[]> {
-    const response = await this.api.get<StartupJob[]>(`/api/startups/${startupId}/jobs`);
-    return response.data;
+    const response = await this.api.get<StartupJob[]>(`startups/${startupId}/jobs`);
+    return z.array(StartupJobSchema).parse(response.data);
   }
 
   // Get startup news
   async getStartupNews(startupId: string, limit: number = 10): Promise<StartupNews[]> {
-    const response = await this.api.get<StartupNews[]>(`/api/startups/${startupId}/news`, {
+    const response = await this.api.get<TrendingStartup[]>(`startups/${startupId}/news`, {
       params: { limit },
     });
-    return response.data;
+    return z.array(StartupNewsSchema).parse(response.data);
   }
 
   // Get related startups
   async getRelatedStartups(startupId: string, limit: number = 6): Promise<Startup[]> {
-    const response = await this.api.get<Startup[]>(`/api/startups/${startupId}/related`, {
+    const response = await this.api.get<Startup[]>(`startups/${startupId}/related`, {
       params: { limit },
     });
-    return response.data;
+    return z.array(StartupSchema).parse(response.data);
   }
 
   // Follow/unfollow startup
   async toggleFollowStartup(startupId: string, follow: boolean): Promise<{ following: boolean }> {
-    const response = await this.api.post(`/api/startups/${startupId}/follow`, { follow });
+    const response = await this.api.post(`startups/${startupId}/follow`, { follow });
     return response.data;
   }
 
   // Save/unsave startup
   async toggleSaveStartup(startupId: string, save: boolean): Promise<{ saved: boolean }> {
-    const response = await this.api.post(`/api/startups/${startupId}/save`, { save });
+    const response = await this.api.post(`startups/${startupId}/save`, { save });
     return response.data;
   }
 
   // Get user's saved startups
   async getSavedStartups(page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<Startup>> {
-    const response = await this.api.get<PaginatedResponse<Startup>>(`/api/startups/saved`, {
+    const response = await this.api.get<PaginatedResponse<Startup>>(`startups/saved`, {
       params: { page, pageSize },
     });
-    return response.data;
+    return PaginatedStartupResponseSchema.parse(response.data);
   }
 
   // Get suggested startups (for you)
   async getSuggestedStartups(limit: number = 10): Promise<Startup[]> {
-    const response = await this.api.get<Startup[]>(`/api/startups/suggested`, {
+    const response = await this.api.get<Startup[]>(`startups/suggested`, {
       params: { limit },
     });
-    return response.data;
+    return z.array(StartupSchema).parse(response.data);
   }
 }
 

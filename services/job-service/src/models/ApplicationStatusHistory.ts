@@ -1,16 +1,16 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
 } from 'typeorm';
 import { JobApplication } from './JobApplication';
 
-export enum ApplicationStatusHistory {
+export enum ApplicationHistoryStatus {
   SUBMITTED = 'submitted',
   VIEWED = 'viewed',
   UNDER_REVIEW = 'under_review',
@@ -25,9 +25,9 @@ export enum ApplicationStatusHistory {
 }
 
 @Entity('application_status_history')
-@Index(['application_id', 'created_at'])
-@Index(['application_id', 'status'])
-@Index(['created_at'])
+@Index(['applicationId', 'createdAt'])
+@Index(['applicationId', 'status'])
+@Index(['createdAt'])
 export class ApplicationStatusHistory {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -38,10 +38,9 @@ export class ApplicationStatusHistory {
 
   @Column({
     type: 'enum',
-    enum: ApplicationStatusHistory
+    enum: ApplicationHistoryStatus
   })
-  @Index()
-  status: ApplicationStatusHistory;
+  status: ApplicationHistoryStatus;
 
   @Column({ name: 'previous_status', nullable: true })
   previousStatus?: string;

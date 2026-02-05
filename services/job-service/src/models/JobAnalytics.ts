@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -11,9 +11,7 @@ import {
 import { Job } from './Job';
 
 @Entity('job_analytics')
-@Index(['job_id'])
-@Index(['date'])
-@Index(['job_id', 'date'])
+@Index(['jobId', 'date'])
 export class JobAnalytics {
   @PrimaryGeneratedColumn('uuid')
   id: string;

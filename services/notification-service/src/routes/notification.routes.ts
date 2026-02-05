@@ -9,7 +9,7 @@ router.post('/', NotificationController.createNotificationValidation, notificati
 router.get('/', NotificationController.getNotificationsValidation, notificationController.getNotifications);
 router.get('/stats', notificationController.getNotificationStats);
 router.get('/user/:userId', notificationController.getUserNotifications);
-router.get('/:id', notificationController.getNotificationsValidation, notificationController.getNotifications);
+router.get('/:id', notificationController.getNotificationById);
 router.post('/:id/send', notificationController.sendNotification);
 router.post('/:id/retry', notificationController.retryNotification);
 router.post('/:id/cancel', notificationController.cancelNotification);

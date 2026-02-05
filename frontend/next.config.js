@@ -18,15 +18,7 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   },
-  async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${apiUrl}/api/:path*`,
-      },
-    ];
-  },
+  // Rewrites removed as API routes are local to this Next.js app
   webpack: (config, { dev, isServer }) => {
     // Optimize bundle size
     if (!dev && !isServer) {
@@ -46,6 +38,13 @@ const nextConfig = {
       return config;
     },
   }),
+  webpack: (config, { isServer }) => {
+    // Suppress specific warnings
+    config.ignoreWarnings = [
+      { module: /node_modules\/baseline-browser-mapping/ },
+    ];
+    return config;
+  },
 };
 
 module.exports = nextConfig;

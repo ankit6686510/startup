@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -13,10 +13,8 @@ import { FundingRound } from './FundingRound';
 import { Investor } from './Investor';
 
 @Entity('investments')
-@Index(['funding_round_id'])
-@Index(['investor_id'])
-@Index(['investment_date'])
-@Index(['amount'])
+@Index(['fundingRoundId'])
+@Index(['investorId'])
 export class Investment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -316,14 +314,14 @@ export class Investment {
 
   calculateCurrentValue(marketValuation?: number): void {
     if (!this.ownershipPercentage || !marketValuation) return;
-    
+
     this.currentValue = Math.round(marketValuation * (this.ownershipPercentage / 100));
     this.lastValuationDate = new Date();
-    
+
     if (this.amount) {
       this.unrealizedGainLoss = this.currentValue - this.amount;
       this.moneyMultiple = this.currentValue / this.amount;
-      
+
       // Calculate annualized IRR
       if (this.investmentDate) {
         const years = this.investmentAgeYears;
@@ -340,11 +338,11 @@ export class Investment {
     this.exitProceeds = exitProceeds;
     this.exitType = exitType;
     this.isActive = false;
-    
+
     if (this.amount) {
       this.exitMultiple = exitProceeds / this.amount;
       this.realizedGainLoss = exitProceeds - this.amount;
-      
+
       // Calculate final IRR
       if (this.investmentDate) {
         const years = (this.exitDate.getTime() - this.investmentDate.getTime()) / (365 * 24 * 60 * 60 * 1000);
@@ -361,7 +359,7 @@ export class Investment {
     this.writeOffReason = reason;
     this.currentValue = 0;
     this.isActive = false;
-    
+
     if (this.amount) {
       this.realizedGainLoss = -this.amount;
       this.moneyMultiple = 0;
@@ -371,7 +369,7 @@ export class Investment {
 
   updateMilestone(milestone: keyof Investment['milestones'], date: Date = new Date()): void {
     this.milestones[milestone] = date;
-    
+
     // Auto-update related flags
     switch (milestone) {
       case 'legal_docs_executed':
@@ -385,10 +383,10 @@ export class Investment {
 
   callCommitment(amount: number): void {
     if (!this.committedAmount) return;
-    
+
     this.calledAmount = (this.calledAmount || 0) + amount;
     this.remainingCommitment = this.committedAmount - this.calledAmount;
-    
+
     if (this.remainingCommitment < 0) {
       this.remainingCommitment = 0;
     }
@@ -433,14 +431,14 @@ export class Investment {
     if (!this.ownershipPercentage || !newFundingRound.amount || !newFundingRound.preMoneyValuation) {
       return 0;
     }
-    
+
     const preMoneyShares = newFundingRound.preMoneyValuation / newFundingRound.pricePerShare!;
     const newShares = newFundingRound.amount / newFundingRound.pricePerShare!;
     const totalShares = preMoneyShares + newShares;
-    
+
     const currentShares = (this.ownershipPercentage / 100) * preMoneyShares;
     const newOwnershipPercentage = (currentShares / totalShares) * 100;
-    
+
     return this.ownershipPercentage - newOwnershipPercentage;
   }
 

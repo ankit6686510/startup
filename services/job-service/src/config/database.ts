@@ -5,16 +5,18 @@ import { SavedJob } from '@/models/SavedJob';
 import { JobAlert } from '@/models/JobAlert';
 import { JobView } from '@/models/JobView';
 import { JobAnalytics } from '@/models/JobAnalytics';
+import { config } from './index';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USERNAME || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
-  database: process.env.DB_NAME || 'startup_platform_jobs',
-  synchronize: process.env.NODE_ENV === 'development',
-  logging: process.env.NODE_ENV === 'development',
+  host: config.db.host,
+  port: config.db.port,
+  username: config.db.username,
+  password: config.db.password,
+  database: config.db.database,
+  // CRITICAL: Only synchronize in development. Never in production.
+  synchronize: config.server.env === 'development',
+  logging: config.server.env === 'development',
   entities: [
     Job,
     JobApplication,
@@ -25,7 +27,7 @@ export const AppDataSource = new DataSource({
   ],
   migrations: ['src/migrations/*.ts'],
   subscribers: ['src/subscribers/*.ts'],
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: config.server.env === 'production' ? { rejectUnauthorized: false } : false,
   connectTimeoutMS: 60000,
   extra: {
     connectionLimit: 10,

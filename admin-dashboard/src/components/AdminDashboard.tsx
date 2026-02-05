@@ -29,7 +29,10 @@ import {
   Tab,
   LinearProgress,
   Avatar,
-  Badge
+  Badge,
+  Checkbox,
+  TablePagination,
+  Tooltip as MuiTooltip
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -101,6 +104,67 @@ const AdminDashboard: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  // Search states
+  const [startupSearch, setStartupSearch] = useState('');
+  const [jobSearch, setJobSearch] = useState('');
+
+  // Pagination states
+  const [usersPage, setUsersPage] = useState(0);
+  const [usersRowsPerPage, setUsersRowsPerPage] = useState(5);
+  const [startupsPage, setStartupsPage] = useState(0);
+  const [startupsRowsPerPage, setStartupsRowsPerPage] = useState(5);
+  const [jobsPage, setJobsPage] = useState(0);
+  const [jobsRowsPerPage, setJobsRowsPerPage] = useState(5);
+
+  // Selection states
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [selectedStartupIds, setSelectedStartupIds] = useState<string[]>([]);
+  const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
+
+  // Selection handlers
+  const handleSelectAllClick = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    items: any[],
+    setSelected: (ids: string[]) => void
+  ) => {
+    if (event.target.checked) {
+      const newSelecteds = items.map((n) => n.id);
+      setSelected(newSelecteds);
+      return;
+    }
+    setSelected([]);
+  };
+
+  const handleClick = (id: string, selected: string[], setSelected: (ids: string[]) => void) => {
+    const selectedIndex = selected.indexOf(id);
+    let newSelected: string[] = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, id);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selected.slice(0, selectedIndex),
+        selected.slice(selectedIndex + 1),
+      );
+    }
+    setSelected(newSelected);
+  };
+
+  // Filtered data
+  const filteredStartups = startups.filter(startup =>
+    startup.name.toLowerCase().includes(startupSearch.toLowerCase()) ||
+    startup.industry.toLowerCase().includes(startupSearch.toLowerCase())
+  );
+
+  const filteredJobs = jobs.filter(job =>
+    job.title.toLowerCase().includes(jobSearch.toLowerCase()) ||
+    job.company.toLowerCase().includes(jobSearch.toLowerCase())
+  );
 
   useEffect(() => {
     loadDashboardData();
@@ -201,53 +265,73 @@ const AdminDashboard: React.FC = () => {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setUsers(users.map(user => 
-        user.id === userId 
+
+      setUsers(users.map(user =>
+        user.id === userId
           ? { ...user, status: action === 'activate' ? 'active' : 'suspended' }
           : user
       ));
-      
+
       setAlertMessage(`User ${action}d successfully`);
     } catch (error) {
       setAlertMessage(`Failed to ${action} user`);
     }
   };
 
-  const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode; color: string }> = 
+  const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode; color: string }> =
     ({ title, value, icon, color }) => (
-    <Card>
-      <CardContent>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box>
-            <Typography color="textSecondary" gutterBottom variant="body2">
-              {title}
-            </Typography>
-            <Typography variant="h4" component="h2">
-              {value}
-            </Typography>
+      <Card>
+        <CardContent>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box>
+              <Typography color="textSecondary" gutterBottom variant="body2">
+                {title}
+              </Typography>
+              <Typography variant="h4" component="h2">
+                {value}
+              </Typography>
+            </Box>
+            <Box color={color}>
+              {icon}
+            </Box>
           </Box>
-          <Box color={color}>
-            {icon}
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
 
   const UserManagementTab = () => (
     <Box>
       <Box display="flex" justifyContent="between" alignItems="center" mb={2}>
         <Typography variant="h6">User Management</Typography>
-        <Button variant="contained" color="primary">
-          Add User
-        </Button>
+        {selectedUserIds.length > 0 ? (
+          <Box display="flex" alignItems="center" gap={1} bgcolor="action.selected" p={1} borderRadius={1}>
+            <Typography variant="subtitle2" color="primary">
+              {selectedUserIds.length} selected
+            </Typography>
+            <MuiTooltip title="Delete Selected">
+              <IconButton size="small" color="error">
+                <DeleteIcon />
+              </IconButton>
+            </MuiTooltip>
+          </Box>
+        ) : (
+          <Button variant="contained" color="primary">
+            Add User
+          </Button>
+        )}
       </Box>
-      
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  indeterminate={selectedUserIds.length > 0 && selectedUserIds.length < users.length}
+                  checked={users.length > 0 && selectedUserIds.length === users.length}
+                  onChange={(e) => handleSelectAllClick(e, users, setSelectedUserIds)}
+                />
+              </TableCell>
               <TableCell>User</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
@@ -257,62 +341,87 @@ const AdminDashboard: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>
-                  <Box display="flex" alignItems="center">
-                    <Avatar sx={{ mr: 2 }}>
-                      {user.firstName[0]}{user.lastName[0]}
-                    </Avatar>
-                    {user.firstName} {user.lastName}
-                  </Box>
-                </TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
-                  <Chip 
-                    label={user.role} 
-                    color={user.role === 'admin' ? 'primary' : 'default'}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Chip 
-                    label={user.status}
-                    color={user.status === 'active' ? 'success' : 'warning'}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  {new Date(user.lastLogin).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setUserDialogOpen(true);
-                    }}
+            {users
+              .slice(usersPage * usersRowsPerPage, usersPage * usersRowsPerPage + usersRowsPerPage)
+              .map((user) => {
+                const isItemSelected = selectedUserIds.indexOf(user.id) !== -1;
+                return (
+                  <TableRow
+                    key={user.id}
+                    selected={isItemSelected}
+                    onClick={() => handleClick(user.id, selectedUserIds, setSelectedUserIds)}
+                    role="checkbox"
                   >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton 
-                    size="small"
-                    onClick={() => handleUserAction(user.id, user.status === 'active' ? 'suspend' : 'activate')}
-                  >
-                    {user.status === 'active' ? <BlockIcon /> : <CheckCircleIcon />}
-                  </IconButton>
-                  <IconButton 
-                    size="small" 
-                    color="error"
-                    onClick={() => handleUserAction(user.id, 'delete')}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+                    <TableCell padding="checkbox">
+                      <Checkbox checked={isItemSelected} />
+                    </TableCell>
+                    <TableCell>
+                      <Box display="flex" alignItems="center">
+                        <Avatar sx={{ mr: 2 }}>
+                          {user.firstName[0]}{user.lastName[0]}
+                        </Avatar>
+                        {user.firstName} {user.lastName}
+                      </Box>
+                    </TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={user.role}
+                        color={user.role === 'admin' ? 'primary' : 'default'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={user.status}
+                        color={user.status === 'active' ? 'success' : 'warning'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.lastLogin).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setUserDialogOpen(true);
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleUserAction(user.id, user.status === 'active' ? 'suspend' : 'activate')}
+                      >
+                        {user.status === 'active' ? <BlockIcon /> : <CheckCircleIcon />}
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleUserAction(user.id, 'delete')}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={users.length}
+          rowsPerPage={usersRowsPerPage}
+          page={usersPage}
+          onPageChange={(_: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => setUsersPage(newPage)}
+          onRowsPerPageChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+            setUsersRowsPerPage(parseInt(event.target.value, 10));
+            setUsersPage(0);
+          }}
+        />
       </TableContainer>
     </Box>
   );
@@ -339,7 +448,7 @@ const AdminDashboard: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Platform Analytics
         </Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
             <Card>
@@ -360,7 +469,7 @@ const AdminDashboard: React.FC = () => {
               </CardContent>
             </Card>
           </Grid>
-          
+
           <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
@@ -398,7 +507,7 @@ const AdminDashboard: React.FC = () => {
       <Typography variant="h6" gutterBottom>
         System Health & Monitoring
       </Typography>
-      
+
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Card>
@@ -430,7 +539,7 @@ const AdminDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
@@ -479,8 +588,8 @@ const AdminDashboard: React.FC = () => {
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
       {alertMessage && (
-        <Alert 
-          severity="info" 
+        <Alert
+          severity="info"
           onClose={() => setAlertMessage(null)}
           sx={{ mb: 2 }}
         >
@@ -603,15 +712,328 @@ const AdminDashboard: React.FC = () => {
           )}
           {activeTab === 1 && <UserManagementTab />}
           {activeTab === 2 && (
-            <Typography>Startup management content goes here</Typography>
+            <Box>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6">Startup Management</Typography>
+                <Box display="flex" gap={2}>
+                  {selectedStartupIds.length > 0 ? (
+                    <Box display="flex" alignItems="center" gap={1} bgcolor="action.selected" p={1} borderRadius={1}>
+                      <Typography variant="subtitle2" color="primary">
+                        {selectedStartupIds.length} selected
+                      </Typography>
+                      <MuiTooltip title="Delete Selected">
+                        <IconButton size="small" color="error">
+                          <DeleteIcon />
+                        </IconButton>
+                      </MuiTooltip>
+                      <MuiTooltip title="Approve Selected">
+                        <IconButton size="small" color="success">
+                          <CheckCircleIcon />
+                        </IconButton>
+                      </MuiTooltip>
+                    </Box>
+                  ) : (
+                    <TextField
+                      size="small"
+                      placeholder="Search startups..."
+                      value={startupSearch}
+                      onChange={(e) => setStartupSearch(e.target.value)}
+                      sx={{ width: 250 }}
+                    />
+                  )}
+                  <Button variant="contained" color="primary">
+                    Add Startup
+                  </Button>
+                </Box>
+              </Box>
+
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          indeterminate={selectedStartupIds.length > 0 && selectedStartupIds.length < filteredStartups.length}
+                          checked={filteredStartups.length > 0 && selectedStartupIds.length === filteredStartups.length}
+                          onChange={(e) => handleSelectAllClick(e, filteredStartups, setSelectedStartupIds)}
+                        />
+                      </TableCell>
+                      <TableCell>Startup</TableCell>
+                      <TableCell>Industry</TableCell>
+                      <TableCell>Stage</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Founded</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredStartups
+                      .slice(startupsPage * startupsRowsPerPage, startupsPage * startupsRowsPerPage + startupsRowsPerPage)
+                      .map((startup) => {
+                        const isItemSelected = selectedStartupIds.indexOf(startup.id) !== -1;
+                        return (
+                          <TableRow
+                            key={startup.id}
+                            hover
+                            selected={isItemSelected}
+                            onClick={() => handleClick(startup.id, selectedStartupIds, setSelectedStartupIds)}
+                            role="checkbox"
+                          >
+                            <TableCell padding="checkbox">
+                              <Checkbox checked={isItemSelected} />
+                            </TableCell>
+                            <TableCell>
+                              <Box display="flex" alignItems="center">
+                                <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
+                                  {startup.name[0]}
+                                </Avatar>
+                                <Typography fontWeight={500}>{startup.name}</Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>{startup.industry}</TableCell>
+                            <TableCell>
+                              <Chip label={startup.stage} size="small" color="info" />
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={startup.status}
+                                color={startup.status === 'active' ? 'success' : startup.status === 'pending' ? 'warning' : 'default'}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              {new Date(startup.createdAt).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                              <IconButton size="small">
+                                <EditIcon />
+                              </IconButton>
+                              {startup.status === 'pending' && (
+                                <IconButton size="small" color="success">
+                                  <CheckCircleIcon />
+                                </IconButton>
+                              )}
+                              <IconButton size="small" color="error">
+                                <DeleteIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component="div"
+                  count={filteredStartups.length}
+                  rowsPerPage={startupsRowsPerPage}
+                  page={startupsPage}
+                  onPageChange={(_: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => setStartupsPage(newPage)}
+                  onRowsPerPageChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                    setStartupsRowsPerPage(parseInt(event.target.value, 10));
+                    setStartupsPage(0);
+                  }}
+                />
+              </TableContainer>
+            </Box>
           )}
           {activeTab === 3 && (
-            <Typography>Job management content goes here</Typography>
+            <Box>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6">Job Management</Typography>
+                <Box display="flex" gap={2}>
+                  {selectedJobIds.length > 0 ? (
+                    <Box display="flex" alignItems="center" gap={1} bgcolor="action.selected" p={1} borderRadius={1}>
+                      <Typography variant="subtitle2" color="primary">
+                        {selectedJobIds.length} selected
+                      </Typography>
+                      <MuiTooltip title="Delete Selected">
+                        <IconButton size="small" color="error">
+                          <DeleteIcon />
+                        </IconButton>
+                      </MuiTooltip>
+                    </Box>
+                  ) : (
+                    <TextField
+                      size="small"
+                      placeholder="Search jobs..."
+                      value={jobSearch}
+                      onChange={(e) => setJobSearch(e.target.value)}
+                      sx={{ width: 250 }}
+                    />
+                  )}
+                  <Button variant="contained" color="primary">
+                    Post Job
+                  </Button>
+                </Box>
+              </Box>
+
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          indeterminate={selectedJobIds.length > 0 && selectedJobIds.length < filteredJobs.length}
+                          checked={filteredJobs.length > 0 && selectedJobIds.length === filteredJobs.length}
+                          onChange={(e) => handleSelectAllClick(e, filteredJobs, setSelectedJobIds)}
+                        />
+                      </TableCell>
+                      <TableCell>Job Title</TableCell>
+                      <TableCell>Company</TableCell>
+                      <TableCell>Applications</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Posted</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredJobs
+                      .slice(jobsPage * jobsRowsPerPage, jobsPage * jobsRowsPerPage + jobsRowsPerPage)
+                      .map((job) => {
+                        const isItemSelected = selectedJobIds.indexOf(job.id) !== -1;
+                        return (
+                          <TableRow
+                            key={job.id}
+                            hover
+                            selected={isItemSelected}
+                            onClick={() => handleClick(job.id, selectedJobIds, setSelectedJobIds)}
+                            role="checkbox"
+                          >
+                            <TableCell padding="checkbox">
+                              <Checkbox checked={isItemSelected} />
+                            </TableCell>
+                            <TableCell>
+                              <Typography fontWeight={500}>{job.title}</Typography>
+                            </TableCell>
+                            <TableCell>{job.company}</TableCell>
+                            <TableCell>
+                              <Chip label={job.applications} color="primary" size="small" />
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={job.status}
+                                color={job.status === 'active' ? 'success' : job.status === 'pending' ? 'warning' : 'default'}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              {new Date(job.createdAt).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                              <IconButton size="small">
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                color={job.status === 'active' ? 'warning' : 'success'}
+                              >
+                                {job.status === 'active' ? <BlockIcon /> : <CheckCircleIcon />}
+                              </IconButton>
+                              <IconButton size="small" color="error">
+                                <DeleteIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component="div"
+                  count={filteredJobs.length}
+                  rowsPerPage={jobsRowsPerPage}
+                  page={jobsPage}
+                  onPageChange={(_: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => setJobsPage(newPage)}
+                  onRowsPerPageChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                    setJobsRowsPerPage(parseInt(event.target.value, 10));
+                    setJobsPage(0);
+                  }}
+                />
+              </TableContainer>
+            </Box>
           )}
           {activeTab === 4 && <AnalyticsTab />}
           {activeTab === 5 && <SystemHealthTab />}
           {activeTab === 6 && (
-            <Typography>Settings content goes here</Typography>
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Platform Settings
+              </Typography>
+
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        General Settings
+                      </Typography>
+                      <Box py={2}>
+                        <TextField
+                          fullWidth
+                          label="Platform Name"
+                          defaultValue="StartupCompass"
+                          margin="normal"
+                        />
+                        <TextField
+                          fullWidth
+                          label="Support Email"
+                          defaultValue="support@startupcompass.com"
+                          margin="normal"
+                        />
+                        <TextField
+                          fullWidth
+                          label="Max Upload Size (MB)"
+                          type="number"
+                          defaultValue="10"
+                          margin="normal"
+                        />
+                      </Box>
+                      <Button variant="contained" color="primary">
+                        Save Changes
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        Email Notifications
+                      </Typography>
+                      <Box py={2}>
+                        <FormControl fullWidth margin="normal">
+                          <InputLabel>New User Registration</InputLabel>
+                          <Select defaultValue="enabled">
+                            <MenuItem value="enabled">Enabled</MenuItem>
+                            <MenuItem value="disabled">Disabled</MenuItem>
+                          </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                          <InputLabel>Job Application Alerts</InputLabel>
+                          <Select defaultValue="enabled">
+                            <MenuItem value="enabled">Enabled</MenuItem>
+                            <MenuItem value="disabled">Disabled</MenuItem>
+                          </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                          <InputLabel>System Alerts</InputLabel>
+                          <Select defaultValue="enabled">
+                            <MenuItem value="enabled">Enabled</MenuItem>
+                            <MenuItem value="disabled">Disabled</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Box>
+                      <Button variant="contained" color="primary">
+                        Save Changes
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            </Box>
           )}
         </CardContent>
       </Card>

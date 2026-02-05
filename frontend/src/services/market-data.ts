@@ -8,6 +8,7 @@ export interface MarketStat {
     trend: 'up' | 'down' | 'neutral';
     color: string;
     bgColor: string;
+    sparkline?: number[];
 }
 
 // Simulated API delay
@@ -20,7 +21,8 @@ const MOCK_STATS: MarketStat[] = [
         change: '+23%',
         trend: 'up',
         color: 'text-blue-400',
-        bgColor: 'bg-blue-400/10'
+        bgColor: 'bg-blue-400/10',
+        sparkline: [10, 15, 8, 12, 18, 14, 22]
     },
     {
         label: 'Total Funding',
@@ -28,7 +30,8 @@ const MOCK_STATS: MarketStat[] = [
         change: '+18%',
         trend: 'up',
         color: 'text-green-400',
-        bgColor: 'bg-green-400/10'
+        bgColor: 'bg-green-400/10',
+        sparkline: [20, 25, 23, 30, 28, 35, 42]
     },
     {
         label: 'Founders',
@@ -36,7 +39,8 @@ const MOCK_STATS: MarketStat[] = [
         change: '+31%',
         trend: 'up',
         color: 'text-purple-400',
-        bgColor: 'bg-purple-400/10'
+        bgColor: 'bg-purple-400/10',
+        sparkline: [5, 12, 15, 20, 25, 30, 45]
     },
     {
         label: 'Exits (IPO/M&A)',
@@ -44,7 +48,8 @@ const MOCK_STATS: MarketStat[] = [
         change: '+12%',
         trend: 'up',
         color: 'text-orange-400',
-        bgColor: 'bg-orange-400/10'
+        bgColor: 'bg-orange-400/10',
+        sparkline: [100, 95, 105, 110, 100, 115, 120]
     },
 ];
 

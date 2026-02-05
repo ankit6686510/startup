@@ -1,24 +1,22 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   OneToMany,
   Index
 } from 'typeorm';
-import { 
-  FundingRound as FundingRoundType, 
-  Currency 
+import {
+  FundingRound as FundingRoundType,
+  Currency
 } from '@startup-platform/types';
 import { Investment } from './Investment';
 import { Valuation } from './Valuation';
 
 @Entity('funding_rounds')
-@Index(['startup_id'])
-@Index(['round_type', 'announced_date'])
+@Index(['roundType', 'announcedDate'])
 @Index(['amount', 'currency'])
-@Index(['is_confirmed'])
 export class FundingRound {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -304,10 +302,10 @@ export class FundingRound {
   }
 
   addUseOfFunds(category: keyof FundingRound['useOfFunds'], amount: number): void {
-    if (!this.useOfFunds[category]) {
-      this.useOfFunds[category] = 0;
+    if (!(this.useOfFunds as any)[category]) {
+      (this.useOfFunds as any)[category] = 0;
     }
-    this.useOfFunds[category] = (this.useOfFunds[category] as number) + amount;
+    (this.useOfFunds as any)[category] = ((this.useOfFunds as any)[category] as number) + amount;
   }
 
   getUseOfFundsPercentage(category: keyof FundingRound['useOfFunds']): number {

@@ -7,16 +7,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingGrid } from '@/components/ui/loading';
-import { StartupCard } from './StartupCard';
-import { useQuery } from '@tanstack/react-query';
-import { StartupService } from '@/services/startups';
+import { StartupCard } from '@/features/startups/components/StartupCardComponent';
+import { useTrendingStartups } from '@/features/startups/hooks';
 
 export function FeaturedStartups() {
-  const { data: startups, isLoading, isError } = useQuery({
-    queryKey: ['featuredStartups'],
-    queryFn: StartupService.getFeatured,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  const { data: startups, isLoading, isError } = useTrendingStartups(6);
 
   if (isLoading) {
     return (

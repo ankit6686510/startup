@@ -47,6 +47,7 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.staging
 
 # Logs
 logs
@@ -154,3 +155,6 @@ dump.rdb
 # Application specific
 uploads/
 static/media/
+
+*storybook.log
+storybook-static

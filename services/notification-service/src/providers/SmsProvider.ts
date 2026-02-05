@@ -15,11 +15,13 @@ export class SmsProvider {
   constructor() {
     this.fromNumber = process.env.TWILIO_PHONE_NUMBER || '';
 
-    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-      this.client = new Twilio(
-        process.env.TWILIO_ACCOUNT_SID,
-        process.env.TWILIO_AUTH_TOKEN
-      );
+    const sid = process.env.TWILIO_ACCOUNT_SID;
+    const token = process.env.TWILIO_AUTH_TOKEN;
+
+    if (sid && token && sid.startsWith('AC') && !sid.includes('your-twilio')) {
+      this.client = new Twilio(sid, token);
+    } else {
+      logger.warn('Twilio credentials not configured or are invalid. SMS will be disabled.');
     }
   }
 
@@ -55,7 +57,7 @@ export class SmsProvider {
 
     try {
       // Test by fetching account info
-      await this.client.api.accounts.get();
+      await this.client.api.accounts(process.env.TWILIO_ACCOUNT_SID!).fetch();
       logger.info('SMS service connection verified');
       return true;
     } catch (error) {

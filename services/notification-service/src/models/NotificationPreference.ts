@@ -1,17 +1,16 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   Index,
   Unique
 } from 'typeorm';
 import { NotificationType, NotificationCategory } from './Notification';
 
 @Entity('notification_preferences')
-@Index(['user_id'])
-@Unique(['user_id', 'type', 'category'])
+@Unique(['userId', 'type', 'category'])
 export class NotificationPreference {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -119,7 +118,7 @@ export class NotificationPreference {
   inAppDismissTimeout: number; // milliseconds
 
   // Priority filtering
-  @Column('text', { array: true, default: '["normal","high","urgent"]' })
+  @Column('text', { array: true, default: '{normal,high,urgent}' })
   allowedPriorities: string[]; // Which priority levels to receive
 
   @Column({ name: 'min_priority_override', nullable: true })
@@ -166,7 +165,7 @@ export class NotificationPreference {
 
     const now = new Date();
     const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    const currentDay = now.toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
     // Check if today is a quiet day
     if (this.quietDays.includes(currentDay)) {
@@ -218,7 +217,7 @@ export class NotificationPreference {
   resubscribeEmail(): void {
     if (this.type === NotificationType.EMAIL) {
       this.emailUnsubscribed = false;
-      this.emailUnsubscribedAt = null;
+      this.emailUnsubscribedAt = undefined;
     }
   }
 
@@ -231,8 +230,8 @@ export class NotificationPreference {
 
   disableQuietHours(): void {
     this.quietHoursEnabled = false;
-    this.quietHoursStart = null;
-    this.quietHoursEnd = null;
+    this.quietHoursStart = undefined;
+    this.quietHoursEnd = undefined;
     this.quietDays = [];
   }
 
@@ -254,8 +253,8 @@ export class NotificationPreference {
 
     if (this.smsVerificationCode === code) {
       this.smsVerified = true;
-      this.smsVerificationCode = null;
-      this.smsVerificationExpiresAt = null;
+      this.smsVerificationCode = undefined;
+      this.smsVerificationExpiresAt = undefined;
       return true;
     }
 

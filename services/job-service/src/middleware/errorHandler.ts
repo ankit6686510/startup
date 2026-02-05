@@ -19,6 +19,24 @@ export class AppError extends Error implements ApiError {
   }
 }
 
+export class UnauthorizedError extends AppError {
+  constructor(message: string = 'Unauthorized') {
+    super(message, 401);
+  }
+}
+
+export class ForbiddenError extends AppError {
+  constructor(message: string = 'Forbidden') {
+    super(message, 403);
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message: string = 'Not Found') {
+    super(message, 404);
+  }
+}
+
 export const errorHandler = (
   error: ApiError,
   req: Request,
@@ -71,9 +89,9 @@ export const errorHandler = (
     success: false,
     message,
     timestamp: new Date().toISOString(),
-    ...(process.env.NODE_ENV === 'development' && { 
+    ...(process.env.NODE_ENV === 'development' && {
       stack: error.stack,
-      details: error 
+      details: error
     }),
   });
 };

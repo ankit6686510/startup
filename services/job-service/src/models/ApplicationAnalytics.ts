@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -11,16 +11,11 @@ import {
 import { JobApplication } from './JobApplication';
 
 @Entity('application_analytics')
-@Index(['application_id'])
-@Index(['job_id'])
-@Index(['applicant_id'])
-@Index(['created_at'])
 export class ApplicationAnalytics {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ name: 'application_id' })
-  @Index()
   applicationId: string;
 
   @Column({ name: 'job_id' })
@@ -130,7 +125,7 @@ export class ApplicationAnalytics {
 
   recordView(durationSeconds: number): void {
     this.viewCount++;
-    this.avgViewDurationSeconds = 
+    this.avgViewDurationSeconds =
       (parseFloat(this.avgViewDurationSeconds.toString()) * (this.viewCount - 1) + durationSeconds) / this.viewCount;
     this.viewedAt = new Date();
   }
