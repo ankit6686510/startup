@@ -14,7 +14,7 @@ if (!fs.existsSync(serviceLogDir)) {
 // Custom log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({
-    format: 'YYYY-MM-DD HH:mm:ss.SSS'
+    format: 'YYYY-MM-DD HH:mm:ss.SSS',
   }),
   winston.format.errors({ stack: true }),
   winston.format.json(),
@@ -24,9 +24,9 @@ const logFormat = winston.format.combine(
       level,
       service: service || serviceName,
       message,
-      ...meta
+      ...meta,
     });
-  })
+  }),
 );
 
 // Create logger instance
@@ -36,16 +36,13 @@ const logger = winston.createLogger({
   defaultMeta: {
     service: serviceName,
     version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   },
   transports: [
     // Console transport for development
     new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-      silent: process.env.NODE_ENV === 'test'
+      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+      silent: process.env.NODE_ENV === 'test',
     }),
 
     // File transport for all logs
@@ -53,7 +50,7 @@ const logger = winston.createLogger({
       filename: path.join(serviceLogDir, 'app.log'),
       maxsize: 10485760, // 10MB
       maxFiles: 5,
-      tailable: true
+      tailable: true,
     }),
 
     // Separate file for errors
@@ -62,7 +59,7 @@ const logger = winston.createLogger({
       level: 'error',
       maxsize: 10485760, // 10MB
       maxFiles: 5,
-      tailable: true
+      tailable: true,
     }),
 
     // Audit log for security events
@@ -83,12 +80,12 @@ const logger = winston.createLogger({
               level,
               service: serviceName,
               message,
-              ...meta
+              ...meta,
             });
           }
           return false;
-        })
-      )
+        }),
+      ),
     }),
 
     // Performance log
@@ -109,28 +106,28 @@ const logger = winston.createLogger({
               level,
               service: serviceName,
               message,
-              ...meta
+              ...meta,
             });
           }
           return false;
-        })
-      )
-    })
+        }),
+      ),
+    }),
   ],
 
   // Handle uncaught exceptions
   exceptionHandlers: [
     new winston.transports.File({
-      filename: path.join(serviceLogDir, 'exceptions.log')
-    })
+      filename: path.join(serviceLogDir, 'exceptions.log'),
+    }),
   ],
 
   // Handle unhandled promise rejections
   rejectionHandlers: [
     new winston.transports.File({
-      filename: path.join(serviceLogDir, 'rejections.log')
-    })
-  ]
+      filename: path.join(serviceLogDir, 'rejections.log'),
+    }),
+  ],
 });
 
 // Enhanced logging methods
@@ -178,7 +175,7 @@ export class Logger {
       ip: req.ip || req.connection.remoteAddress,
       userId: req.user?.id,
       requestId: req.id,
-      contentLength: res.get('Content-Length')
+      contentLength: res.get('Content-Length'),
     };
 
     if (res.statusCode >= 400) {
@@ -195,7 +192,7 @@ export class Logger {
       operation,
       table,
       duration,
-      ...meta
+      ...meta,
     });
   }
 
@@ -208,7 +205,7 @@ export class Logger {
       userId,
       success,
       timestamp: new Date().toISOString(),
-      ...meta
+      ...meta,
     });
   }
 
@@ -218,7 +215,7 @@ export class Logger {
       type: 'business',
       event,
       data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -229,7 +226,7 @@ export class Logger {
       operation,
       duration,
       timestamp: new Date().toISOString(),
-      ...meta
+      ...meta,
     });
   }
 
@@ -241,7 +238,7 @@ export class Logger {
       event,
       severity,
       timestamp: new Date().toISOString(),
-      ...meta
+      ...meta,
     });
   }
 
@@ -253,7 +250,7 @@ export class Logger {
       stack: error.stack,
       name: error.name,
       context,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -262,12 +259,12 @@ export class Logger {
     this.logBusinessEvent('user_registration', {
       userId,
       email,
-      source
+      source,
     });
-    
+
     this.logAuth('register', userId, true, {
       email,
-      source
+      source,
     });
   }
 
@@ -275,7 +272,7 @@ export class Logger {
     this.logBusinessEvent('job_application', {
       jobId,
       userId,
-      applicationId
+      applicationId,
     });
   }
 
@@ -283,16 +280,21 @@ export class Logger {
     this.logBusinessEvent('funding_announcement', {
       startupId,
       amount,
-      round
+      round,
     });
   }
 
-  logNotificationSent(notificationId: string, userId: string, channel: string, success: boolean): void {
+  logNotificationSent(
+    notificationId: string,
+    userId: string,
+    channel: string,
+    success: boolean,
+  ): void {
     this.logBusinessEvent('notification_sent', {
       notificationId,
       userId,
       channel,
-      success
+      success,
     });
   }
 
@@ -301,7 +303,7 @@ export class Logger {
     this.logSecurity('rate_limit_exceeded', 'medium', {
       ip,
       endpoint,
-      limit
+      limit,
     });
   }
 
@@ -309,7 +311,7 @@ export class Logger {
   logApiKeyUsage(apiKey: string, endpoint: string, success: boolean): void {
     this.logAuth('api_key_usage', undefined, success, {
       apiKey: apiKey.substring(0, 8) + '...',
-      endpoint
+      endpoint,
     });
   }
 
@@ -318,7 +320,7 @@ export class Logger {
     this.logSecurity('data_export', 'low', {
       userId,
       dataType,
-      recordCount
+      recordCount,
     });
   }
 
@@ -329,7 +331,7 @@ export class Logger {
       service,
       status,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -339,19 +341,25 @@ export class Logger {
       type: 'cache',
       operation,
       key,
-      ttl
+      ttl,
     });
   }
 
   // External API calls
-  logExternalApi(service: string, endpoint: string, method: string, statusCode: number, duration: number): void {
+  logExternalApi(
+    service: string,
+    endpoint: string,
+    method: string,
+    statusCode: number,
+    duration: number,
+  ): void {
     this.logger.info('External API call', {
       type: 'external_api',
       service,
       endpoint,
       method,
       statusCode,
-      duration
+      duration,
     });
   }
 }
@@ -365,10 +373,11 @@ export { logger };
 // Express middleware for request logging
 export const requestLogger = (req: any, res: any, next: any) => {
   const startTime = Date.now();
-  
+
   // Generate request ID
-  req.id = req.get('X-Request-ID') || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+  req.id =
+    req.get('X-Request-ID') || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
   // Log request start
   appLogger.debug('HTTP request started', {
     type: 'http',
@@ -376,12 +385,12 @@ export const requestLogger = (req: any, res: any, next: any) => {
     url: req.url,
     userAgent: req.get('User-Agent'),
     ip: req.ip || req.connection.remoteAddress,
-    requestId: req.id
+    requestId: req.id,
   });
 
   // Override res.end to log response
   const originalEnd = res.end;
-  res.end = function(chunk: any, encoding: any) {
+  res.end = function (chunk: any, encoding: any) {
     const responseTime = Date.now() - startTime;
     appLogger.logRequest(req, res, responseTime);
     originalEnd.call(res, chunk, encoding);
@@ -398,9 +407,9 @@ export const errorLogger = (error: Error, req: any, res: any, next: any) => {
     userAgent: req.get('User-Agent'),
     ip: req.ip || req.connection.remoteAddress,
     userId: req.user?.id,
-    requestId: req.id
+    requestId: req.id,
   });
-  
+
   next(error);
 };
 

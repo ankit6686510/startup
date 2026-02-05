@@ -17,7 +17,7 @@ const upload = multer({
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'image/jpeg',
-      'image/png'
+      'image/png',
     ];
 
     if (allowedMimes.includes(file.mimetype)) {
@@ -25,7 +25,7 @@ const upload = multer({
     } else {
       cb(new Error('Invalid file type. Only PDF, DOC, DOCX, JPG, PNG allowed'));
     }
-  }
+  },
 });
 
 export class ApplicationController {
@@ -39,48 +39,52 @@ export class ApplicationController {
 
   static uploadDocumentValidation = [
     param('applicationId').isUUID().withMessage('Valid application ID required'),
-    body('documentType').isIn(['resume', 'cover_letter', 'portfolio', 'other'])
+    body('documentType')
+      .isIn(['resume', 'cover_letter', 'portfolio', 'other'])
       .withMessage('Document type must be resume, cover_letter, portfolio, or other'),
     body('isPrimary').optional().isBoolean().withMessage('isPrimary must be boolean'),
   ];
 
   static updateStatusValidation = [
     param('applicationId').isUUID().withMessage('Valid application ID required'),
-    body('status').isIn(Object.values(ApplicationStatus))
-      .withMessage('Invalid application status'),
-    body('reason').optional().isLength({ max: 500 })
+    body('status').isIn(Object.values(ApplicationStatus)).withMessage('Invalid application status'),
+    body('reason')
+      .optional()
+      .isLength({ max: 500 })
       .withMessage('Reason must be less than 500 characters'),
-    body('notes').optional().isLength({ max: 1000 })
+    body('notes')
+      .optional()
+      .isLength({ max: 1000 })
       .withMessage('Notes must be less than 1000 characters'),
   ];
 
   static bulkUpdateStatusValidation = [
-    body('applicationIds').isArray({ min: 1 })
+    body('applicationIds')
+      .isArray({ min: 1 })
       .withMessage('Application IDs array required with at least 1 item'),
     body('applicationIds.*').isUUID().withMessage('Each application ID must be valid UUID'),
-    body('status').isIn(Object.values(ApplicationStatus))
-      .withMessage('Invalid application status'),
+    body('status').isIn(Object.values(ApplicationStatus)).withMessage('Invalid application status'),
     body('reason').optional().isLength({ max: 500 }),
   ];
 
   static filterValidation = [
-    query('status').optional().isIn(Object.values(ApplicationStatus))
+    query('status')
+      .optional()
+      .isIn(Object.values(ApplicationStatus))
       .withMessage('Invalid status filter'),
-    query('page').optional().isInt({ min: 1 })
-      .withMessage('Page must be >= 1'),
-    query('limit').optional().isInt({ min: 1, max: 100 })
+    query('page').optional().isInt({ min: 1 }).withMessage('Page must be >= 1'),
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
       .withMessage('Limit must be between 1 and 100'),
   ];
 
   static bulkApplyValidation = [
-    body('jobIds').isArray({ min: 1 })
-      .withMessage('Job IDs array required with at least 1 item'),
+    body('jobIds').isArray({ min: 1 }).withMessage('Job IDs array required with at least 1 item'),
     body('jobIds.*').isUUID().withMessage('Each job ID must be valid UUID'),
     body('commonData').optional().isObject().withMessage('Common data must be object'),
-    body('commonData.emailAddress').isEmail()
-      .withMessage('Valid email required'),
-    body('commonData.fullName').isLength({ min: 1, max: 200 })
-      .withMessage('Full name required'),
+    body('commonData.emailAddress').isEmail().withMessage('Valid email required'),
+    body('commonData.fullName').isLength({ min: 1, max: 200 }).withMessage('Full name required'),
   ];
 
   // ==================== DOCUMENT MANAGEMENT ====================
@@ -123,7 +127,7 @@ export class ApplicationController {
           size: req.file.size,
           buffer: req.file.buffer,
         },
-        isPrimary === 'true'
+        isPrimary === 'true',
       );
 
       res.status(201).json({
@@ -150,7 +154,11 @@ export class ApplicationController {
    * Get application documents
    * GET /applications/:applicationId/documents
    */
-  getApplicationDocuments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getApplicationDocuments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { applicationId } = req.params;
 
@@ -203,7 +211,11 @@ export class ApplicationController {
    * Update application status
    * PATCH /applications/:applicationId/status
    */
-  updateApplicationStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  updateApplicationStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -225,7 +237,7 @@ export class ApplicationController {
         status,
         changedBy,
         reason,
-        notes
+        notes,
       );
 
       res.json({
@@ -252,7 +264,11 @@ export class ApplicationController {
    * Get application status history
    * GET /applications/:applicationId/history
    */
-  getApplicationHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getApplicationHistory = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { applicationId } = req.params;
 
@@ -274,7 +290,11 @@ export class ApplicationController {
    * Get application timeline (combined history and documents)
    * GET /applications/:applicationId/timeline
    */
-  getApplicationTimeline = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getApplicationTimeline = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { applicationId } = req.params;
 
@@ -330,7 +350,7 @@ export class ApplicationController {
           ...commonData,
           ipAddress: req.ip,
           userAgent: req.get('User-Agent'),
-        }
+        },
       });
 
       res.status(201).json({
@@ -376,7 +396,7 @@ export class ApplicationController {
         applicationIds,
         status,
         changedBy,
-        reason
+        reason,
       );
 
       res.json({
@@ -399,7 +419,11 @@ export class ApplicationController {
    * Get applications with filtering and pagination
    * GET /applications
    */
-  getApplicationsByFilter = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getApplicationsByFilter = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -423,11 +447,7 @@ export class ApplicationController {
         sortBy: (req.query.sortBy as 'newest' | 'oldest' | 'status' | 'quality') || 'newest',
       };
 
-      const result = await this.applicationService.getApplicationsByFilter(
-        filters,
-        page,
-        limit
-      );
+      const result = await this.applicationService.getApplicationsByFilter(filters, page, limit);
 
       res.json({
         success: true,
@@ -455,7 +475,11 @@ export class ApplicationController {
    * Get application analytics
    * GET /applications/:applicationId/analytics
    */
-  getApplicationAnalytics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getApplicationAnalytics = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { applicationId } = req.params;
 

@@ -11,7 +11,7 @@ export const errorHandler = (
   error: ApiError,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   logger.error({
     error: error.message,
@@ -19,7 +19,7 @@ export const errorHandler = (
     url: req.url,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent')
+    userAgent: req.get('User-Agent'),
   });
 
   const statusCode = error.statusCode || 500;
@@ -31,7 +31,7 @@ export const errorHandler = (
     code: error.code,
     field: error.field,
     timestamp: new Date().toISOString(),
-    requestId: req.headers['x-request-id'] || undefined
+    requestId: req.headers['x-request-id'] || undefined,
   });
 };
 

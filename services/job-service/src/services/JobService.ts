@@ -7,12 +7,7 @@ import { JobAlert } from '@/models/JobAlert';
 import { JobView } from '@/models/JobView';
 import { JobAnalytics } from '@/models/JobAnalytics';
 import { logger } from '@/utils/logger';
-import {
-  JobType,
-  WorkLocation,
-  ExperienceLevel,
-  JobCategory
-} from '@startup-platform/types';
+import { JobType, WorkLocation, ExperienceLevel, JobCategory } from '@startup-platform/types';
 
 export interface JobFilters {
   search?: string;
@@ -183,7 +178,11 @@ export class JobService {
     return job;
   }
 
-  async getJobs(filters: JobFilters, page: number = 1, limit: number = 20): Promise<{ jobs: Job[], total: number }> {
+  async getJobs(
+    filters: JobFilters,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ jobs: Job[]; total: number }> {
     const queryBuilder = this.createJobQueryBuilder(filters);
 
     // Pagination
@@ -191,8 +190,7 @@ export class JobService {
     queryBuilder.skip(offset).take(limit);
 
     // Default sorting by created date (newest first), then by featured status
-    queryBuilder.orderBy('job.isFeatured', 'DESC')
-      .addOrderBy('job.createdAt', 'DESC');
+    queryBuilder.orderBy('job.isFeatured', 'DESC').addOrderBy('job.createdAt', 'DESC');
 
     const [jobs, total] = await queryBuilder.getManyAndCount();
     return { jobs, total };
@@ -202,7 +200,7 @@ export class JobService {
     return await this.jobRepository.find({
       where: {
         isActive: true,
-        isFeatured: true
+        isFeatured: true,
       },
       order: { createdAt: 'DESC' },
       take: limit,
@@ -221,14 +219,19 @@ export class JobService {
     });
   }
 
-  async searchJobs(query: string, filters: JobFilters, page: number = 1, limit: number = 20): Promise<{ jobs: Job[], total: number }> {
+  async searchJobs(
+    query: string,
+    filters: JobFilters,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ jobs: Job[]; total: number }> {
     const searchFilters = { ...filters, search: query };
     return await this.getJobs(searchFilters, page, limit);
   }
 
   async applyToJob(data: ApplicationCreateData): Promise<JobApplication> {
     const job = await this.jobRepository.findOne({
-      where: { id: data.jobId }
+      where: { id: data.jobId },
     });
 
     if (!job) {
@@ -243,8 +246,8 @@ export class JobService {
     const existingApplication = await this.applicationRepository.findOne({
       where: {
         jobId: data.jobId,
-        applicantId: data.applicantId
-      }
+        applicantId: data.applicantId,
+      },
     });
 
     if (existingApplication) {
@@ -273,12 +276,14 @@ export class JobService {
       queryBuilder.andWhere('job.startupId = :startupId', { startupId });
     }
 
-    return await queryBuilder
-      .orderBy('application.createdAt', 'DESC')
-      .getMany();
+    return await queryBuilder.orderBy('application.createdAt', 'DESC').getMany();
   }
 
-  async getUserApplications(userId: string, page: number = 1, limit: number = 20): Promise<{ applications: JobApplication[], total: number }> {
+  async getUserApplications(
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ applications: JobApplication[]; total: number }> {
     const queryBuilder = this.applicationRepository
       .createQueryBuilder('application')
       .leftJoinAndSelect('application.job', 'job')
@@ -296,11 +301,11 @@ export class JobService {
     applicationId: string,
     status: ApplicationStatus,
     updatedBy: string,
-    notes?: string
+    notes?: string,
   ): Promise<JobApplication> {
     const application = await this.applicationRepository.findOne({
       where: { id: applicationId },
-      relations: ['job']
+      relations: ['job'],
     });
 
     if (!application) {
@@ -317,7 +322,7 @@ export class JobService {
   async saveJob(userId: string, jobId: string, notes?: string): Promise<SavedJob> {
     // Check if already saved
     const existingSave = await this.savedJobRepository.findOne({
-      where: { userId, jobId }
+      where: { userId, jobId },
     });
 
     if (existingSave) {
@@ -332,7 +337,7 @@ export class JobService {
     const savedJob = this.savedJobRepository.create({
       userId,
       jobId,
-      notes
+      notes,
     });
 
     return await this.savedJobRepository.save(savedJob);
@@ -342,7 +347,11 @@ export class JobService {
     await this.savedJobRepository.delete({ userId, jobId });
   }
 
-  async getUserSavedJobs(userId: string, page: number = 1, limit: number = 20): Promise<{ savedJobs: SavedJob[], total: number }> {
+  async getUserSavedJobs(
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ savedJobs: SavedJob[]; total: number }> {
     const queryBuilder = this.savedJobRepository
       .createQueryBuilder('savedJob')
       .leftJoinAndSelect('savedJob.job', 'job')
@@ -360,7 +369,7 @@ export class JobService {
   async createJobAlert(userId: string, alertData: any): Promise<JobAlert> {
     const alert = this.alertRepository.create({
       userId,
-      ...alertData
+      ...alertData,
     });
 
     return await this.alertRepository.save(alert as any);
@@ -369,13 +378,13 @@ export class JobService {
   async getUserJobAlerts(userId: string): Promise<JobAlert[]> {
     return await this.alertRepository.find({
       where: { userId },
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
   }
 
   async updateJobAlert(alertId: string, userId: string, updateData: any): Promise<JobAlert> {
     const alert = await this.alertRepository.findOne({
-      where: { id: alertId, userId }
+      where: { id: alertId, userId },
     });
 
     if (!alert) {
@@ -389,7 +398,7 @@ export class JobService {
   async deleteJobAlert(alertId: string, userId: string): Promise<void> {
     const result = await this.alertRepository.delete({
       id: alertId,
-      userId
+      userId,
     });
 
     if (result.affected === 0) {
@@ -404,18 +413,20 @@ export class JobService {
       queryBuilder.where('job.startupId = :startupId', { startupId });
     }
 
-    const [
-      totalJobs,
-      activeJobs,
-      totalApplications,
-      featuredJobs
-    ] = await Promise.all([
+    const [totalJobs, activeJobs, totalApplications, featuredJobs] = await Promise.all([
       queryBuilder.getCount(),
       queryBuilder.clone().andWhere('job.isActive = :isActive', { isActive: true }).getCount(),
-      this.applicationRepository.count(startupId ? {
-        where: { job: { startupId } }
-      } : {}),
-      queryBuilder.clone().andWhere('job.isFeatured = :isFeatured', { isFeatured: true }).getCount()
+      this.applicationRepository.count(
+        startupId
+          ? {
+              where: { job: { startupId } },
+            }
+          : {},
+      ),
+      queryBuilder
+        .clone()
+        .andWhere('job.isFeatured = :isFeatured', { isFeatured: true })
+        .getCount(),
     ]);
 
     return {
@@ -423,7 +434,7 @@ export class JobService {
       activeJobs,
       totalApplications,
       featuredJobs,
-      averageApplicationsPerJob: totalJobs > 0 ? Math.round(totalApplications / totalJobs) : 0
+      averageApplicationsPerJob: totalJobs > 0 ? Math.round(totalApplications / totalJobs) : 0,
     };
   }
 
@@ -438,8 +449,8 @@ export class JobService {
         '(job.title ILIKE :search OR job.description ILIKE :search OR job.skills && :searchArray)',
         {
           search: `%${filters.search}%`,
-          searchArray: [filters.search]
-        }
+          searchArray: [filters.search],
+        },
       );
     }
 
@@ -452,17 +463,21 @@ export class JobService {
     }
 
     if (filters.locationType) {
-      queryBuilder.andWhere('job.locationType = :locationType', { locationType: filters.locationType });
+      queryBuilder.andWhere('job.locationType = :locationType', {
+        locationType: filters.locationType,
+      });
     }
 
     if (filters.experienceLevel) {
-      queryBuilder.andWhere('job.experienceLevel = :experienceLevel', { experienceLevel: filters.experienceLevel });
+      queryBuilder.andWhere('job.experienceLevel = :experienceLevel', {
+        experienceLevel: filters.experienceLevel,
+      });
     }
 
     if (filters.location) {
       queryBuilder.andWhere(
         '(job.locationCity ILIKE :location OR job.locationState ILIKE :location OR job.locationCountry ILIKE :location)',
-        { location: `%${filters.location}%` }
+        { location: `%${filters.location}%` },
       );
     }
 
@@ -479,7 +494,9 @@ export class JobService {
     }
 
     if (filters.startupIds && filters.startupIds.length > 0) {
-      queryBuilder.andWhere('job.startupId IN (:...startupIds)', { startupIds: filters.startupIds });
+      queryBuilder.andWhere('job.startupId IN (:...startupIds)', {
+        startupIds: filters.startupIds,
+      });
     }
 
     if (filters.isRemote) {
@@ -537,14 +554,17 @@ export class JobService {
   /**
    * Track a job view with detailed analytics
    */
-  async trackJobView(jobId: string, viewData: {
-    userId?: string;
-    sessionId?: string;
-    ipAddress?: string;
-    userAgent?: string;
-    referrer?: string;
-    utmParams?: any;
-  }): Promise<JobView> {
+  async trackJobView(
+    jobId: string,
+    viewData: {
+      userId?: string;
+      sessionId?: string;
+      ipAddress?: string;
+      userAgent?: string;
+      referrer?: string;
+      utmParams?: any;
+    },
+  ): Promise<JobView> {
     const job = await this.jobRepository.findOne({ where: { id: jobId } });
 
     if (!job) {
@@ -556,7 +576,7 @@ export class JobService {
       jobId,
       ...viewData,
       deviceType: this.detectDeviceType(viewData.userAgent),
-      browser: this.detectBrowser(viewData.userAgent)
+      browser: this.detectBrowser(viewData.userAgent),
     });
 
     const savedView = await this.viewRepository.save(jobView);
@@ -570,7 +590,7 @@ export class JobService {
       view: true,
       isAuthenticated: !!viewData.userId,
       utmSource: viewData.utmParams?.source,
-      deviceType: jobView.deviceType
+      deviceType: jobView.deviceType,
     });
 
     return savedView;
@@ -579,13 +599,16 @@ export class JobService {
   /**
    * Update engagement metrics for a view
    */
-  async updateViewEngagement(viewId: string, engagementData: {
-    timeSpent?: number;
-    clickedApply?: boolean;
-    clickedSave?: boolean;
-    clickedShare?: boolean;
-    scrolledPercentage?: number;
-  }): Promise<JobView> {
+  async updateViewEngagement(
+    viewId: string,
+    engagementData: {
+      timeSpent?: number;
+      clickedApply?: boolean;
+      clickedSave?: boolean;
+      clickedShare?: boolean;
+      scrolledPercentage?: number;
+    },
+  ): Promise<JobView> {
     const view = await this.viewRepository.findOne({ where: { id: viewId } });
 
     if (!view) {
@@ -599,7 +622,11 @@ export class JobService {
   /**
    * Get job analytics for a specific period
    */
-  async getJobAnalytics(jobId: string, startDate?: Date, endDate?: Date): Promise<{
+  async getJobAnalytics(
+    jobId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<{
     overview: any;
     daily: JobAnalytics[];
     totalViews: number;
@@ -624,16 +651,28 @@ export class JobService {
     const dailyAnalytics = await this.analyticsRepository.find({
       where: {
         jobId,
-        date: Between(startDate, endDate)
+        date: Between(startDate, endDate),
       },
-      order: { date: 'ASC' }
+      order: { date: 'ASC' },
     });
 
     // Calculate totals
-    const totalViews = dailyAnalytics.reduce((sum: number, day: any) => sum + (day.totalViews || 0), 0);
-    const totalApplications = dailyAnalytics.reduce((sum: number, day: any) => sum + (day.totalApplications || 0), 0);
-    const totalSaves = dailyAnalytics.reduce((sum: number, day: any) => sum + (day.saveCount || 0), 0);
-    const totalShares = dailyAnalytics.reduce((sum: number, day: any) => sum + (day.shareCount || 0), 0);
+    const totalViews = dailyAnalytics.reduce(
+      (sum: number, day: any) => sum + (day.totalViews || 0),
+      0,
+    );
+    const totalApplications = dailyAnalytics.reduce(
+      (sum: number, day: any) => sum + (day.totalApplications || 0),
+      0,
+    );
+    const totalSaves = dailyAnalytics.reduce(
+      (sum: number, day: any) => sum + (day.saveCount || 0),
+      0,
+    );
+    const totalShares = dailyAnalytics.reduce(
+      (sum: number, day: any) => sum + (day.shareCount || 0),
+      0,
+    );
 
     const conversionRate = totalViews > 0 ? (totalApplications / totalViews) * 100 : 0;
 
@@ -660,14 +699,18 @@ export class JobService {
         totalSaves,
         totalShares,
         conversionRate: parseFloat(conversionRate.toFixed(2)),
-        avgTimeSpent: dailyAnalytics.length > 0
-          ? dailyAnalytics.reduce((sum, d) => sum + parseFloat(d.avgTimeSpentSeconds.toString()), 0) / dailyAnalytics.length
-          : 0
+        avgTimeSpent:
+          dailyAnalytics.length > 0
+            ? dailyAnalytics.reduce(
+                (sum, d) => sum + parseFloat(d.avgTimeSpentSeconds.toString()),
+                0,
+              ) / dailyAnalytics.length
+            : 0,
       },
       daily: dailyAnalytics,
       totalViews,
       totalApplications,
-      conversionRate: parseFloat(conversionRate.toFixed(2))
+      conversionRate: parseFloat(conversionRate.toFixed(2)),
     };
   }
 
@@ -679,10 +722,10 @@ export class JobService {
     sinceDate.setDate(sinceDate.getDate() - period);
 
     const jobs = await this.jobRepository.find({
-      where: { startupId }
+      where: { startupId },
     });
 
-    const jobIds = jobs.map(j => j.id);
+    const jobIds = jobs.map((j) => j.id);
 
     // Get analytics for all jobs
     const analytics = await this.analyticsRepository
@@ -693,62 +736,74 @@ export class JobService {
 
     // Aggregate metrics
     const totalViews = analytics.reduce((sum: number, a: any) => sum + (a.totalViews || 0), 0);
-    const totalApplications = analytics.reduce((sum: number, a: any) => sum + (a.totalApplications || 0), 0);
-    const avgConversionRate = analytics.length > 0
-      ? analytics.reduce((sum: number, a: any) => sum + parseFloat(a.conversionRate.toString()), 0) / analytics.length
-      : 0;
+    const totalApplications = analytics.reduce(
+      (sum: number, a: any) => sum + (a.totalApplications || 0),
+      0,
+    );
+    const avgConversionRate =
+      analytics.length > 0
+        ? analytics.reduce(
+            (sum: number, a: any) => sum + parseFloat(a.conversionRate.toString()),
+            0,
+          ) / analytics.length
+        : 0;
 
     // Top performing jobs
-    const jobPerformance = jobs.map(job => {
-      const jobAnalytics = analytics.filter(a => a.jobId === job.id);
-      const views = jobAnalytics.reduce((sum, a) => sum + a.totalViews, 0);
-      const applications = jobAnalytics.reduce((sum, a) => sum + a.totalApplications, 0);
+    const jobPerformance = jobs
+      .map((job) => {
+        const jobAnalytics = analytics.filter((a) => a.jobId === job.id);
+        const views = jobAnalytics.reduce((sum, a) => sum + a.totalViews, 0);
+        const applications = jobAnalytics.reduce((sum, a) => sum + a.totalApplications, 0);
 
-      return {
-        id: job.id,
-        title: job.title,
-        views,
-        applications,
-        conversionRate: views > 0 ? (applications / views) * 100 : 0
-      };
-    }).sort((a, b) => b.views - a.views);
+        return {
+          id: job.id,
+          title: job.title,
+          views,
+          applications,
+          conversionRate: views > 0 ? (applications / views) * 100 : 0,
+        };
+      })
+      .sort((a, b) => b.views - a.views);
 
     return {
       period,
       totalJobs: jobs.length,
-      activeJobs: jobs.filter(j => j.isActive).length,
+      activeJobs: jobs.filter((j) => j.isActive).length,
       totalViews,
       totalApplications,
       avgConversionRate: parseFloat(avgConversionRate.toFixed(2)),
-      topPerformingJobs: jobPerformance.slice(0, 5)
+      topPerformingJobs: jobPerformance.slice(0, 5),
     };
   }
 
   /**
    * Update daily analytics (called when events occur)
    */
-  private async updateDailyAnalytics(jobId: string, event: {
-    view?: boolean;
-    application?: boolean;
-    save?: boolean;
-    share?: boolean;
-    applyClick?: boolean;
-    isAuthenticated?: boolean;
-    utmSource?: string;
-    deviceType?: string;
-  }): Promise<void> {
+  private async updateDailyAnalytics(
+    jobId: string,
+    event: {
+      view?: boolean;
+      application?: boolean;
+      save?: boolean;
+      share?: boolean;
+      applyClick?: boolean;
+      isAuthenticated?: boolean;
+      utmSource?: string;
+      deviceType?: string;
+    },
+  ): Promise<void> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Find or create today's analytics record
     let analytics = await this.analyticsRepository.findOne({
-      where: { jobId, date: today }
+      where: { jobId, date: today },
     });
 
     if (!analytics) {
       analytics = this.analyticsRepository.create({
         jobId,
-        date: today
+        date: today,
       });
     }
 
@@ -856,7 +911,7 @@ export class JobService {
    */
   private applySearchWithRelevance(
     queryBuilder: SelectQueryBuilder<Job>,
-    searchQuery: string
+    searchQuery: string,
   ): SelectQueryBuilder<Job> {
     // Add relevance scoring using PostgreSQL full-text search
     queryBuilder.addSelect(
@@ -870,14 +925,14 @@ export class JobService {
           ELSE 0
         END
       )`,
-      'relevance_score'
+      'relevance_score',
     );
 
     queryBuilder.setParameters({
       exactMatch: searchQuery,
       startsWith: `${searchQuery}%`,
       contains: `%${searchQuery}%`,
-      skillArray: [searchQuery]
+      skillArray: [searchQuery],
     });
 
     queryBuilder.andWhere(
@@ -889,8 +944,8 @@ export class JobService {
       )`,
       {
         searchPattern: `%${searchQuery}%`,
-        searchArray: [searchQuery]
-      }
+        searchArray: [searchQuery],
+      },
     );
 
     return queryBuilder;
@@ -902,15 +957,14 @@ export class JobService {
   private applySorting(
     queryBuilder: SelectQueryBuilder<Job>,
     sort: string,
-    searchQuery?: string
+    searchQuery?: string,
   ): SelectQueryBuilder<Job> {
     switch (sort) {
       case 'relevance':
         if (searchQuery) {
           queryBuilder.orderBy('relevance_score', 'DESC');
         } else {
-          queryBuilder.orderBy('job.isFeatured', 'DESC')
-            .addOrderBy('job.createdAt', 'DESC');
+          queryBuilder.orderBy('job.isFeatured', 'DESC').addOrderBy('job.createdAt', 'DESC');
         }
         break;
 
@@ -940,35 +994,34 @@ export class JobService {
     const baseQuery = this.createJobQueryBuilder({});
 
     // Get facet counts
-    const [
-      categories,
-      types,
-      experienceLevels,
-      locations
-    ] = await Promise.all([
+    const [categories, types, experienceLevels, locations] = await Promise.all([
       // Category facets
-      baseQuery.clone()
+      baseQuery
+        .clone()
         .select('job.category', 'category')
         .addSelect('COUNT(*)', 'count')
         .groupBy('job.category')
         .getRawMany(),
 
       // Job type facets
-      baseQuery.clone()
+      baseQuery
+        .clone()
         .select('job.type', 'type')
         .addSelect('COUNT(*)', 'count')
         .groupBy('job.type')
         .getRawMany(),
 
       // Experience level facets
-      baseQuery.clone()
+      baseQuery
+        .clone()
         .select('job.experienceLevel', 'level')
         .addSelect('COUNT(*)', 'count')
         .groupBy('job.experienceLevel')
         .getRawMany(),
 
       // Location facets (top cities)
-      baseQuery.clone()
+      baseQuery
+        .clone()
         .select('job.locationCity', 'city')
         .addSelect('job.locationCountry', 'country')
         .addSelect('COUNT(*)', 'count')
@@ -977,18 +1030,18 @@ export class JobService {
         .addGroupBy('job.locationCountry')
         .orderBy('count', 'DESC')
         .limit(10)
-        .getRawMany()
+        .getRawMany(),
     ]);
 
     return {
-      categories: categories.map(c => ({ value: c.category, count: parseInt(c.count) })),
-      types: types.map(t => ({ value: t.type, count: parseInt(t.count) })),
-      experienceLevels: experienceLevels.map(e => ({ value: e.level, count: parseInt(e.count) })),
-      locations: locations.map(l => ({
+      categories: categories.map((c) => ({ value: c.category, count: parseInt(c.count) })),
+      types: types.map((t) => ({ value: t.type, count: parseInt(t.count) })),
+      experienceLevels: experienceLevels.map((e) => ({ value: e.level, count: parseInt(e.count) })),
+      locations: locations.map((l) => ({
         city: l.city,
         country: l.country,
-        count: parseInt(l.count)
-      }))
+        count: parseInt(l.count),
+      })),
     };
   }
 
@@ -1010,5 +1063,4 @@ export class JobService {
     if (/edge/i.test(userAgent)) return 'edge';
     return 'other';
   }
-
 }

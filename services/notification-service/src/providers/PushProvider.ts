@@ -22,7 +22,7 @@ export class PushProvider {
         webpush.setVapidDetails(
           VAPID_SUBJECT || 'mailto:admin@startupcompass.com',
           VAPID_PUBLIC_KEY,
-          VAPID_PRIVATE_KEY
+          VAPID_PRIVATE_KEY,
         );
       } catch (error) {
         logger.warn('Failed to set VAPID details. Web push might not work correctly.', error);

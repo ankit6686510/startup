@@ -3,13 +3,13 @@ import { AppDataSource } from '../config/database';
 import { Startup } from '../models/Startup';
 import { Founder } from '../models/Founder';
 import { StartupMetrics } from '../models/StartupMetrics';
-import { 
-  GetStartupsRequest, 
-  PaginatedResponse, 
+import {
+  GetStartupsRequest,
+  PaginatedResponse,
   StartupSummary,
   Industry,
   StartupStatus,
-  FundingRound 
+  FundingRound,
 } from '@startup-platform/types';
 
 export class StartupRepository {
@@ -26,28 +26,28 @@ export class StartupRepository {
   async findById(id: string, relations: string[] = []): Promise<Startup | null> {
     return this.repository.findOne({
       where: { id },
-      relations
+      relations,
     });
   }
 
   async findBySlug(slug: string, relations: string[] = []): Promise<Startup | null> {
     return this.repository.findOne({
       where: { slug },
-      relations
+      relations,
     });
   }
 
   async findAll(params: GetStartupsRequest): Promise<PaginatedResponse<StartupSummary>> {
     const queryBuilder = this.repository.createQueryBuilder('startup');
-    
+
     // Apply filters
     this.applyFilters(queryBuilder, params);
-    
+
     // Apply search
     if (params.search) {
       queryBuilder.andWhere(
         '(LOWER(startup.name) LIKE LOWER(:search) OR LOWER(startup.description) LIKE LOWER(:search))',
-        { search: `%${params.search}%` }
+        { search: `%${params.search}%` },
       );
     }
 
@@ -60,14 +60,14 @@ export class StartupRepository {
     const page = params.page || 1;
     const limit = Math.min(params.limit || 20, 100);
     const offset = (page - 1) * limit;
-    
+
     queryBuilder.skip(offset).take(limit);
 
     // Execute query
     const [startups, total] = await queryBuilder.getManyAndCount();
 
     // Transform to summary format
-    const data: StartupSummary[] = startups.map(startup => ({
+    const data: StartupSummary[] = startups.map((startup) => ({
       id: startup.id,
       name: startup.name,
       slug: startup.slug,
@@ -79,7 +79,7 @@ export class StartupRepository {
       stage: startup.stage,
       status: startup.status,
       employeeCount: startup.employeeCount,
-      tags: startup.tags
+      tags: startup.tags,
     }));
 
     return {
@@ -90,27 +90,27 @@ export class StartupRepository {
         total,
         totalPages: Math.ceil(total / limit),
         hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     };
   }
 
   async create(startup: Partial<Startup>, founders: Partial<Founder>[]): Promise<Startup> {
-    return AppDataSource.transaction(async manager => {
+    return AppDataSource.transaction(async (manager) => {
       // Create startup
       const startupEntity = manager.create(Startup, startup);
       const savedStartup = await manager.save(startupEntity);
 
       // Create founders
-      const founderEntities = founders.map(founder => 
-        manager.create(Founder, { ...founder, startupId: savedStartup.id })
+      const founderEntities = founders.map((founder) =>
+        manager.create(Founder, { ...founder, startupId: savedStartup.id }),
       );
       await manager.save(founderEntities);
 
       // Return startup with founders
       return manager.findOne(Startup, {
         where: { id: savedStartup.id },
-        relations: ['founders']
+        relations: ['founders'],
       }) as Promise<Startup>;
     });
   }
@@ -129,18 +129,18 @@ export class StartupRepository {
     return this.repository.find({
       where: { industry, status: StartupStatus.ACTIVE },
       take: limit,
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
   }
 
   async findFeatured(limit: number = 5): Promise<Startup[]> {
     return this.repository.find({
-      where: { 
-        verified: true, 
-        status: StartupStatus.ACTIVE 
+      where: {
+        verified: true,
+        status: StartupStatus.ACTIVE,
       },
       take: limit,
-      order: { totalFunding: 'DESC' }
+      order: { totalFunding: 'DESC' },
     });
   }
 
@@ -152,7 +152,7 @@ export class StartupRepository {
   }> {
     const [total, verified] = await Promise.all([
       this.repository.count(),
-      this.repository.count({ where: { verified: true } })
+      this.repository.count({ where: { verified: true } }),
     ]);
 
     const byIndustryQuery = await this.repository
@@ -169,22 +169,33 @@ export class StartupRepository {
       .groupBy('startup.status')
       .getRawMany();
 
-    const byIndustry = byIndustryQuery.reduce((acc, item) => {
-      acc[item.industry] = parseInt(item.count);
-      return acc;
-    }, {} as Record<string, number>);
+    const byIndustry = byIndustryQuery.reduce(
+      (acc, item) => {
+        acc[item.industry] = parseInt(item.count);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    const byStatus = byStatusQuery.reduce((acc, item) => {
-      acc[item.status] = parseInt(item.count);
-      return acc;
-    }, {} as Record<string, number>);
+    const byStatus = byStatusQuery.reduce(
+      (acc, item) => {
+        acc[item.status] = parseInt(item.count);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     return { total, verified, byIndustry, byStatus };
   }
 
-  private applyFilters(queryBuilder: SelectQueryBuilder<Startup>, params: GetStartupsRequest): void {
+  private applyFilters(
+    queryBuilder: SelectQueryBuilder<Startup>,
+    params: GetStartupsRequest,
+  ): void {
     if (params.industry?.length) {
-      queryBuilder.andWhere('startup.industry IN (:...industries)', { industries: params.industry });
+      queryBuilder.andWhere('startup.industry IN (:...industries)', {
+        industries: params.industry,
+      });
     }
 
     if (params.status?.length) {
@@ -192,29 +203,33 @@ export class StartupRepository {
     }
 
     if (params.location?.countries?.length) {
-      queryBuilder.andWhere('startup.locationCountry IN (:...countries)', { 
-        countries: params.location.countries 
+      queryBuilder.andWhere('startup.locationCountry IN (:...countries)', {
+        countries: params.location.countries,
       });
     }
 
     if (params.foundedAfter) {
-      queryBuilder.andWhere('startup.foundedYear >= :foundedAfter', { 
-        foundedAfter: params.foundedAfter.getFullYear() 
+      queryBuilder.andWhere('startup.foundedYear >= :foundedAfter', {
+        foundedAfter: params.foundedAfter.getFullYear(),
       });
     }
 
     if (params.foundedBefore) {
-      queryBuilder.andWhere('startup.foundedYear <= :foundedBefore', { 
-        foundedBefore: params.foundedBefore.getFullYear() 
+      queryBuilder.andWhere('startup.foundedYear <= :foundedBefore', {
+        foundedBefore: params.foundedBefore.getFullYear(),
       });
     }
 
     if (params.minFunding) {
-      queryBuilder.andWhere('startup.totalFunding >= :minFunding', { minFunding: params.minFunding });
+      queryBuilder.andWhere('startup.totalFunding >= :minFunding', {
+        minFunding: params.minFunding,
+      });
     }
 
     if (params.maxFunding) {
-      queryBuilder.andWhere('startup.totalFunding <= :maxFunding', { maxFunding: params.maxFunding });
+      queryBuilder.andWhere('startup.totalFunding <= :maxFunding', {
+        maxFunding: params.maxFunding,
+      });
     }
 
     if (params.verified !== undefined) {
@@ -223,7 +238,7 @@ export class StartupRepository {
 
     if (params.hasJobs) {
       queryBuilder.andWhere(
-        'EXISTS (SELECT 1 FROM jobs j WHERE j.startup_id = startup.id AND j.is_active = true)'
+        'EXISTS (SELECT 1 FROM jobs j WHERE j.startup_id = startup.id AND j.is_active = true)',
       );
     }
   }

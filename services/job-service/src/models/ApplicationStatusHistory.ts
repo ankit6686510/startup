@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { JobApplication } from './JobApplication';
 
@@ -21,7 +21,7 @@ export enum ApplicationHistoryStatus {
   OFFER_EXTENDED = 'offer_extended',
   ACCEPTED = 'accepted',
   DECLINED = 'declined',
-  WITHDRAWN = 'withdrawn'
+  WITHDRAWN = 'withdrawn',
 }
 
 @Entity('application_status_history')
@@ -38,7 +38,7 @@ export class ApplicationStatusHistory {
 
   @Column({
     type: 'enum',
-    enum: ApplicationHistoryStatus
+    enum: ApplicationHistoryStatus,
   })
   status: ApplicationHistoryStatus;
 

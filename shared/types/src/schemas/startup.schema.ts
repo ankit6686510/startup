@@ -9,10 +9,12 @@ export const LocationSchema = z.object({
   state: z.string().optional(),
   region: z.string().optional(),
   isRemote: z.boolean().default(false),
-  coordinates: z.object({
-    latitude: z.number().min(-90).max(90),
-    longitude: z.number().min(-180).max(180)
-  }).optional()
+  coordinates: z
+    .object({
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    })
+    .optional(),
 });
 
 // Social links schema
@@ -24,7 +26,7 @@ export const SocialLinksSchema = z.object({
   github: z.string().url().optional(),
   productHunt: z.string().url().optional(),
   crunchbase: z.string().url().optional(),
-  angelList: z.string().url().optional()
+  angelList: z.string().url().optional(),
 });
 
 // Founder schema
@@ -41,7 +43,7 @@ export const FounderSchema = z.object({
   isPrimary: z.boolean().default(false),
   equity: z.number().min(0).max(100).optional(),
   createdAt: z.date().optional(),
-  updatedAt: z.date().optional()
+  updatedAt: z.date().optional(),
 });
 
 // Startup schema
@@ -68,7 +70,7 @@ export const StartupSchema = z.object({
   socialLinks: SocialLinksSchema.optional(),
   tags: z.array(z.string()).max(20).optional(),
   createdAt: z.date().optional(),
-  updatedAt: z.date().optional()
+  updatedAt: z.date().optional(),
 });
 
 // Startup metrics schema
@@ -85,7 +87,7 @@ export const StartupMetricsSchema = z.object({
   runway: z.number().min(0).optional(),
   growthRate: z.number().optional(),
   dataSource: z.nativeEnum(DataSource),
-  createdAt: z.date().optional()
+  createdAt: z.date().optional(),
 });
 
 // Startup claim schema
@@ -100,7 +102,7 @@ export const StartupClaimSchema = z.object({
   adminNotes: z.string().max(1000).optional(),
   submittedAt: z.date().optional(),
   reviewedAt: z.date().optional(),
-  reviewedBy: z.string().uuid().optional()
+  reviewedBy: z.string().uuid().optional(),
 });
 
 // Create startup request schema
@@ -115,12 +117,16 @@ export const CreateStartupRequestSchema = z.object({
   mission: z.string().max(500).optional(),
   logoUrl: z.string().url().optional(),
   socialLinks: SocialLinksSchema.optional(),
-  founders: z.array(FounderSchema.omit({ 
-    id: true, 
-    startupId: true, 
-    createdAt: true, 
-    updatedAt: true 
-  })).min(1, 'At least one founder is required')
+  founders: z
+    .array(
+      FounderSchema.omit({
+        id: true,
+        startupId: true,
+        createdAt: true,
+        updatedAt: true,
+      }),
+    )
+    .min(1, 'At least one founder is required'),
 });
 
 // Update startup request schema
@@ -135,7 +141,7 @@ export const UpdateStartupRequestSchema = z.object({
   vision: z.string().max(500).optional(),
   mission: z.string().max(500).optional(),
   logoUrl: z.string().url().optional(),
-  socialLinks: SocialLinksSchema.optional()
+  socialLinks: SocialLinksSchema.optional(),
 });
 
 // Search and filter schemas
@@ -149,13 +155,15 @@ export const StartupFiltersSchema = z.object({
   maxFunding: z.number().min(0).optional(),
   hasJobs: z.boolean().optional(),
   verified: z.boolean().optional(),
-  tags: z.array(z.string()).optional()
+  tags: z.array(z.string()).optional(),
 });
 
 // Validation functions
 export const validateStartup = (data: unknown) => StartupSchema.safeParse(data);
-export const validateCreateStartupRequest = (data: unknown) => CreateStartupRequestSchema.safeParse(data);
-export const validateUpdateStartupRequest = (data: unknown) => UpdateStartupRequestSchema.safeParse(data);
+export const validateCreateStartupRequest = (data: unknown) =>
+  CreateStartupRequestSchema.safeParse(data);
+export const validateUpdateStartupRequest = (data: unknown) =>
+  UpdateStartupRequestSchema.safeParse(data);
 export const validateStartupMetrics = (data: unknown) => StartupMetricsSchema.safeParse(data);
 export const validateStartupClaim = (data: unknown) => StartupClaimSchema.safeParse(data);
 export const validateStartupFilters = (data: unknown) => StartupFiltersSchema.safeParse(data);

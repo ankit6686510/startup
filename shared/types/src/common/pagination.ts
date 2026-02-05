@@ -76,15 +76,15 @@ export const SORT_OPTIONS = {
   RELEVANCE: 'relevance',
   DATE_ASC: 'date_asc',
   DATE_DESC: 'date_desc',
-  NAME_ASC: 'name_asc', 
+  NAME_ASC: 'name_asc',
   NAME_DESC: 'name_desc',
   FUNDING_ASC: 'funding_asc',
   FUNDING_DESC: 'funding_desc',
   POPULARITY: 'popularity',
-  TRENDING: 'trending'
+  TRENDING: 'trending',
 } as const;
 
-export type SortOption = typeof SORT_OPTIONS[keyof typeof SORT_OPTIONS];
+export type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];
 
 // Default pagination settings
 export const DEFAULT_PAGINATION = {
@@ -92,5 +92,5 @@ export const DEFAULT_PAGINATION = {
   LIMIT: 20,
   MAX_LIMIT: 100,
   SORT_BY: 'createdAt',
-  SORT_ORDER: 'desc' as const
+  SORT_ORDER: 'desc' as const,
 };

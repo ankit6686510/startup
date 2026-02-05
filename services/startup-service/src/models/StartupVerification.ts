@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
-  JoinColumn
+  JoinColumn,
 } from 'typeorm';
 import { Startup } from './Startup';
 
@@ -14,7 +14,7 @@ export enum VerificationStatus {
   PENDING = 'PENDING',
   VERIFIED = 'VERIFIED',
   REJECTED = 'REJECTED',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 export enum VerificationType {
@@ -24,7 +24,7 @@ export enum VerificationType {
   BANK_ACCOUNT = 'BANK_ACCOUNT', // Bank account verification
   PHONE = 'PHONE', // Phone verification
   MANUAL_REVIEW = 'MANUAL_REVIEW', // Manual admin review
-  SOCIAL_PROOF = 'SOCIAL_PROOF' // Multiple social media presence
+  SOCIAL_PROOF = 'SOCIAL_PROOF', // Multiple social media presence
 }
 
 @Entity('startup_verifications')
@@ -111,8 +111,8 @@ export class StartupVerification {
   updatedAt: Date;
 
   // Relations
-  @OneToOne(() => Startup, startup => startup.verification, {
-    onDelete: 'CASCADE'
+  @OneToOne(() => Startup, (startup) => startup.verification, {
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'startup_id' })
   startup: Startup;

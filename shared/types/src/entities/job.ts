@@ -70,7 +70,7 @@ export enum ApplicationStatus {
   OFFER = 'offer',
   REJECTED = 'rejected',
   WITHDRAWN = 'withdrawn',
-  HIRED = 'hired'
+  HIRED = 'hired',
 }
 
 export interface ApplicationStage {

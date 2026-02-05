@@ -51,7 +51,7 @@ export class AuthService {
 
   async register(data: RegisterData): Promise<User> {
     const existingUser = await this.userRepository.findOne({
-      where: { email: data.email.toLowerCase() }
+      where: { email: data.email.toLowerCase() },
     });
 
     if (existingUser) {
@@ -73,9 +73,10 @@ export class AuthService {
       user: savedUser,
       firstName: data.firstName,
       lastName: data.lastName,
-      displayName: data.firstName && data.lastName ?
-        `${data.firstName} ${data.lastName}` :
-        data.firstName || data.lastName,
+      displayName:
+        data.firstName && data.lastName
+          ? `${data.firstName} ${data.lastName}`
+          : data.firstName || data.lastName,
     });
 
     await this.profileRepository.save(profile);
@@ -90,7 +91,7 @@ export class AuthService {
   async login(data: LoginData): Promise<AuthResult> {
     const user = await this.userRepository.findOne({
       where: { email: data.email.toLowerCase() },
-      relations: ['profile']
+      relations: ['profile'],
     });
 
     if (!user) {
@@ -131,7 +132,7 @@ export class AuthService {
 
   async logout(sessionToken: string): Promise<void> {
     const session = await this.sessionRepository.findOne({
-      where: { token: sessionToken }
+      where: { token: sessionToken },
     });
 
     if (session) {
@@ -144,7 +145,7 @@ export class AuthService {
   async refreshToken(refreshToken: string): Promise<TokenPair> {
     const session = await this.sessionRepository.findOne({
       where: { refreshToken },
-      relations: ['user']
+      relations: ['user'],
     });
 
     if (!session || !session.isValid() || session.isRefreshExpired()) {
@@ -158,7 +159,9 @@ export class AuthService {
     session.token = tokens.accessToken;
     session.refreshToken = tokens.refreshToken;
     session.expiresAt = JWTUtil.getTokenExpirationDate(process.env.JWT_EXPIRES_IN || '7d');
-    session.refreshExpiresAt = JWTUtil.getTokenExpirationDate(process.env.JWT_REFRESH_EXPIRES_IN || '30d');
+    session.refreshExpiresAt = JWTUtil.getTokenExpirationDate(
+      process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+    );
     session.updateLastUsed();
 
     await this.sessionRepository.save(session);
@@ -171,7 +174,7 @@ export class AuthService {
     // Invalidate existing verifications
     await this.emailVerificationRepository.update(
       { user: { id: user.id }, isUsed: false },
-      { isUsed: true }
+      { isUsed: true },
     );
 
     const token = JWTUtil.generateEmailVerificationToken();
@@ -195,7 +198,7 @@ export class AuthService {
   async verifyEmail(token: string): Promise<User> {
     const verification = await this.emailVerificationRepository.findOne({
       where: { token },
-      relations: ['user']
+      relations: ['user'],
     });
 
     if (!verification || !verification.isValid()) {
@@ -220,7 +223,7 @@ export class AuthService {
 
   async sendPasswordReset(email: string): Promise<void> {
     const user = await this.userRepository.findOne({
-      where: { email: email.toLowerCase() }
+      where: { email: email.toLowerCase() },
     });
 
     if (!user) {
@@ -232,7 +235,7 @@ export class AuthService {
     // Invalidate existing password resets
     await this.passwordResetRepository.update(
       { user: { id: user.id }, isUsed: false },
-      { isUsed: true }
+      { isUsed: true },
     );
 
     const token = JWTUtil.generatePasswordResetToken();
@@ -256,7 +259,7 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string): Promise<User> {
     const passwordReset = await this.passwordResetRepository.findOne({
       where: { token },
-      relations: ['user']
+      relations: ['user'],
     });
 
     if (!passwordReset || !passwordReset.isValid()) {
@@ -282,9 +285,13 @@ export class AuthService {
     return user;
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
     const user = await this.userRepository.findOne({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user) {
@@ -309,8 +316,8 @@ export class AuthService {
       {
         isActive: false,
         revokedAt: new Date(),
-        revokeReason: reason || 'All sessions revoked'
-      }
+        revokeReason: reason || 'All sessions revoked',
+      },
     );
 
     logger.info(`All sessions revoked for user: ${userId}`);
@@ -319,7 +326,7 @@ export class AuthService {
   private async createSession(
     user: User,
     tokens: TokenPair,
-    loginData: LoginData
+    loginData: LoginData,
   ): Promise<UserSession> {
     const session = this.sessionRepository.create({
       user: user,
@@ -337,13 +344,13 @@ export class AuthService {
   async getUserSessions(userId: string): Promise<UserSession[]> {
     return await this.sessionRepository.find({
       where: { user: { id: userId }, isActive: true },
-      order: { lastUsedAt: 'DESC' }
+      order: { lastUsedAt: 'DESC' },
     });
   }
 
   async revokeSession(sessionId: string, userId: string): Promise<void> {
     const session = await this.sessionRepository.findOne({
-      where: { id: sessionId, user: { id: userId } }
+      where: { id: sessionId, user: { id: userId } },
     });
 
     if (session) {

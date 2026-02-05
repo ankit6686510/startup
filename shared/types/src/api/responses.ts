@@ -1,31 +1,9 @@
 import { PaginatedResponse, SearchResponse } from '../common/pagination';
-import { 
-  Startup, 
-  StartupSummary, 
-  Founder, 
-  StartupMetrics 
-} from '../entities/startup';
-import { 
-  FundingRoundData, 
-  Investor, 
-  InvestorSummary
-} from '../entities/funding';
-import { 
-  Job, 
-  JobSummary, 
-  JobApplication, 
-  JobStats 
-} from '../entities/job';
-import { 
-  User, 
-  AuthUser, 
-  UserStats 
-} from '../entities/user';
-import { 
-  NewsArticle, 
-  NewsSummary, 
-  TrendingTopic 
-} from '../entities/news';
+import { Startup, StartupSummary, Founder, StartupMetrics } from '../entities/startup';
+import { FundingRoundData, Investor, InvestorSummary } from '../entities/funding';
+import { Job, JobSummary, JobApplication, JobStats } from '../entities/job';
+import { User, AuthUser, UserStats } from '../entities/user';
+import { NewsArticle, NewsSummary, TrendingTopic } from '../entities/news';
 
 // Generic API response structure
 export interface ApiResponse<T = any> {

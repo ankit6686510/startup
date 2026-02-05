@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { Job } from './Job';
 
@@ -19,7 +19,7 @@ export enum ApplicationStatus {
   OFFER_EXTENDED = 'offer_extended',
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
-  WITHDRAWN = 'withdrawn'
+  WITHDRAWN = 'withdrawn',
 }
 
 @Entity('job_applications')
@@ -40,7 +40,7 @@ export class JobApplication {
   @Column({
     type: 'enum',
     enum: ApplicationStatus,
-    default: ApplicationStatus.SUBMITTED
+    default: ApplicationStatus.SUBMITTED,
   })
   status: ApplicationStatus;
 
@@ -165,7 +165,7 @@ export class JobApplication {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Job, job => job.applications, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Job, (job) => job.applications, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'job_id' })
   job: Job;
 
@@ -174,15 +174,12 @@ export class JobApplication {
     return ![
       ApplicationStatus.ACCEPTED,
       ApplicationStatus.REJECTED,
-      ApplicationStatus.WITHDRAWN
+      ApplicationStatus.WITHDRAWN,
     ].includes(this.status);
   }
 
   get isPending(): boolean {
-    return [
-      ApplicationStatus.SUBMITTED,
-      ApplicationStatus.UNDER_REVIEW
-    ].includes(this.status);
+    return [ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW].includes(this.status);
   }
 
   get isInProgress(): boolean {
@@ -190,7 +187,7 @@ export class JobApplication {
       ApplicationStatus.SHORTLISTED,
       ApplicationStatus.INTERVIEW_SCHEDULED,
       ApplicationStatus.INTERVIEWED,
-      ApplicationStatus.OFFER_EXTENDED
+      ApplicationStatus.OFFER_EXTENDED,
     ].includes(this.status);
   }
 
@@ -198,7 +195,7 @@ export class JobApplication {
     return [
       ApplicationStatus.ACCEPTED,
       ApplicationStatus.REJECTED,
-      ApplicationStatus.WITHDRAWN
+      ApplicationStatus.WITHDRAWN,
     ].includes(this.status);
   }
 
@@ -245,7 +242,9 @@ export class JobApplication {
   }
 
   calculateOverallScore(): number {
-    const scores = [this.resumeScore, this.cultureFitScore, this.technicalScore].filter(score => score !== null && score !== undefined);
+    const scores = [this.resumeScore, this.cultureFitScore, this.technicalScore].filter(
+      (score) => score !== null && score !== undefined,
+    );
 
     if (scores.length === 0) return 0;
 

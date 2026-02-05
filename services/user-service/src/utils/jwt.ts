@@ -30,7 +30,7 @@ export class JWTUtil {
       role: user.role,
     };
 
-    return jwt.sign(payload, JWT_SECRET as string, {
+    return jwt.sign(payload, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN as any,
       issuer: 'startupcompass',
       audience: 'startupcompass-users',

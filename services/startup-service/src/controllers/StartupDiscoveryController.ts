@@ -11,7 +11,7 @@ import {
   HttpStatus,
   Logger,
   BadRequestException,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { StartupDiscoveryService } from '../services/StartupDiscoveryService';
 import {
@@ -24,7 +24,7 @@ import {
   UserBookmarksResponse,
   FollowStatusResponse,
   DiscoveryPageResponse,
-  ApiResponse
+  ApiResponse,
 } from '../types/startup-profiles.types';
 
 @Controller('startups')
@@ -36,15 +36,17 @@ export class StartupDiscoveryController {
   // ==================== SEARCH ENDPOINTS ====================
 
   @Get('search')
-  async searchStartups(@Query() filters: SearchStartupsRequest): Promise<ApiResponse<SearchResultsResponse>> {
+  async searchStartups(
+    @Query() filters: SearchStartupsRequest,
+  ): Promise<ApiResponse<SearchResultsResponse>> {
     this.logger.log(`Searching startups with filters: ${JSON.stringify(filters)}`);
-    
+
     try {
       const results = await this.discoveryService.searchStartups(filters);
       return {
         success: true,
         data: results,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(`Search failed: ${error.message}`);
@@ -54,16 +56,16 @@ export class StartupDiscoveryController {
   @Get('trending')
   async getTrendingStartups(
     @Query('limit') limit: number = 10,
-    @Query('days') days: number = 7
+    @Query('days') days: number = 7,
   ): Promise<ApiResponse<TrendingStartupsResponse>> {
     this.logger.log(`Getting trending startups for last ${days} days`);
-    
+
     try {
       const results = await this.discoveryService.getTrendingStartups(limit, days);
       return {
         success: true,
         data: results,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(`Failed to fetch trending startups: ${error.message}`);
@@ -73,16 +75,16 @@ export class StartupDiscoveryController {
   @Get('discovery')
   async getDiscoveryPage(
     @Query('limit') limit: number = 20,
-    @Headers('x-user-id') userId?: string
+    @Headers('x-user-id') userId?: string,
   ): Promise<ApiResponse<DiscoveryPageResponse>> {
     this.logger.log(`Getting discovery page for user ${userId || 'anonymous'}`);
-    
+
     try {
       const result = await this.discoveryService.getDiscoveryPage(userId, limit);
       return {
         success: true,
         data: result,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(`Failed to load discovery page: ${error.message}`);
@@ -92,23 +94,23 @@ export class StartupDiscoveryController {
   @Get(':startupId/similar')
   async getSimilarStartups(
     @Param('startupId') startupId: string,
-    @Query('limit') limit: number = 5
+    @Query('limit') limit: number = 5,
   ): Promise<ApiResponse<RecommendationsResponse>> {
     this.logger.log(`Getting startups similar to ${startupId}`);
-    
+
     try {
       const results = await this.discoveryService.getSimilarStartups(startupId, limit);
       return {
         success: true,
         data: {
-          data: results.map(r => ({
+          data: results.map((r) => ({
             startup: { id: r.startupId } as any,
             similarityScore: r.similarity,
-            commonFactors: r.commonFactors
+            commonFactors: r.commonFactors,
           })),
-          count: results.length
+          count: results.length,
         },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new NotFoundException(error.message);
@@ -120,10 +122,10 @@ export class StartupDiscoveryController {
   @Get('recommendations')
   async getRecommendations(
     @Query('limit') limit: number = 10,
-    @Headers('x-user-id') userId?: string
+    @Headers('x-user-id') userId?: string,
   ): Promise<ApiResponse<RecommendationsResponse>> {
     this.logger.log(`Getting recommendations for user ${userId}`);
-    
+
     if (!userId) {
       throw new BadRequestException('User ID is required for recommendations');
     }
@@ -133,7 +135,7 @@ export class StartupDiscoveryController {
       return {
         success: true,
         data: results,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(`Failed to generate recommendations: ${error.message}`);
@@ -147,10 +149,10 @@ export class StartupDiscoveryController {
   async followStartup(
     @Param('startupId') startupId: string,
     @Body() request: FollowStartupRequest,
-    @Headers('x-user-id') userId: string
+    @Headers('x-user-id') userId: string,
   ) {
     this.logger.log(`User ${userId} following startup ${startupId}`);
-    
+
     if (!userId) {
       throw new BadRequestException('User ID is required');
     }
@@ -161,7 +163,7 @@ export class StartupDiscoveryController {
         success: true,
         data: follow,
         message: 'Startup followed successfully',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -171,10 +173,10 @@ export class StartupDiscoveryController {
   @Delete(':startupId/follow')
   async unfollowStartup(
     @Param('startupId') startupId: string,
-    @Headers('x-user-id') userId: string
+    @Headers('x-user-id') userId: string,
   ) {
     this.logger.log(`User ${userId} unfollowing startup ${startupId}`);
-    
+
     if (!userId) {
       throw new BadRequestException('User ID is required');
     }
@@ -184,7 +186,7 @@ export class StartupDiscoveryController {
       return {
         success: true,
         message: 'Startup unfollowed successfully',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -194,10 +196,10 @@ export class StartupDiscoveryController {
   @Get(':startupId/follow/status')
   async getFollowStatus(
     @Param('startupId') startupId: string,
-    @Headers('x-user-id') userId: string
+    @Headers('x-user-id') userId: string,
   ): Promise<ApiResponse<FollowStatusResponse>> {
     this.logger.log(`Checking follow status for user ${userId} and startup ${startupId}`);
-    
+
     if (!userId) {
       throw new BadRequestException('User ID is required');
     }
@@ -210,9 +212,9 @@ export class StartupDiscoveryController {
         success: true,
         data: {
           isFollowing,
-          isBookmarked
+          isBookmarked,
         },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -225,10 +227,10 @@ export class StartupDiscoveryController {
   @HttpCode(HttpStatus.CREATED)
   async bookmarkStartup(
     @Param('startupId') startupId: string,
-    @Headers('x-user-id') userId: string
+    @Headers('x-user-id') userId: string,
   ) {
     this.logger.log(`User ${userId} bookmarking startup ${startupId}`);
-    
+
     if (!userId) {
       throw new BadRequestException('User ID is required');
     }
@@ -239,7 +241,7 @@ export class StartupDiscoveryController {
         success: true,
         data: bookmark,
         message: 'Startup bookmarked successfully',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -249,10 +251,10 @@ export class StartupDiscoveryController {
   @Delete(':startupId/bookmark')
   async removeBookmark(
     @Param('startupId') startupId: string,
-    @Headers('x-user-id') userId: string
+    @Headers('x-user-id') userId: string,
   ) {
     this.logger.log(`User ${userId} removing bookmark for startup ${startupId}`);
-    
+
     if (!userId) {
       throw new BadRequestException('User ID is required');
     }
@@ -262,7 +264,7 @@ export class StartupDiscoveryController {
       return {
         success: true,
         message: 'Bookmark removed successfully',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -276,10 +278,10 @@ export class StartupDiscoveryController {
     @Param('userId') userId: string,
     @Query('limit') limit: number = 20,
     @Query('offset') offset: number = 0,
-    @Headers('x-user-id') requesterId: string
+    @Headers('x-user-id') requesterId: string,
   ): Promise<ApiResponse<UserFollowsResponse>> {
     this.logger.log(`Getting follows for user ${userId}`);
-    
+
     // Users can only see their own follows unless public profile is enabled
     if (userId !== requesterId) {
       throw new BadRequestException('You can only view your own follows');
@@ -290,7 +292,7 @@ export class StartupDiscoveryController {
       return {
         success: true,
         data: follows as any,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -302,10 +304,10 @@ export class StartupDiscoveryController {
     @Param('userId') userId: string,
     @Query('limit') limit: number = 20,
     @Query('offset') offset: number = 0,
-    @Headers('x-user-id') requesterId: string
+    @Headers('x-user-id') requesterId: string,
   ): Promise<ApiResponse<UserBookmarksResponse>> {
     this.logger.log(`Getting bookmarks for user ${userId}`);
-    
+
     // Users can only see their own bookmarks
     if (userId !== requesterId) {
       throw new BadRequestException('You can only view your own bookmarks');
@@ -316,7 +318,7 @@ export class StartupDiscoveryController {
       return {
         success: true,
         data: bookmarks as any,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -328,13 +330,13 @@ export class StartupDiscoveryController {
   @Get(':startupId/followers/count')
   async getFollowersCount(@Param('startupId') startupId: string) {
     this.logger.log(`Getting followers count for startup ${startupId}`);
-    
+
     try {
       const count = await this.discoveryService.getFollowersCount(startupId);
       return {
         success: true,
         data: { count },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -342,19 +344,16 @@ export class StartupDiscoveryController {
   }
 
   @Get(':startupId/followers/top')
-  async getTopFollowers(
-    @Param('startupId') startupId: string,
-    @Query('limit') limit: number = 10
-  ) {
+  async getTopFollowers(@Param('startupId') startupId: string, @Query('limit') limit: number = 10) {
     this.logger.log(`Getting top followers for startup ${startupId}`);
-    
+
     try {
       const followers = await this.discoveryService.getTopFollowers(startupId, limit);
       return {
         success: true,
         data: followers,
         count: followers.length,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -364,13 +363,13 @@ export class StartupDiscoveryController {
   @Get(':startupId/trending-score')
   async getTrendingScore(@Param('startupId') startupId: string) {
     this.logger.log(`Calculating trending score for startup ${startupId}`);
-    
+
     try {
       const score = await this.discoveryService.calculateTrendingScore(startupId);
       return {
         success: true,
         data: { trendingScore: score },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new NotFoundException(error.message);
@@ -383,16 +382,16 @@ export class StartupDiscoveryController {
   async trackAction(
     @Param('startupId') startupId: string,
     @Param('action') action: 'view' | 'search' | 'recommend',
-    @Headers('x-user-id') userId?: string
+    @Headers('x-user-id') userId?: string,
   ) {
     this.logger.log(`Tracking ${action} action for startup ${startupId} by user ${userId}`);
-    
+
     try {
       const result = await this.discoveryService.trackDiscoveryAction(startupId, action, userId);
       return {
         success: true,
         data: result,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -404,7 +403,7 @@ export class StartupDiscoveryController {
   @Get('filters/options')
   async getFilterOptions() {
     this.logger.log('Getting available filter options');
-    
+
     const options = {
       industries: [
         { label: 'Technology', value: 'technology' },
@@ -414,7 +413,7 @@ export class StartupDiscoveryController {
         { label: 'E-commerce', value: 'ecommerce' },
         { label: 'SaaS', value: 'saas' },
         { label: 'AI/ML', value: 'ai-ml' },
-        { label: 'Blockchain', value: 'blockchain' }
+        { label: 'Blockchain', value: 'blockchain' },
       ],
       stages: [
         { label: 'Idea', value: 'idea' },
@@ -424,7 +423,7 @@ export class StartupDiscoveryController {
         { label: 'Series B', value: 'series-b' },
         { label: 'Series C', value: 'series-c' },
         { label: 'Series D+', value: 'series-d' },
-        { label: 'Growth', value: 'growth' }
+        { label: 'Growth', value: 'growth' },
       ],
       locations: [
         { label: 'San Francisco Bay Area', value: 'sf-bay' },
@@ -435,7 +434,7 @@ export class StartupDiscoveryController {
         { label: 'Boston', value: 'boston' },
         { label: 'London', value: 'london' },
         { label: 'Singapore', value: 'singapore' },
-        { label: 'India', value: 'india' }
+        { label: 'India', value: 'india' },
       ],
       fundingRanges: [
         { label: 'Under $100K', min: 0, max: 100000 },
@@ -443,20 +442,20 @@ export class StartupDiscoveryController {
         { label: '$1M - $5M', min: 1000000, max: 5000000 },
         { label: '$5M - $10M', min: 5000000, max: 10000000 },
         { label: '$10M - $50M', min: 10000000, max: 50000000 },
-        { label: '$50M+', min: 50000000, max: 999999999 }
+        { label: '$50M+', min: 50000000, max: 999999999 },
       ],
       sortOptions: [
         { label: 'Trending', value: 'trending' },
         { label: 'Most Followers', value: 'followers' },
         { label: 'Most Recent', value: 'recent' },
-        { label: 'Relevance', value: 'relevance' }
-      ]
+        { label: 'Relevance', value: 'relevance' },
+      ],
     };
 
     return {
       success: true,
       data: options,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 }

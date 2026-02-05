@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  Index
+  Index,
 } from 'typeorm';
 import { Startup } from './Startup';
 
@@ -27,7 +27,7 @@ export enum TeamRole {
   MARKETING = 'MARKETING',
   SALES = 'SALES',
   OPERATIONS = 'OPERATIONS',
-  OTHER = 'OTHER'
+  OTHER = 'OTHER',
 }
 
 @Entity('startup_team')
@@ -101,8 +101,8 @@ export class StartupTeam {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Startup, startup => startup.teamMembers, {
-    onDelete: 'CASCADE'
+  @ManyToOne(() => Startup, (startup) => startup.teamMembers, {
+    onDelete: 'CASCADE',
   })
   startup: Startup;
 

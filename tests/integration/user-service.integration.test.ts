@@ -8,31 +8,31 @@ import TestHelpers from '../utils/test-helpers';
 const createMockUserApp = () => {
   const express = require('express');
   const app = express();
-  
+
   app.use(express.json());
-  
+
   // Mock user storage
   const users: any[] = [];
   let userIdCounter = 1;
-  
+
   // Registration endpoint
   app.post('/auth/register', (req: any, res: any) => {
     const { email, password, firstName, lastName } = req.body;
-    
+
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields',
       });
     }
-    
-    if (users.find(u => u.email === email)) {
+
+    if (users.find((u) => u.email === email)) {
       return res.status(409).json({
         success: false,
         error: 'User already exists',
       });
     }
-    
+
     const user = {
       id: `user-${userIdCounter++}`,
       email,
@@ -42,9 +42,9 @@ const createMockUserApp = () => {
       isVerified: false,
       createdAt: new Date().toISOString(),
     };
-    
+
     users.push(user);
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -53,26 +53,26 @@ const createMockUserApp = () => {
       },
     });
   });
-  
+
   // Login endpoint
   app.post('/auth/login', (req: any, res: any) => {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({
         success: false,
         error: 'Email and password are required',
       });
     }
-    
-    const user = users.find(u => u.email === email);
+
+    const user = users.find((u) => u.email === email);
     if (!user) {
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials',
       });
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -81,74 +81,74 @@ const createMockUserApp = () => {
       },
     });
   });
-  
+
   // Profile endpoint
   app.get('/users/profile', (req: any, res: any) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
       return res.status(401).json({ success: false, error: 'No token provided' });
     }
-    
+
     // Mock user from token
     const user = users[0] || TestHelpers.generateTestUser();
-    
+
     res.json({
       success: true,
       data: user,
     });
   });
-  
+
   // Update profile endpoint
   app.put('/users/profile', (req: any, res: any) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
       return res.status(401).json({ success: false, error: 'No token provided' });
     }
-    
+
     const { firstName, lastName, bio } = req.body;
     const user = users[0] || TestHelpers.generateTestUser();
-    
+
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (bio) user.bio = bio;
-    
+
     res.json({
       success: true,
       data: user,
     });
   });
-  
+
   // Password reset request
   app.post('/auth/forgot-password', (req: any, res: any) => {
     const { email } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({
         success: false,
         error: 'Email is required',
       });
     }
-    
-    const user = users.find(u => u.email === email);
+
+    const user = users.find((u) => u.email === email);
     if (!user) {
       return res.status(404).json({
         success: false,
         error: 'User not found',
       });
     }
-    
+
     res.json({
       success: true,
       message: 'Password reset email sent',
     });
   });
-  
+
   return app;
 };
 
 describe('User Service Integration Tests', () => {
   let app: any;
-  
+
   beforeAll(async () => {
     await setupTestDatabase('user-service');
     await setupTestRedis();
@@ -163,11 +163,8 @@ describe('User Service Integration Tests', () => {
   describe('User Registration', () => {
     test('should register a new user successfully', async () => {
       const userData = TestHelpers.generateTestData('user');
-      
-      const response = await request(app)
-        .post('/auth/register')
-        .send(userData)
-        .expect(201);
+
+      const response = await request(app).post('/auth/register').send(userData).expect(201);
 
       TestHelpers.expectSuccess(response, 201);
       expect(response.body.data).toHaveProperty('user');
@@ -182,29 +179,20 @@ describe('User Service Integration Tests', () => {
         email: 'test@example.com',
         // Missing password, firstName, lastName
       };
-      
-      const response = await request(app)
-        .post('/auth/register')
-        .send(incompleteData)
-        .expect(400);
+
+      const response = await request(app).post('/auth/register').send(incompleteData).expect(400);
 
       TestHelpers.expectValidationError(response);
     });
 
     test('should reject registration with duplicate email', async () => {
       const userData = TestHelpers.generateTestData('user');
-      
+
       // First registration
-      await request(app)
-        .post('/auth/register')
-        .send(userData)
-        .expect(201);
-      
+      await request(app).post('/auth/register').send(userData).expect(201);
+
       // Second registration with same email
-      const response = await request(app)
-        .post('/auth/register')
-        .send(userData)
-        .expect(409);
+      const response = await request(app).post('/auth/register').send(userData).expect(409);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error).toContain('already exists');
@@ -214,12 +202,10 @@ describe('User Service Integration Tests', () => {
       const userData = TestHelpers.generateTestData('user', {
         email: 'invalid-email',
       });
-      
+
       // This would normally be validated by the service
       // For now, we'll test that the service accepts the request structure
-      const response = await request(app)
-        .post('/auth/register')
-        .send(userData);
+      const response = await request(app).post('/auth/register').send(userData);
 
       expect(response.status).toBeLessThan(500);
     });
@@ -229,19 +215,15 @@ describe('User Service Integration Tests', () => {
     beforeEach(async () => {
       // Register a test user for login tests
       const userData = TestHelpers.generateTestData('user');
-      await request(app)
-        .post('/auth/register')
-        .send(userData);
+      await request(app).post('/auth/register').send(userData);
     });
 
     test('should login with valid credentials', async () => {
       const userData = TestHelpers.generateTestData('user');
-      
+
       // Register user first
-      await request(app)
-        .post('/auth/register')
-        .send(userData);
-      
+      await request(app).post('/auth/register').send(userData);
+
       // Then login
       const response = await request(app)
         .post('/auth/login')
@@ -285,12 +267,12 @@ describe('User Service Integration Tests', () => {
   describe('User Profile Management', () => {
     test('should get user profile with valid token', async () => {
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/users/profile',
-        user
+        user,
       ).expect(200);
 
       TestHelpers.expectSuccess(response);
@@ -301,9 +283,7 @@ describe('User Service Integration Tests', () => {
     });
 
     test('should reject profile access without token', async () => {
-      const response = await request(app)
-        .get('/users/profile')
-        .expect(401);
+      const response = await request(app).get('/users/profile').expect(401);
 
       TestHelpers.expectUnauthorized(response);
     });
@@ -315,13 +295,13 @@ describe('User Service Integration Tests', () => {
         lastName: 'Name',
         bio: 'Updated bio',
       };
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'put',
         '/users/profile',
         user,
-        updateData
+        updateData,
       ).expect(200);
 
       TestHelpers.expectSuccess(response);
@@ -334,12 +314,10 @@ describe('User Service Integration Tests', () => {
   describe('Password Reset', () => {
     test('should initiate password reset for existing user', async () => {
       const userData = TestHelpers.generateTestData('user');
-      
+
       // Register user first
-      await request(app)
-        .post('/auth/register')
-        .send(userData);
-      
+      await request(app).post('/auth/register').send(userData);
+
       // Request password reset
       const response = await request(app)
         .post('/auth/forgot-password')
@@ -360,10 +338,7 @@ describe('User Service Integration Tests', () => {
     });
 
     test('should reject password reset without email', async () => {
-      const response = await request(app)
-        .post('/auth/forgot-password')
-        .send({})
-        .expect(400);
+      const response = await request(app).post('/auth/forgot-password').send({}).expect(400);
 
       TestHelpers.expectValidationError(response, 'email');
     });
@@ -372,12 +347,12 @@ describe('User Service Integration Tests', () => {
   describe('Security Tests', () => {
     test('should not expose sensitive user data', async () => {
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/users/profile',
-        user
+        user,
       ).expect(200);
 
       expect(response.body.data).not.toHaveProperty('password');
@@ -386,16 +361,18 @@ describe('User Service Integration Tests', () => {
 
     test('should handle concurrent registration attempts', async () => {
       const userData = TestHelpers.generateTestData('user');
-      
-      const promises = Array(5).fill(null).map(() =>
-        request(app)
-          .post('/auth/register')
-          .send({ ...userData, email: `${Date.now()}-${Math.random()}@example.com` })
-      );
+
+      const promises = Array(5)
+        .fill(null)
+        .map(() =>
+          request(app)
+            .post('/auth/register')
+            .send({ ...userData, email: `${Date.now()}-${Math.random()}@example.com` }),
+        );
 
       const responses = await Promise.all(promises);
-      
-      responses.forEach(response => {
+
+      responses.forEach((response) => {
         expect(response.status).toBeLessThan(500);
       });
     });
@@ -404,12 +381,12 @@ describe('User Service Integration Tests', () => {
       // This would test JWT token expiration
       // For now, we'll ensure the endpoint structure is correct
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/users/profile',
-        user
+        user,
       );
 
       expect(response.status).toBeLessThan(500);
@@ -419,34 +396,27 @@ describe('User Service Integration Tests', () => {
   describe('Performance Tests', () => {
     test('should handle multiple concurrent profile requests', async () => {
       const user = TestHelpers.generateTestUser();
-      
-      const promises = Array(20).fill(null).map(() =>
-        TestHelpers.makeAuthenticatedRequest(
-          app,
-          'get',
-          '/users/profile',
-          user
-        )
-      );
+
+      const promises = Array(20)
+        .fill(null)
+        .map(() => TestHelpers.makeAuthenticatedRequest(app, 'get', '/users/profile', user));
 
       const responses = await Promise.all(promises);
-      
-      responses.forEach(response => {
+
+      responses.forEach((response) => {
         expect(response.status).toBeLessThan(500);
       });
     });
 
     test('should respond to authentication requests quickly', async () => {
       const userData = TestHelpers.generateTestData('user');
-      
+
       const startTime = Date.now();
-      
-      const response = await request(app)
-        .post('/auth/register')
-        .send(userData);
+
+      const response = await request(app).post('/auth/register').send(userData);
 
       const responseTime = Date.now() - startTime;
-      
+
       expect(responseTime).toBeLessThan(2000); // Should respond within 2 seconds
       expect(response.status).toBeLessThan(500);
     });

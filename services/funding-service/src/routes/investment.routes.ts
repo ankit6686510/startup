@@ -5,7 +5,11 @@ const router = Router();
 const investmentController = new InvestmentController();
 
 // Investment routes
-router.post('/', InvestmentController.createInvestmentValidation, investmentController.createInvestment);
+router.post(
+  '/',
+  InvestmentController.createInvestmentValidation,
+  investmentController.createInvestment,
+);
 router.get('/funding-round/:fundingRoundId', investmentController.getInvestmentsByFundingRound);
 router.get('/investor/:investorId', investmentController.getInvestmentsByInvestor);
 

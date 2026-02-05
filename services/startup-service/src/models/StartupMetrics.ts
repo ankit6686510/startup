@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { DataSource } from '@startup-platform/types';
 import { Startup } from './Startup';
 
@@ -43,7 +51,7 @@ export class StartupMetrics {
   @Column({
     name: 'data_source',
     type: 'enum',
-    enum: DataSource
+    enum: DataSource,
   })
   dataSource!: DataSource;
 
@@ -51,7 +59,7 @@ export class StartupMetrics {
   createdAt!: Date;
 
   // Relations
-  @ManyToOne(() => Startup, startup => startup.metrics, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Startup, (startup) => startup.metrics, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'startup_id' })
   startup!: Startup;
 }

@@ -15,12 +15,7 @@ export const AppDataSource = new DataSource({
   // CRITICAL: Only synchronize in development. Never in production.
   synchronize: config.server.env === 'development',
   logging: config.server.env === 'development',
-  entities: [
-    Notification,
-    NotificationTemplate,
-    NotificationPreference,
-    NotificationLog
-  ],
+  entities: [Notification, NotificationTemplate, NotificationPreference, NotificationLog],
   migrations: ['src/migrations/*.ts'],
   subscribers: ['src/subscribers/*.ts'],
   ssl: config.server.env === 'production' ? { rejectUnauthorized: false } : false,

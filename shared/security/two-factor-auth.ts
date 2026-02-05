@@ -31,11 +31,11 @@ export class TwoFactorAuthService {
     const secret = speakeasy.generateSecret({
       name: `${this.serviceName} (${userEmail})`,
       issuer: this.issuer,
-      length: 32
+      length: 32,
     });
 
     // Generate QR code
-    const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url!);
+    const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
 
     // Generate backup codes
     const backupCodes = this.generateBackupCodes();
@@ -44,7 +44,7 @@ export class TwoFactorAuthService {
       secret: secret.base32!,
       qrCodeUrl,
       backupCodes,
-      manualEntryKey: secret.base32!
+      manualEntryKey: secret.base32!,
     };
   }
 
@@ -56,7 +56,7 @@ export class TwoFactorAuthService {
       secret,
       encoding: 'base32',
       token,
-      window // Allow some time drift
+      window, // Allow some time drift
     });
   }
 
@@ -64,9 +64,9 @@ export class TwoFactorAuthService {
    * Verify a token or backup code
    */
   verifyTokenOrBackupCode(
-    secret: string, 
-    token: string, 
-    backupCodes: string[]
+    secret: string,
+    token: string,
+    backupCodes: string[],
   ): TwoFactorVerification {
     // First try TOTP verification
     if (this.verifyToken(secret, token)) {
@@ -75,12 +75,12 @@ export class TwoFactorAuthService {
 
     // Then try backup codes
     const hashedToken = this.hashBackupCode(token);
-    const matchingCodeIndex = backupCodes.findIndex(code => code === hashedToken);
-    
+    const matchingCodeIndex = backupCodes.findIndex((code) => code === hashedToken);
+
     if (matchingCodeIndex !== -1) {
-      return { 
-        isValid: true, 
-        usedBackupCode: backupCodes[matchingCodeIndex] 
+      return {
+        isValid: true,
+        usedBackupCode: backupCodes[matchingCodeIndex],
       };
     }
 
@@ -92,17 +92,17 @@ export class TwoFactorAuthService {
    */
   generateBackupCodes(count: number = 10): string[] {
     const codes: string[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       // Generate 8-character alphanumeric code
       const code = crypto.randomBytes(4).toString('hex').toUpperCase();
       const formattedCode = `${code.slice(0, 4)}-${code.slice(4)}`;
-      
+
       // Hash the code for storage
       const hashedCode = this.hashBackupCode(formattedCode);
       codes.push(hashedCode);
     }
-    
+
     return codes;
   }
 
@@ -133,7 +133,7 @@ export class TwoFactorAuthService {
   generateTOTP(secret: string): string {
     return speakeasy.totp({
       secret,
-      encoding: 'base32'
+      encoding: 'base32',
     });
   }
 
@@ -152,7 +152,7 @@ export class TwoFactorAuthService {
       secret,
       label: `${this.serviceName} (${userEmail})`,
       issuer: this.issuer,
-      encoding: 'base32'
+      encoding: 'base32',
     });
   }
 }
@@ -160,12 +160,12 @@ export class TwoFactorAuthService {
 // Middleware for enforcing 2FA
 export const require2FA = (req: any, res: any, next: any) => {
   const user = req.user;
-  
+
   if (!user) {
     return res.status(401).json({
       success: false,
       error: 'Authentication required',
-      code: 'UNAUTHORIZED'
+      code: 'UNAUTHORIZED',
     });
   }
 
@@ -175,7 +175,7 @@ export const require2FA = (req: any, res: any, next: any) => {
       success: false,
       error: '2FA is required for this action',
       code: 'TWO_FACTOR_REQUIRED',
-      setupUrl: '/auth/2fa/setup'
+      setupUrl: '/auth/2fa/setup',
     });
   }
 
@@ -185,7 +185,7 @@ export const require2FA = (req: any, res: any, next: any) => {
       success: false,
       error: '2FA verification required',
       code: 'TWO_FACTOR_VERIFICATION_REQUIRED',
-      verifyUrl: '/auth/2fa/verify'
+      verifyUrl: '/auth/2fa/verify',
     });
   }
 
@@ -195,12 +195,12 @@ export const require2FA = (req: any, res: any, next: any) => {
 // Middleware for optional 2FA (step-up authentication)
 export const stepUp2FA = (req: any, res: any, next: any) => {
   const user = req.user;
-  
+
   if (!user) {
     return res.status(401).json({
       success: false,
       error: 'Authentication required',
-      code: 'UNAUTHORIZED'
+      code: 'UNAUTHORIZED',
     });
   }
 
@@ -210,7 +210,7 @@ export const stepUp2FA = (req: any, res: any, next: any) => {
       success: false,
       error: '2FA verification required for this sensitive action',
       code: 'STEP_UP_REQUIRED',
-      verifyUrl: '/auth/2fa/verify'
+      verifyUrl: '/auth/2fa/verify',
     });
   }
 
@@ -251,7 +251,7 @@ export class TwoFactorRateLimit {
     if (!attempts || now > attempts.resetTime) {
       this.attempts.set(identifier, {
         count: 1,
-        resetTime: now + this.windowMs
+        resetTime: now + this.windowMs,
       });
     } else {
       attempts.count++;
@@ -261,7 +261,7 @@ export class TwoFactorRateLimit {
   getRemainingTime(identifier: string): number {
     const attempts = this.attempts.get(identifier);
     if (!attempts) return 0;
-    
+
     return Math.max(0, attempts.resetTime - Date.now());
   }
 
@@ -276,10 +276,13 @@ export const twoFactorUtils = {
    * Format backup codes for display
    */
   formatBackupCodes(codes: string[]): string[] {
-    return codes.map(code => {
+    return codes.map((code) => {
       // Convert hash back to display format (this is for display only)
       // In practice, you'd store the original codes temporarily during setup
-      return code.slice(0, 8).toUpperCase().replace(/(.{4})/, '$1-');
+      return code
+        .slice(0, 8)
+        .toUpperCase()
+        .replace(/(.{4})/, '$1-');
     });
   },
 
@@ -311,14 +314,14 @@ export const twoFactorUtils = {
     if (a.length !== b.length) {
       return false;
     }
-    
+
     let result = 0;
     for (let i = 0; i < a.length; i++) {
       result |= a.charCodeAt(i) ^ b.charCodeAt(i);
     }
-    
+
     return result === 0;
-  }
+  },
 };
 
 export default TwoFactorAuthService;

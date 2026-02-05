@@ -50,7 +50,7 @@ export class RecommendationService {
   async getRecommendations(
     userProfile: UserProfile,
     limit: number = 20,
-    excludeJobIds: string[] = []
+    excludeJobIds: string[] = [],
   ): Promise<RecommendationScore[]> {
     try {
       // Fetch active jobs
@@ -63,7 +63,7 @@ export class RecommendationService {
       const allExcludeIds = [
         ...excludeJobIds,
         ...(userProfile.appliedJobIds || []),
-        ...(userProfile.savedJobIds || [])
+        ...(userProfile.savedJobIds || []),
       ];
 
       if (allExcludeIds.length > 0) {
@@ -73,16 +73,14 @@ export class RecommendationService {
       const jobs = await queryBuilder.take(100).getMany(); // Get more than needed for scoring
 
       // Score each job
-      const scoredJobs = jobs.map(job => ({
+      const scoredJobs = jobs.map((job) => ({
         job,
         score: this.calculateJobScore(job, userProfile),
-        reasons: this.generateReasons(job, userProfile)
+        reasons: this.generateReasons(job, userProfile),
       }));
 
       // Sort by score and return top results
-      return scoredJobs
-        .sort((a, b) => b.score - a.score)
-        .slice(0, limit);
+      return scoredJobs.sort((a, b) => b.score - a.score).slice(0, limit);
     } catch (error) {
       logger.error('Error generating recommendations:', error);
       throw error;
@@ -94,7 +92,7 @@ export class RecommendationService {
    */
   async getSimilarJobs(jobId: string, limit: number = 10): Promise<Job[]> {
     const referenceJob = await this.jobRepository.findOne({
-      where: { id: jobId }
+      where: { id: jobId },
     });
 
     if (!referenceJob) {
@@ -114,14 +112,14 @@ export class RecommendationService {
     // Similar experience level
     if (referenceJob.experienceLevel) {
       queryBuilder.andWhere('job.experienceLevel = :experienceLevel', {
-        experienceLevel: referenceJob.experienceLevel
+        experienceLevel: referenceJob.experienceLevel,
       });
     }
 
     // Similar location
     if (referenceJob.locationCountry) {
       queryBuilder.andWhere('job.locationCountry = :locationCountry', {
-        locationCountry: referenceJob.locationCountry
+        locationCountry: referenceJob.locationCountry,
       });
     }
 
@@ -150,12 +148,15 @@ export class RecommendationService {
       .addSelect('COUNT(DISTINCT saved.id)', 'save_count')
       .addSelect('job.applicationCount', 'app_count')
       .groupBy('job.id')
-      .orderBy('(COUNT(DISTINCT views.id) + COUNT(DISTINCT saved.id) * 2 + job.applicationCount * 3)', 'DESC')
+      .orderBy(
+        '(COUNT(DISTINCT views.id) + COUNT(DISTINCT saved.id) * 2 + job.applicationCount * 3)',
+        'DESC',
+      )
       .limit(limit)
       .getRawMany();
 
     // Fetch full job entities
-    const jobIds = result.map(r => r.job_id);
+    const jobIds = result.map((r) => r.job_id);
     return await this.jobRepository.findBy({ id: In(jobIds) });
   }
 
@@ -167,10 +168,10 @@ export class RecommendationService {
     const recentViews = await this.viewRepository.find({
       where: { userId },
       order: { createdAt: 'DESC' },
-      take: 50
+      take: 50,
     });
 
-    const viewedJobIds = recentViews.map(v => v.jobId);
+    const viewedJobIds = recentViews.map((v) => v.jobId);
 
     // Find high-quality jobs posted in last 7 days that user hasn't seen
     const sevenDaysAgo = new Date();
@@ -250,7 +251,7 @@ export class RecommendationService {
 
     // Boost for recent jobs (recency bonus)
     const daysSincePosted = Math.floor(
-      (Date.now() - job.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+      (Date.now() - job.createdAt.getTime()) / (1000 * 60 * 60 * 24),
     );
     if (daysSincePosted <= 3) {
       score += 5;
@@ -267,13 +268,13 @@ export class RecommendationService {
   private calculateSkillsMatch(jobSkills: string[], userSkills: string[]): number {
     if (jobSkills.length === 0 || userSkills.length === 0) return 0;
 
-    const normalizedJobSkills = jobSkills.map(s => s.toLowerCase());
-    const normalizedUserSkills = userSkills.map(s => s.toLowerCase());
+    const normalizedJobSkills = jobSkills.map((s) => s.toLowerCase());
+    const normalizedUserSkills = userSkills.map((s) => s.toLowerCase());
 
-    const matchingSkills = normalizedJobSkills.filter(skill =>
-      normalizedUserSkills.some(userSkill =>
-        userSkill.includes(skill) || skill.includes(userSkill)
-      )
+    const matchingSkills = normalizedJobSkills.filter((skill) =>
+      normalizedUserSkills.some(
+        (userSkill) => userSkill.includes(skill) || skill.includes(userSkill),
+      ),
     );
 
     return matchingSkills.length / jobSkills.length;
@@ -284,15 +285,16 @@ export class RecommendationService {
    */
   private matchExperienceLevel(job: Job, userExperience: number): number {
     const experienceLevelMap = {
-      'INTERN': { min: 0, max: 1 },
-      'ENTRY': { min: 0, max: 2 },
-      'MID': { min: 2, max: 5 },
-      'SENIOR': { min: 5, max: 10 },
-      'LEAD': { min: 8, max: 15 },
-      'EXECUTIVE': { min: 10, max: 30 }
+      INTERN: { min: 0, max: 1 },
+      ENTRY: { min: 0, max: 2 },
+      MID: { min: 2, max: 5 },
+      SENIOR: { min: 5, max: 10 },
+      LEAD: { min: 8, max: 15 },
+      EXECUTIVE: { min: 10, max: 30 },
     };
 
-    const levelRange = experienceLevelMap[job.experienceLevel as unknown as keyof typeof experienceLevelMap];
+    const levelRange =
+      experienceLevelMap[job.experienceLevel as unknown as keyof typeof experienceLevelMap];
 
     if (!levelRange) return 0.5; // Default moderate match
 
@@ -338,15 +340,18 @@ export class RecommendationService {
 
     // Skills match
     if (userProfile.skills && userProfile.skills.length > 0 && job.skills.length > 0) {
-      const matchingSkills = job.skills.filter(skill =>
-        userProfile.skills.some(userSkill =>
-          userSkill.toLowerCase().includes(skill.toLowerCase()) ||
-          skill.toLowerCase().includes(userSkill.toLowerCase())
-        )
+      const matchingSkills = job.skills.filter((skill) =>
+        userProfile.skills.some(
+          (userSkill) =>
+            userSkill.toLowerCase().includes(skill.toLowerCase()) ||
+            skill.toLowerCase().includes(userSkill.toLowerCase()),
+        ),
       );
 
       if (matchingSkills.length > 0) {
-        reasons.push(`Matches ${matchingSkills.length} of your skills: ${matchingSkills.slice(0, 3).join(', ')}`);
+        reasons.push(
+          `Matches ${matchingSkills.length} of your skills: ${matchingSkills.slice(0, 3).join(', ')}`,
+        );
       }
     }
 
@@ -376,7 +381,7 @@ export class RecommendationService {
 
     // Recent posting
     const daysSincePosted = Math.floor(
-      (Date.now() - job.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+      (Date.now() - job.createdAt.getTime()) / (1000 * 60 * 60 * 24),
     );
     if (daysSincePosted <= 3) {
       reasons.push('Recently posted');

@@ -5,14 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  Index
+  Index,
 } from 'typeorm';
-import {
-  JobType,
-  WorkLocation,
-  ExperienceLevel,
-  JobCategory
-} from '@startup-platform/types';
+import { JobType, WorkLocation, ExperienceLevel, JobCategory } from '@startup-platform/types';
 import { JobApplication } from './JobApplication';
 import { SavedJob } from './SavedJob';
 
@@ -56,7 +51,7 @@ export class Job {
 
   @Column({
     type: 'enum',
-    enum: JobType
+    enum: JobType,
   })
   @Index()
   type: JobType;
@@ -64,7 +59,7 @@ export class Job {
   @Column({
     type: 'enum',
     enum: WorkLocation,
-    name: 'location_type'
+    name: 'location_type',
   })
   @Index()
   locationType: WorkLocation;
@@ -72,14 +67,14 @@ export class Job {
   @Column({
     type: 'enum',
     enum: ExperienceLevel,
-    name: 'experience_level'
+    name: 'experience_level',
   })
   @Index()
   experienceLevel: ExperienceLevel;
 
   @Column({
     type: 'enum',
-    enum: JobCategory
+    enum: JobCategory,
   })
   @Index()
   category: JobCategory;
@@ -214,10 +209,10 @@ export class Job {
   updatedAt: Date;
 
   // Relations
-  @OneToMany(() => JobApplication, application => application.job)
+  @OneToMany(() => JobApplication, (application) => application.job)
   applications: JobApplication[];
 
-  @OneToMany(() => SavedJob, savedJob => savedJob.job)
+  @OneToMany(() => SavedJob, (savedJob) => savedJob.job)
   savedJobs: SavedJob[];
 
   // Virtual getters

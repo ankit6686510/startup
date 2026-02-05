@@ -1,16 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import { StartupService } from '../services/StartupService';
-import { 
+import {
   GetStartupsRequest,
   CreateStartupRequest,
   UpdateStartupRequest,
   ApiResponse,
   Industry,
-  StartupStage
+  StartupStage,
 } from '@startup-platform/types';
-import { 
+import {
   validateCreateStartupRequest,
-  validateUpdateStartupRequest 
+  validateUpdateStartupRequest,
 } from '@startup-platform/types';
 import { ValidationError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
@@ -30,17 +30,31 @@ export class StartupController {
         sortBy: req.query.sortBy as string,
         sortOrder: req.query.sortOrder as 'asc' | 'desc',
         search: req.query.search as string,
-        industry: req.query.industry ? (Array.isArray(req.query.industry) ? req.query.industry : [req.query.industry]) as Industry[] : undefined,
-        status: req.query.status ? (Array.isArray(req.query.status) ? req.query.status : [req.query.status]) as any[] : undefined,
-        foundedAfter: req.query.foundedAfter ? new Date(req.query.foundedAfter as string) : undefined,
-        foundedBefore: req.query.foundedBefore ? new Date(req.query.foundedBefore as string) : undefined,
+        industry: req.query.industry
+          ? ((Array.isArray(req.query.industry)
+              ? req.query.industry
+              : [req.query.industry]) as Industry[])
+          : undefined,
+        status: req.query.status
+          ? ((Array.isArray(req.query.status) ? req.query.status : [req.query.status]) as any[])
+          : undefined,
+        foundedAfter: req.query.foundedAfter
+          ? new Date(req.query.foundedAfter as string)
+          : undefined,
+        foundedBefore: req.query.foundedBefore
+          ? new Date(req.query.foundedBefore as string)
+          : undefined,
         minFunding: req.query.minFunding ? parseInt(req.query.minFunding as string) : undefined,
         maxFunding: req.query.maxFunding ? parseInt(req.query.maxFunding as string) : undefined,
         verified: req.query.verified !== undefined ? req.query.verified === 'true' : undefined,
         hasJobs: req.query.hasJobs !== undefined ? req.query.hasJobs === 'true' : undefined,
-        location: req.query.countries ? {
-          countries: Array.isArray(req.query.countries) ? req.query.countries as string[] : [req.query.countries as string]
-        } : undefined
+        location: req.query.countries
+          ? {
+              countries: Array.isArray(req.query.countries)
+                ? (req.query.countries as string[])
+                : [req.query.countries as string],
+            }
+          : undefined,
       };
 
       const result = await this.startupService.getAllStartups(params);
@@ -56,9 +70,9 @@ export class StartupController {
             industry: params.industry,
             status: params.status,
             verified: params.verified,
-            hasJobs: params.hasJobs
-          }
-        }
+            hasJobs: params.hasJobs,
+          },
+        },
       };
 
       res.status(200).json(response);
@@ -75,7 +89,7 @@ export class StartupController {
       const response: ApiResponse = {
         success: true,
         data: result,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(200).json(response);
@@ -92,7 +106,7 @@ export class StartupController {
       const response: ApiResponse = {
         success: true,
         data: result,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(200).json(response);
@@ -103,16 +117,16 @@ export class StartupController {
 
   createStartup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const normalized = this.normalizeCreateRequest(req.body, req.header('x-user-id') || undefined);
+      const normalized = this.normalizeCreateRequest(
+        req.body,
+        req.header('x-user-id') || undefined,
+      );
 
       // Validate request body
       const validation = validateCreateStartupRequest(normalized);
       if (!validation.success) {
         const firstError = validation.error.errors[0];
-        throw new ValidationError(
-          firstError.message,
-          firstError.path?.join('.') || 'unknown'
-        );
+        throw new ValidationError(firstError.message, firstError.path?.join('.') || 'unknown');
       }
 
       const data: CreateStartupRequest = validation.data;
@@ -121,7 +135,7 @@ export class StartupController {
       const response: ApiResponse = {
         success: true,
         data: { startup, message: 'Startup created successfully' },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(201).json(response);
@@ -138,10 +152,7 @@ export class StartupController {
       const validation = validateUpdateStartupRequest({ ...req.body, id });
       if (!validation.success) {
         const firstError = validation.error.errors[0];
-        throw new ValidationError(
-          firstError.message,
-          firstError.path?.join('.') || 'unknown'
-        );
+        throw new ValidationError(firstError.message, firstError.path?.join('.') || 'unknown');
       }
 
       const data: UpdateStartupRequest = validation.data;
@@ -150,7 +161,7 @@ export class StartupController {
       const response: ApiResponse = {
         success: true,
         data: { startup, message: 'Startup updated successfully' },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(200).json(response);
@@ -167,7 +178,7 @@ export class StartupController {
       const response: ApiResponse = {
         success: true,
         message: 'Startup deleted successfully',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(200).json(response);
@@ -176,7 +187,11 @@ export class StartupController {
     }
   };
 
-  getStartupsByIndustry = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getStartupsByIndustry = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { industry } = req.params;
       const limit = parseInt(req.query.limit as string) || 10;
@@ -190,7 +205,7 @@ export class StartupController {
       const response: ApiResponse = {
         success: true,
         data: startups,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(200).json(response);
@@ -207,7 +222,7 @@ export class StartupController {
       const response: ApiResponse = {
         success: true,
         data: startups,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(200).json(response);
@@ -223,7 +238,7 @@ export class StartupController {
       const response: ApiResponse = {
         success: true,
         data: stats,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(200).json(response);
@@ -244,8 +259,12 @@ export class StartupController {
         page: parseInt(req.query.page as string) || 1,
         limit: Math.min(parseInt(req.query.limit as string) || 20, 50),
         search: query,
-        industry: req.query.industry ? (Array.isArray(req.query.industry) ? req.query.industry : [req.query.industry]) as Industry[] : undefined,
-        verified: req.query.verified !== undefined ? req.query.verified === 'true' : undefined
+        industry: req.query.industry
+          ? ((Array.isArray(req.query.industry)
+              ? req.query.industry
+              : [req.query.industry]) as Industry[])
+          : undefined,
+        verified: req.query.verified !== undefined ? req.query.verified === 'true' : undefined,
       };
 
       const result = await this.startupService.getAllStartups(params);
@@ -256,8 +275,8 @@ export class StartupController {
         timestamp: new Date(),
         meta: {
           searchQuery: query,
-          searchTime: Date.now() // Could be calculated properly
-        }
+          searchTime: Date.now(), // Could be calculated properly
+        },
       };
 
       res.status(200).json(response);
@@ -267,7 +286,11 @@ export class StartupController {
   };
 
   // Discovery search (alias for search with query param)
-  searchDiscoveryStartups = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  searchDiscoveryStartups = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     return this.searchStartups(req, res, next);
   };
 
@@ -281,16 +304,16 @@ export class StartupController {
         page: 1,
         limit,
         sortBy: 'createdAt',
-        sortOrder: 'desc'
+        sortOrder: 'desc',
       });
 
       const response: ApiResponse = {
         success: true,
         data: {
           startups: result.data,
-          period: `Last ${days} days`
+          period: `Last ${days} days`,
         },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(200).json(response);
@@ -305,13 +328,13 @@ export class StartupController {
       industries: Object.values(Industry),
       stages: Object.values(StartupStage),
       locations: ['United States', 'Canada', 'United Kingdom', 'India', 'Singapore'],
-      sortOptions: ['trending', 'followers', 'recent', 'relevance']
+      sortOptions: ['trending', 'followers', 'recent', 'relevance'],
     };
 
     const response: ApiResponse = {
       success: true,
       data: { facets },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     res.status(200).json(response);
@@ -323,9 +346,9 @@ export class StartupController {
       success: true,
       data: {
         startupId: req.params.startupId,
-        member: req.body
+        member: req.body,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     res.status(201).json(response);
@@ -336,9 +359,9 @@ export class StartupController {
       success: true,
       data: {
         startupId: req.params.startupId,
-        followed: true
+        followed: true,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     res.status(201).json(response);
@@ -350,7 +373,7 @@ export class StartupController {
       const response: ApiResponse = {
         success: true,
         data: result,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       res.status(200).json(response);
@@ -359,7 +382,10 @@ export class StartupController {
     }
   };
 
-  private normalizeCreateRequest(body: Record<string, any>, userId?: string): CreateStartupRequest & { stage?: StartupStage } {
+  private normalizeCreateRequest(
+    body: Record<string, any>,
+    userId?: string,
+  ): CreateStartupRequest & { stage?: StartupStage } {
     const normalized: Record<string, any> = { ...body };
 
     // Map industry to enum value when friendly strings are provided
@@ -378,13 +404,13 @@ export class StartupController {
         country: 'United States',
         countryCode: 'US',
         city: normalized.location,
-        isRemote: false
+        isRemote: false,
       };
     } else if (!normalized.location) {
       normalized.location = {
         country: 'United States',
         countryCode: 'US',
-        isRemote: false
+        isRemote: false,
       };
     } else {
       normalized.location = {
@@ -394,7 +420,7 @@ export class StartupController {
         state: normalized.location.state,
         region: normalized.location.region,
         isRemote: normalized.location.isRemote || false,
-        coordinates: normalized.location.coordinates
+        coordinates: normalized.location.coordinates,
       };
     }
 
@@ -404,8 +430,8 @@ export class StartupController {
         {
           name: userId ? `Founder ${userId}` : 'Test Founder',
           title: 'Founder',
-          isPrimary: true
-        }
+          isPrimary: true,
+        },
       ];
     }
 

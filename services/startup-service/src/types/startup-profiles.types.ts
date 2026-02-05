@@ -416,7 +416,7 @@ export enum TeamRoleEnum {
   MARKETER = 'MARKETER',
   OPERATIONS = 'OPERATIONS',
   ADVISOR = 'ADVISOR',
-  INVESTOR = 'INVESTOR'
+  INVESTOR = 'INVESTOR',
 }
 
 export enum PhotoCategoryEnum {
@@ -426,7 +426,7 @@ export enum PhotoCategoryEnum {
   EVENT = 'EVENT',
   CULTURE = 'CULTURE',
   ACHIEVEMENT = 'ACHIEVEMENT',
-  OTHER = 'OTHER'
+  OTHER = 'OTHER',
 }
 
 export enum VerificationStatusEnum {
@@ -434,20 +434,20 @@ export enum VerificationStatusEnum {
   PENDING = 'PENDING',
   VERIFIED = 'VERIFIED',
   REJECTED = 'REJECTED',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 export enum SortByEnum {
   TRENDING = 'trending',
   FOLLOWERS = 'followers',
   RECENT = 'recent',
-  RELEVANCE = 'relevance'
+  RELEVANCE = 'relevance',
 }
 
 export enum NotificationPreferenceEnum {
   ALL = 'all',
   MAJOR = 'major',
-  NONE = 'none'
+  NONE = 'none',
 }
 
 // ==================== QUERY FILTERS ====================

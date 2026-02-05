@@ -76,7 +76,7 @@ export class StartupProfileService {
     @InjectRepository(StartupVerification)
     private verificationRepository: Repository<StartupVerification>,
     @InjectRepository(StartupFollow)
-    private followRepository: Repository<StartupFollow>
+    private followRepository: Repository<StartupFollow>,
   ) {}
 
   // ==================== PROFILE MANAGEMENT ====================
@@ -87,7 +87,7 @@ export class StartupProfileService {
   async getCompleteProfile(startupId: string) {
     const startup = await this.startupRepository.findOne({
       where: { id: startupId },
-      relations: ['founders', 'metrics', 'verification', 'teamMembers', 'photos']
+      relations: ['founders', 'metrics', 'verification', 'teamMembers', 'photos'],
     });
 
     if (!startup) {
@@ -96,16 +96,16 @@ export class StartupProfileService {
 
     const teamMembers = await this.teamRepository.find({
       where: { startup: { id: startupId } },
-      order: { orderIndex: 'ASC' }
+      order: { orderIndex: 'ASC' },
     });
 
     const photos = await this.photoRepository.find({
       where: { startup: { id: startupId }, deletedAt: null },
-      order: { orderIndex: 'ASC' }
+      order: { orderIndex: 'ASC' },
     });
 
     const followers = await this.followRepository.count({
-      where: { startupId, unfollowedAt: null }
+      where: { startupId, unfollowedAt: null },
     });
 
     const profileCompleteness = this.calculateProfileCompleteness(startup, teamMembers, photos);
@@ -116,7 +116,7 @@ export class StartupProfileService {
       photos,
       followers,
       profileCompleteness,
-      verification: startup.verification
+      verification: startup.verification,
     };
   }
 
@@ -125,7 +125,7 @@ export class StartupProfileService {
    */
   async updateProfile(startupId: string, updateData: UpdateStartupProfileDto) {
     const startup = await this.startupRepository.findOne({
-      where: { id: startupId }
+      where: { id: startupId },
     });
 
     if (!startup) {
@@ -142,7 +142,11 @@ export class StartupProfileService {
   /**
    * Calculate profile completeness percentage
    */
-  calculateProfileCompleteness(startup: Startup, teamMembers: StartupTeam[], photos: StartupPhoto[]): number {
+  calculateProfileCompleteness(
+    startup: Startup,
+    teamMembers: StartupTeam[],
+    photos: StartupPhoto[],
+  ): number {
     let completeness = 0;
     const checks = [];
 
@@ -160,7 +164,7 @@ export class StartupProfileService {
     const teamChecks = [];
     if (teamMembers.length >= 1) teamChecks.push(true);
     if (teamMembers.length >= 3) teamChecks.push(true);
-    if (teamMembers.some(m => m.isFeatured)) teamChecks.push(true);
+    if (teamMembers.some((m) => m.isFeatured)) teamChecks.push(true);
 
     const teamScore = (teamChecks.filter(Boolean).length / 3) * 30;
     completeness += teamScore;
@@ -169,7 +173,7 @@ export class StartupProfileService {
     const mediaChecks = [];
     if (photos.length >= 1) mediaChecks.push(true);
     if (photos.length >= 5) mediaChecks.push(true);
-    if (photos.some(p => p.isFeatured)) mediaChecks.push(true);
+    if (photos.some((p) => p.isFeatured)) mediaChecks.push(true);
 
     const mediaScore = (mediaChecks.filter(Boolean).length / 3) * 20;
     completeness += mediaScore;
@@ -197,7 +201,7 @@ export class StartupProfileService {
    */
   async addTeamMember(startupId: string, memberData: CreateTeamMemberDto) {
     const startup = await this.startupRepository.findOne({
-      where: { id: startupId }
+      where: { id: startupId },
     });
 
     if (!startup) {
@@ -214,7 +218,7 @@ export class StartupProfileService {
     const newMember = this.teamRepository.create({
       ...memberData,
       startup,
-      orderIndex: (maxOrder?.maxOrder ?? -1) + 1
+      orderIndex: (maxOrder?.maxOrder ?? -1) + 1,
     });
 
     const saved = await this.teamRepository.save(newMember);
@@ -229,8 +233,8 @@ export class StartupProfileService {
     const member = await this.teamRepository.findOne({
       where: {
         id: memberId,
-        startup: { id: startupId }
-      }
+        startup: { id: startupId },
+      },
     });
 
     if (!member) {
@@ -249,8 +253,8 @@ export class StartupProfileService {
     const member = await this.teamRepository.findOne({
       where: {
         id: memberId,
-        startup: { id: startupId }
-      }
+        startup: { id: startupId },
+      },
     });
 
     if (!member) {
@@ -267,10 +271,10 @@ export class StartupProfileService {
    */
   async reorderTeam(startupId: string, memberIds: string[]) {
     const members = await this.teamRepository.find({
-      where: { startup: { id: startupId } }
+      where: { startup: { id: startupId } },
     });
 
-    const memberMap = new Map(members.map(m => [m.id, m]));
+    const memberMap = new Map(members.map((m) => [m.id, m]));
 
     memberIds.forEach((id, index) => {
       const member = memberMap.get(id);
@@ -290,7 +294,7 @@ export class StartupProfileService {
   async getTeamMembers(startupId: string) {
     return this.teamRepository.find({
       where: { startup: { id: startupId } },
-      order: { orderIndex: 'ASC' }
+      order: { orderIndex: 'ASC' },
     });
   }
 
@@ -301,7 +305,7 @@ export class StartupProfileService {
    */
   async addPhoto(startupId: string, photoData: CreatePhotoDto) {
     const startup = await this.startupRepository.findOne({
-      where: { id: startupId }
+      where: { id: startupId },
     });
 
     if (!startup) {
@@ -319,7 +323,7 @@ export class StartupProfileService {
     const newPhoto = this.photoRepository.create({
       ...photoData,
       startup,
-      orderIndex: (maxOrder?.maxOrder ?? -1) + 1
+      orderIndex: (maxOrder?.maxOrder ?? -1) + 1,
     });
 
     const saved = await this.photoRepository.save(newPhoto);
@@ -335,8 +339,8 @@ export class StartupProfileService {
       where: {
         id: photoId,
         startup: { id: startupId },
-        deletedAt: null
-      }
+        deletedAt: null,
+      },
     });
 
     if (!photo) {
@@ -355,8 +359,8 @@ export class StartupProfileService {
     const photo = await this.photoRepository.findOne({
       where: {
         id: photoId,
-        startup: { id: startupId }
-      }
+        startup: { id: startupId },
+      },
     });
 
     if (!photo) {
@@ -376,11 +380,11 @@ export class StartupProfileService {
     const photos = await this.photoRepository.find({
       where: {
         startup: { id: startupId },
-        deletedAt: null
-      }
+        deletedAt: null,
+      },
     });
 
-    const photoMap = new Map(photos.map(p => [p.id, p]));
+    const photoMap = new Map(photos.map((p) => [p.id, p]));
 
     photoIds.forEach((id, index) => {
       const photo = photoMap.get(id);
@@ -398,7 +402,8 @@ export class StartupProfileService {
    * Get gallery for startup
    */
   async getGallery(startupId: string, category?: string) {
-    let query = this.photoRepository.createQueryBuilder('photo')
+    let query = this.photoRepository
+      .createQueryBuilder('photo')
       .where('photo.startup_id = :startupId', { startupId })
       .andWhere('photo.deleted_at IS NULL');
 
@@ -414,7 +419,7 @@ export class StartupProfileService {
    */
   async incrementPhotoViews(photoId: string) {
     const photo = await this.photoRepository.findOne({
-      where: { id: photoId }
+      where: { id: photoId },
     });
 
     if (photo) {
@@ -430,7 +435,7 @@ export class StartupProfileService {
    */
   async togglePhotoLike(photoId: string, like: boolean) {
     const photo = await this.photoRepository.findOne({
-      where: { id: photoId }
+      where: { id: photoId },
     });
 
     if (!photo) {
@@ -454,12 +459,12 @@ export class StartupProfileService {
    */
   async getOrCreateVerification(startupId: string) {
     let verification = await this.verificationRepository.findOne({
-      where: { startupId }
+      where: { startupId },
     });
 
     if (!verification) {
       const startup = await this.startupRepository.findOne({
-        where: { id: startupId }
+        where: { id: startupId },
       });
 
       if (!startup) {
@@ -469,7 +474,7 @@ export class StartupProfileService {
       verification = this.verificationRepository.create({
         startupId,
         status: 'UNVERIFIED',
-        startup
+        startup,
       });
 
       verification = await this.verificationRepository.save(verification);
@@ -498,7 +503,7 @@ export class StartupProfileService {
    */
   async confirmEmailVerification(startupId: string) {
     const verification = await this.verificationRepository.findOne({
-      where: { startupId }
+      where: { startupId },
     });
 
     if (!verification) {
@@ -538,7 +543,7 @@ export class StartupProfileService {
    */
   async approveVerification(startupId: string, reviewedBy: string, notes?: string) {
     const verification = await this.verificationRepository.findOne({
-      where: { startupId }
+      where: { startupId },
     });
 
     if (!verification) {
@@ -560,7 +565,7 @@ export class StartupProfileService {
    */
   async rejectVerification(startupId: string, reviewedBy: string, reason: string) {
     const verification = await this.verificationRepository.findOne({
-      where: { startupId }
+      where: { startupId },
     });
 
     if (!verification) {
@@ -589,7 +594,7 @@ export class StartupProfileService {
       linkedinVerified: verification.linkedinVerified,
       reviewedAt: verification.reviewedAt,
       rejectionReason: verification.rejectionReason,
-      canResubmit: verification.canResubmit()
+      canResubmit: verification.canResubmit(),
     };
   }
 
@@ -600,15 +605,15 @@ export class StartupProfileService {
    */
   async getProfileAnalytics(startupId: string) {
     const teamMembers = await this.teamRepository.find({
-      where: { startup: { id: startupId } }
+      where: { startup: { id: startupId } },
     });
 
     const photos = await this.photoRepository.find({
-      where: { startup: { id: startupId }, deletedAt: null }
+      where: { startup: { id: startupId }, deletedAt: null },
     });
 
     const followers = await this.followRepository.count({
-      where: { startupId, unfollowedAt: null }
+      where: { startupId, unfollowedAt: null },
     });
 
     const totalPhotoViews = photos.reduce((sum, p) => sum + (p.viewsCount || 0), 0);
@@ -624,7 +629,10 @@ export class StartupProfileService {
       totalPhotoLikes,
       totalTeamViews,
       averagePhotoLikes: photos.length > 0 ? (totalPhotoLikes / photos.length).toFixed(2) : 0,
-      mostViewedPhoto: photos.length > 0 ? photos.sort((a, b) => (b.viewsCount || 0) - (a.viewsCount || 0))[0] : null
+      mostViewedPhoto:
+        photos.length > 0
+          ? photos.sort((a, b) => (b.viewsCount || 0) - (a.viewsCount || 0))[0]
+          : null,
     };
   }
 
@@ -636,25 +644,25 @@ export class StartupProfileService {
       this.teamRepository.find({
         where: {
           startup: { id: startupId },
-          isFeatured: true
+          isFeatured: true,
         },
         order: { orderIndex: 'ASC' },
-        take: 5
+        take: 5,
       }),
       this.photoRepository.find({
         where: {
           startup: { id: startupId },
           isFeatured: true,
-          deletedAt: null
+          deletedAt: null,
         },
         order: { orderIndex: 'ASC' },
-        take: 5
-      })
+        take: 5,
+      }),
     ]);
 
     return {
       featuredTeamMembers: featuredTeam,
-      featuredPhotos: featuredPhotos
+      featuredPhotos: featuredPhotos,
     };
   }
 }

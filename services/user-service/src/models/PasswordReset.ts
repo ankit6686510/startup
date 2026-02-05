@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { User } from './User';
 
@@ -53,7 +53,7 @@ export class PasswordReset {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, user => user.passwordResets, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.passwordResets, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   @Index()
   user: User;

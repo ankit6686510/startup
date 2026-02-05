@@ -4,7 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { NotificationType, NotificationCategory } from './Notification';
 
@@ -22,14 +22,14 @@ export class NotificationTemplate {
 
   @Column({
     type: 'enum',
-    enum: NotificationType
+    enum: NotificationType,
   })
   @Index()
   type: NotificationType;
 
   @Column({
     type: 'enum',
-    enum: NotificationCategory
+    enum: NotificationCategory,
   })
   @Index()
   category: NotificationCategory;
@@ -129,13 +129,16 @@ export class NotificationTemplate {
   defaultLanguage: string;
 
   @Column('jsonb', { name: 'translations', default: '{}' })
-  translations: Record<string, {
-    subject?: string;
-    content: string;
-    summary?: string;
-    html?: string;
-    text?: string;
-  }>;
+  translations: Record<
+    string,
+    {
+      subject?: string;
+      content: string;
+      summary?: string;
+      html?: string;
+      text?: string;
+    }
+  >;
 
   // Template metadata
   @Column('text', { array: true, default: '{}' })
@@ -205,16 +208,16 @@ export class NotificationTemplate {
   }
 
   get requiredVariables(): string[] {
-    return this.variables.filter(v => v.required).map(v => v.name);
+    return this.variables.filter((v) => v.required).map((v) => v.name);
   }
 
   get optionalVariables(): string[] {
-    return this.variables.filter(v => !v.required).map(v => v.name);
+    return this.variables.filter((v) => !v.required).map((v) => v.name);
   }
 
   // Methods
   addVariable(variable: NotificationTemplate['variables'][0]): void {
-    const existingIndex = this.variables.findIndex(v => v.name === variable.name);
+    const existingIndex = this.variables.findIndex((v) => v.name === variable.name);
     if (existingIndex >= 0) {
       this.variables[existingIndex] = variable;
     } else {
@@ -223,10 +226,13 @@ export class NotificationTemplate {
   }
 
   removeVariable(variableName: string): void {
-    this.variables = this.variables.filter(v => v.name !== variableName);
+    this.variables = this.variables.filter((v) => v.name !== variableName);
   }
 
-  addTranslation(language: string, translation: NotificationTemplate['translations'][string]): void {
+  addTranslation(
+    language: string,
+    translation: NotificationTemplate['translations'][string],
+  ): void {
     this.translations[language] = translation;
   }
 
@@ -283,7 +289,9 @@ export class NotificationTemplate {
       if (variable.type === 'date' && !(value instanceof Date) && typeof value !== 'string') {
         errors.push(`Variable '${variable.name}' must be a date`);
       } else if (variable.type !== 'date' && variable.type !== actualType) {
-        errors.push(`Variable '${variable.name}' must be of type ${variable.type}, got ${actualType}`);
+        errors.push(
+          `Variable '${variable.name}' must be of type ${variable.type}, got ${actualType}`,
+        );
       }
 
       // Validation rules
@@ -298,7 +306,11 @@ export class NotificationTemplate {
           errors.push(`Variable '${variable.name}' must be at most ${validation.max}`);
         }
 
-        if (validation.pattern && typeof value === 'string' && !new RegExp(validation.pattern).test(value)) {
+        if (
+          validation.pattern &&
+          typeof value === 'string' &&
+          !new RegExp(validation.pattern).test(value)
+        ) {
           errors.push(`Variable '${variable.name}' does not match required pattern`);
         }
 
@@ -405,7 +417,7 @@ export class NotificationTemplate {
   }
 
   removeTag(tag: string): void {
-    this.tags = this.tags.filter(t => t !== tag);
+    this.tags = this.tags.filter((t) => t !== tag);
   }
 
   canBeUsedBy(userRole: string): boolean {

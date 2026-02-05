@@ -1,4 +1,13 @@
-import { Industry, FundingRound, JobType, WorkLocation, ExperienceLevel, JobCategory, StartupStatus, NewsType } from '../common/enums';
+import {
+  Industry,
+  FundingRound,
+  JobType,
+  WorkLocation,
+  ExperienceLevel,
+  JobCategory,
+  StartupStatus,
+  NewsType,
+} from '../common/enums';
 import { LocationFilter } from '../common/location';
 
 // Base filter interface
@@ -158,9 +167,9 @@ export const STARTUP_FILTER_PRESETS: FilterPreset[] = [
       industry: ['ai_ml'],
       fundingStage: ['seed', 'series_a', 'series_b'],
       status: ['active'],
-      verified: true
+      verified: true,
     },
-    isPublic: true
+    isPublic: true,
   },
   {
     id: 'unicorn-companies',
@@ -169,9 +178,9 @@ export const STARTUP_FILTER_PRESETS: FilterPreset[] = [
     category: 'startups',
     filters: {
       funding: { min: 1000000000 },
-      status: ['active']
+      status: ['active'],
     },
-    isPublic: true
+    isPublic: true,
   },
   {
     id: 'early-stage-fintech',
@@ -181,10 +190,10 @@ export const STARTUP_FILTER_PRESETS: FilterPreset[] = [
     filters: {
       industry: ['fintech'],
       fundingStage: ['pre_seed', 'seed', 'series_a'],
-      status: ['active']
+      status: ['active'],
     },
-    isPublic: true
-  }
+    isPublic: true,
+  },
 ];
 
 export const JOB_FILTER_PRESETS: FilterPreset[] = [
@@ -196,9 +205,9 @@ export const JOB_FILTER_PRESETS: FilterPreset[] = [
     filters: {
       category: ['engineering'],
       workLocation: ['remote'],
-      isActive: true
+      isActive: true,
     },
-    isPublic: true
+    isPublic: true,
   },
   {
     id: 'senior-product-roles',
@@ -208,9 +217,9 @@ export const JOB_FILTER_PRESETS: FilterPreset[] = [
     filters: {
       category: ['product'],
       experienceLevel: ['senior', 'lead', 'principal'],
-      isActive: true
+      isActive: true,
     },
-    isPublic: true
+    isPublic: true,
   },
   {
     id: 'startup-founding-team',
@@ -220,10 +229,10 @@ export const JOB_FILTER_PRESETS: FilterPreset[] = [
     filters: {
       startupStage: ['pre_seed', 'seed'],
       hasEquity: true,
-      isActive: true
+      isActive: true,
     },
-    isPublic: true
-  }
+    isPublic: true,
+  },
 ];
 
 // Dynamic filter building

@@ -48,7 +48,7 @@ export class StartupDiscoveryService {
     @InjectRepository(StartupTeam)
     private teamRepository: Repository<StartupTeam>,
     @InjectRepository(StartupPhoto)
-    private photoRepository: Repository<StartupPhoto>
+    private photoRepository: Repository<StartupPhoto>,
   ) {}
 
   // ==================== SEARCH ====================
@@ -57,7 +57,8 @@ export class StartupDiscoveryService {
    * Advanced search with multiple filters
    */
   async searchStartups(filters: SearchFilters) {
-    let query = this.startupRepository.createQueryBuilder('startup')
+    let query = this.startupRepository
+      .createQueryBuilder('startup')
       .leftJoinAndSelect('startup.verification', 'verification')
       .leftJoinAndSelect('startup.metrics', 'metrics');
 
@@ -65,7 +66,7 @@ export class StartupDiscoveryService {
     if (filters.keyword) {
       query = query.andWhere(
         `(startup.name ILIKE :keyword OR startup.description ILIKE :keyword OR startup.mission ILIKE :keyword)`,
-        { keyword: `%${filters.keyword}%` }
+        { keyword: `%${filters.keyword}%` },
       );
     }
 
@@ -81,37 +82,51 @@ export class StartupDiscoveryService {
 
     // Location filter
     if (filters.location && filters.location.length > 0) {
-      query = query.andWhere('startup.headquarters IN (:locations)', { locations: filters.location });
+      query = query.andWhere('startup.headquarters IN (:locations)', {
+        locations: filters.location,
+      });
     }
 
     // Funding range
     if (filters.fundingMin !== undefined) {
-      query = query.andWhere('startup.total_funding >= :fundingMin', { fundingMin: filters.fundingMin });
+      query = query.andWhere('startup.total_funding >= :fundingMin', {
+        fundingMin: filters.fundingMin,
+      });
     }
     if (filters.fundingMax !== undefined) {
-      query = query.andWhere('startup.total_funding <= :fundingMax', { fundingMax: filters.fundingMax });
+      query = query.andWhere('startup.total_funding <= :fundingMax', {
+        fundingMax: filters.fundingMax,
+      });
     }
 
     // Employee count range
     if (filters.employeeMin !== undefined) {
-      query = query.andWhere('startup.employee_count >= :employeeMin', { employeeMin: filters.employeeMin });
+      query = query.andWhere('startup.employee_count >= :employeeMin', {
+        employeeMin: filters.employeeMin,
+      });
     }
     if (filters.employeeMax !== undefined) {
-      query = query.andWhere('startup.employee_count <= :employeeMax', { employeeMax: filters.employeeMax });
+      query = query.andWhere('startup.employee_count <= :employeeMax', {
+        employeeMax: filters.employeeMax,
+      });
     }
 
     // Founded date range
     if (filters.foundedAfter) {
-      query = query.andWhere('startup.founding_date >= :foundedAfter', { foundedAfter: filters.foundedAfter });
+      query = query.andWhere('startup.founding_date >= :foundedAfter', {
+        foundedAfter: filters.foundedAfter,
+      });
     }
     if (filters.foundedBefore) {
-      query = query.andWhere('startup.founding_date <= :foundedBefore', { foundedBefore: filters.foundedBefore });
+      query = query.andWhere('startup.founding_date <= :foundedBefore', {
+        foundedBefore: filters.foundedBefore,
+      });
     }
 
     // Verification filter
     if (filters.hasVerification) {
       query = query.andWhere('verification.status = :verificationStatus', {
-        verificationStatus: 'VERIFIED'
+        verificationStatus: 'VERIFIED',
       });
     }
 
@@ -136,10 +151,7 @@ export class StartupDiscoveryService {
     const limit = filters.limit || 20;
     const offset = filters.offset || 0;
 
-    const [startups, total] = await query
-      .take(limit)
-      .skip(offset)
-      .getManyAndCount();
+    const [startups, total] = await query.take(limit).skip(offset).getManyAndCount();
 
     this.logger.log(`Searched startups with filters, found ${total} results`);
 
@@ -149,8 +161,8 @@ export class StartupDiscoveryService {
         total,
         limit,
         offset,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -161,19 +173,17 @@ export class StartupDiscoveryService {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const query = this.startupRepository.createQueryBuilder('startup')
+    const query = this.startupRepository
+      .createQueryBuilder('startup')
       .leftJoinAndSelect('startup.metrics', 'metrics')
       .leftJoinAndSelect('startup.verification', 'verification')
       .where('startup.created_at >= :startDate', { startDate });
 
-    const startups = await query
-      .orderBy('metrics.trending_score', 'DESC')
-      .take(limit)
-      .getMany();
+    const startups = await query.orderBy('metrics.trending_score', 'DESC').take(limit).getMany();
 
     return {
       data: startups,
-      period: `Last ${days} days`
+      period: `Last ${days} days`,
     };
   }
 
@@ -183,7 +193,7 @@ export class StartupDiscoveryService {
   async calculateTrendingScore(startupId: string): Promise<number> {
     const startup = await this.startupRepository.findOne({
       where: { id: startupId },
-      relations: ['metrics']
+      relations: ['metrics'],
     });
 
     if (!startup) {
@@ -199,13 +209,13 @@ export class StartupDiscoveryService {
       where: {
         startupId,
         followedAt: Between(sevenDaysAgo, new Date()),
-        unfollowedAt: null
-      }
+        unfollowedAt: null,
+      },
     });
 
     // Count photos views
     const photos = await this.photoRepository.find({
-      where: { startup: { id: startupId }, deletedAt: null }
+      where: { startup: { id: startupId }, deletedAt: null },
     });
 
     const photoViewsIncrease = photos.reduce((sum, p) => sum + (p.viewsCount || 0), 0);
@@ -213,10 +223,8 @@ export class StartupDiscoveryService {
 
     // Calculate trending score
     // Weight: followers (40%), views (30%), likes (20%), time decay (10%)
-    const trendingScore = 
-      (newFollowersCount * 40) +
-      (photoViewsIncrease * 0.3) +
-      (photoLikesIncrease * 0.2);
+    const trendingScore =
+      newFollowersCount * 40 + photoViewsIncrease * 0.3 + photoLikesIncrease * 0.2;
 
     return Math.round(trendingScore);
   }
@@ -227,22 +235,24 @@ export class StartupDiscoveryService {
   async getRecommendations(userId: string, limit: number = 10) {
     // Get startups user is already following
     const userFollows = await this.followRepository.find({
-      where: { userId, unfollowedAt: null }
+      where: { userId, unfollowedAt: null },
     });
 
-    const followedStartupIds = userFollows.map(f => f.startupId);
+    const followedStartupIds = userFollows.map((f) => f.startupId);
 
     // Get similar startups based on followed ones
     const recommendations = new Map<string, SimilarStartupScore>();
 
     for (const follow of userFollows) {
       const similar = await this.getSimilarStartups(follow.startupId, 5);
-      similar.forEach(sim => {
+      similar.forEach((sim) => {
         if (!followedStartupIds.includes(sim.startupId)) {
           const existing = recommendations.get(sim.startupId);
           if (existing) {
             existing.similarity = Math.max(existing.similarity, sim.similarity);
-            existing.commonFactors = [...new Set([...existing.commonFactors, ...sim.commonFactors])];
+            existing.commonFactors = [
+              ...new Set([...existing.commonFactors, ...sim.commonFactors]),
+            ];
           } else {
             recommendations.set(sim.startupId, sim);
           }
@@ -256,25 +266,25 @@ export class StartupDiscoveryService {
       .slice(0, limit);
 
     // Get full startup details
-    const startupIds = sortedRecommendations.map(r => r.startupId);
+    const startupIds = sortedRecommendations.map((r) => r.startupId);
     const startups = await this.startupRepository.find({
       where: { id: In(startupIds) },
-      relations: ['verification', 'metrics']
+      relations: ['verification', 'metrics'],
     });
 
     // Merge with similarity scores
-    const result = startups.map(startup => {
-      const scoreData = sortedRecommendations.find(r => r.startupId === startup.id);
+    const result = startups.map((startup) => {
+      const scoreData = sortedRecommendations.find((r) => r.startupId === startup.id);
       return {
         startup,
         similarityScore: scoreData?.similarity || 0,
-        commonFactors: scoreData?.commonFactors || []
+        commonFactors: scoreData?.commonFactors || [],
       };
     });
 
     return {
       data: result,
-      count: result.length
+      count: result.length,
     };
   }
 
@@ -283,14 +293,15 @@ export class StartupDiscoveryService {
    */
   async getSimilarStartups(startupId: string, limit: number = 5): Promise<SimilarStartupScore[]> {
     const startup = await this.startupRepository.findOne({
-      where: { id: startupId }
+      where: { id: startupId },
     });
 
     if (!startup) {
       throw new Error(`Startup with ID ${startupId} not found`);
     }
 
-    let query = this.startupRepository.createQueryBuilder('startup')
+    let query = this.startupRepository
+      .createQueryBuilder('startup')
       .where('startup.id != :startupId', { startupId });
 
     // Find startups with similar characteristics
@@ -302,7 +313,9 @@ export class StartupDiscoveryService {
     }
 
     if (startup.fundingStage) {
-      query = query.orWhere('startup.funding_stage = :fundingStage', { fundingStage: startup.fundingStage });
+      query = query.orWhere('startup.funding_stage = :fundingStage', {
+        fundingStage: startup.fundingStage,
+      });
       similarCriteria.push('stage');
     }
 
@@ -314,7 +327,7 @@ export class StartupDiscoveryService {
     const candidates = await query.take(50).getMany();
 
     // Score candidates based on similarity
-    const scored = candidates.map(candidate => {
+    const scored = candidates.map((candidate) => {
       let score = 0;
       const factors: string[] = [];
 
@@ -348,12 +361,12 @@ export class StartupDiscoveryService {
       return {
         startupId: candidate.id,
         similarity: score,
-        commonFactors: factors
+        commonFactors: factors,
       };
     });
 
     return scored
-      .filter(s => s.similarity > 0)
+      .filter((s) => s.similarity > 0)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, limit);
   }
@@ -365,7 +378,7 @@ export class StartupDiscoveryService {
    */
   async followStartup(userId: string, startupId: string, metadata?: any) {
     const startup = await this.startupRepository.findOne({
-      where: { id: startupId }
+      where: { id: startupId },
     });
 
     if (!startup) {
@@ -374,7 +387,7 @@ export class StartupDiscoveryService {
 
     // Check if already following
     let follow = await this.followRepository.findOne({
-      where: { userId, startupId }
+      where: { userId, startupId },
     });
 
     if (follow) {
@@ -389,7 +402,7 @@ export class StartupDiscoveryService {
     follow = this.followRepository.create({
       userId,
       startupId,
-      metadata: metadata || {}
+      metadata: metadata || {},
     });
 
     const saved = await this.followRepository.save(follow);
@@ -402,7 +415,7 @@ export class StartupDiscoveryService {
    */
   async unfollowStartup(userId: string, startupId: string) {
     const follow = await this.followRepository.findOne({
-      where: { userId, startupId }
+      where: { userId, startupId },
     });
 
     if (!follow) {
@@ -420,14 +433,14 @@ export class StartupDiscoveryService {
    */
   async bookmarkStartup(userId: string, startupId: string) {
     let follow = await this.followRepository.findOne({
-      where: { userId, startupId }
+      where: { userId, startupId },
     });
 
     if (!follow) {
       follow = this.followRepository.create({
         userId,
         startupId,
-        isBookmarked: true
+        isBookmarked: true,
       });
     } else {
       follow.isBookmarked = true;
@@ -443,7 +456,7 @@ export class StartupDiscoveryService {
    */
   async removeBookmark(userId: string, startupId: string) {
     const follow = await this.followRepository.findOne({
-      where: { userId, startupId }
+      where: { userId, startupId },
     });
 
     if (!follow) {
@@ -464,7 +477,7 @@ export class StartupDiscoveryService {
       relations: ['startup', 'startup.verification', 'startup.metrics'],
       take: limit,
       skip: offset,
-      order: { followedAt: 'DESC' }
+      order: { followedAt: 'DESC' },
     });
 
     return {
@@ -473,8 +486,8 @@ export class StartupDiscoveryService {
         total,
         limit,
         offset,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -487,7 +500,7 @@ export class StartupDiscoveryService {
       relations: ['startup', 'startup.verification', 'startup.metrics'],
       take: limit,
       skip: offset,
-      order: { updatedAt: 'DESC' }
+      order: { updatedAt: 'DESC' },
     });
 
     return {
@@ -496,8 +509,8 @@ export class StartupDiscoveryService {
         total,
         limit,
         offset,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -506,7 +519,7 @@ export class StartupDiscoveryService {
    */
   async isFollowing(userId: string, startupId: string): Promise<boolean> {
     const follow = await this.followRepository.findOne({
-      where: { userId, startupId, unfollowedAt: null }
+      where: { userId, startupId, unfollowedAt: null },
     });
 
     return !!follow;
@@ -517,7 +530,7 @@ export class StartupDiscoveryService {
    */
   async isBookmarked(userId: string, startupId: string): Promise<boolean> {
     const follow = await this.followRepository.findOne({
-      where: { userId, startupId, isBookmarked: true }
+      where: { userId, startupId, isBookmarked: true },
     });
 
     return !!follow;
@@ -530,7 +543,7 @@ export class StartupDiscoveryService {
    */
   async getFollowersCount(startupId: string): Promise<number> {
     return this.followRepository.count({
-      where: { startupId, unfollowedAt: null }
+      where: { startupId, unfollowedAt: null },
     });
   }
 
@@ -541,7 +554,7 @@ export class StartupDiscoveryService {
     return this.followRepository.find({
       where: { startupId, unfollowedAt: null },
       order: { followedAt: 'DESC' },
-      take: limit
+      take: limit,
     });
   }
 
@@ -563,21 +576,28 @@ export class StartupDiscoveryService {
       where: { verification: { status: 'VERIFIED' } },
       relations: ['verification', 'metrics'],
       order: { createdAt: 'DESC' },
-      take: 5
+      take: 5,
     });
 
     return {
       trending: trending.data,
-      recommended: recommended.data.map(r => ({ ...r.startup, similarityScore: r.similarityScore })),
+      recommended: recommended.data.map((r) => ({
+        ...r.startup,
+        similarityScore: r.similarityScore,
+      })),
       featured,
-      sections: ['trending', 'recommended', 'featured']
+      sections: ['trending', 'recommended', 'featured'],
     };
   }
 
   /**
    * Track discovery analytics
    */
-  async trackDiscoveryAction(startupId: string, action: 'view' | 'search' | 'recommend', userId?: string) {
+  async trackDiscoveryAction(
+    startupId: string,
+    action: 'view' | 'search' | 'recommend',
+    userId?: string,
+  ) {
     // This would typically update analytics in a metrics table
     this.logger.log(`Discovery action: ${action} on startup ${startupId} by user ${userId}`);
     return { success: true };

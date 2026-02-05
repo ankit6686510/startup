@@ -55,7 +55,7 @@ export class OAuthService {
   constructor(
     config: OAuthConfig,
     userLookup: (profile: OAuthProfile) => Promise<any>,
-    userCreate: (profile: OAuthProfile) => Promise<any>
+    userCreate: (profile: OAuthProfile) => Promise<any>,
   ) {
     this.config = config;
     this.userLookup = userLookup;
@@ -66,52 +66,77 @@ export class OAuthService {
   private setupStrategies(): void {
     // Google OAuth Strategy
     if (this.config.google) {
-      passport.use(new GoogleStrategy({
-        clientID: this.config.google.clientID,
-        clientSecret: this.config.google.clientSecret,
-        callbackURL: this.config.google.callbackURL,
-        scope: ['profile', 'email']
-      }, this.handleOAuthCallback('google')));
+      passport.use(
+        new GoogleStrategy(
+          {
+            clientID: this.config.google.clientID,
+            clientSecret: this.config.google.clientSecret,
+            callbackURL: this.config.google.callbackURL,
+            scope: ['profile', 'email'],
+          },
+          this.handleOAuthCallback('google'),
+        ),
+      );
     }
 
     // GitHub OAuth Strategy
     if (this.config.github) {
-      passport.use(new GitHubStrategy({
-        clientID: this.config.github.clientID,
-        clientSecret: this.config.github.clientSecret,
-        callbackURL: this.config.github.callbackURL,
-        scope: ['user:email']
-      }, this.handleOAuthCallback('github')));
+      passport.use(
+        new GitHubStrategy(
+          {
+            clientID: this.config.github.clientID,
+            clientSecret: this.config.github.clientSecret,
+            callbackURL: this.config.github.callbackURL,
+            scope: ['user:email'],
+          },
+          this.handleOAuthCallback('github'),
+        ),
+      );
     }
 
     // LinkedIn OAuth Strategy
     if (this.config.linkedin) {
-      passport.use(new LinkedInStrategy({
-        clientID: this.config.linkedin.clientID,
-        clientSecret: this.config.linkedin.clientSecret,
-        callbackURL: this.config.linkedin.callbackURL,
-        scope: ['r_emailaddress', 'r_liteprofile']
-      }, this.handleOAuthCallback('linkedin')));
+      passport.use(
+        new LinkedInStrategy(
+          {
+            clientID: this.config.linkedin.clientID,
+            clientSecret: this.config.linkedin.clientSecret,
+            callbackURL: this.config.linkedin.callbackURL,
+            scope: ['r_emailaddress', 'r_liteprofile'],
+          },
+          this.handleOAuthCallback('linkedin'),
+        ),
+      );
     }
 
     // Twitter OAuth Strategy
     if (this.config.twitter) {
-      passport.use(new TwitterStrategy({
-        consumerKey: this.config.twitter.consumerKey,
-        consumerSecret: this.config.twitter.consumerSecret,
-        callbackURL: this.config.twitter.callbackURL,
-        includeEmail: true
-      }, this.handleOAuthCallback('twitter')));
+      passport.use(
+        new TwitterStrategy(
+          {
+            consumerKey: this.config.twitter.consumerKey,
+            consumerSecret: this.config.twitter.consumerSecret,
+            callbackURL: this.config.twitter.callbackURL,
+            includeEmail: true,
+          },
+          this.handleOAuthCallback('twitter'),
+        ),
+      );
     }
 
     // Facebook OAuth Strategy
     if (this.config.facebook) {
-      passport.use(new FacebookStrategy({
-        clientID: this.config.facebook.clientID,
-        clientSecret: this.config.facebook.clientSecret,
-        callbackURL: this.config.facebook.callbackURL,
-        profileFields: ['id', 'emails', 'name', 'picture.type(large)']
-      }, this.handleOAuthCallback('facebook')));
+      passport.use(
+        new FacebookStrategy(
+          {
+            clientID: this.config.facebook.clientID,
+            clientSecret: this.config.facebook.clientSecret,
+            callbackURL: this.config.facebook.callbackURL,
+            profileFields: ['id', 'emails', 'name', 'picture.type(large)'],
+          },
+          this.handleOAuthCallback('facebook'),
+        ),
+      );
     }
 
     // Passport serialization
@@ -134,10 +159,10 @@ export class OAuthService {
     return async (accessToken: string, refreshToken: string, profile: any, done: any) => {
       try {
         const oauthProfile = this.normalizeProfile(provider, profile, accessToken, refreshToken);
-        
+
         // Check if user exists
         let user = await this.userLookup(oauthProfile);
-        
+
         if (!user) {
           // Create new user
           user = await this.userCreate(oauthProfile);
@@ -154,10 +179,10 @@ export class OAuthService {
   }
 
   private normalizeProfile(
-    provider: string, 
-    profile: any, 
-    accessToken: string, 
-    refreshToken?: string
+    provider: string,
+    profile: any,
+    accessToken: string,
+    refreshToken?: string,
   ): OAuthProfile {
     let email = '';
     let firstName = '';
@@ -219,7 +244,7 @@ export class OAuthService {
       profileUrl,
       accessToken,
       refreshToken,
-      raw: profile
+      raw: profile,
     };
   }
 
@@ -252,7 +277,7 @@ export class OAuthService {
       github: 'https://github.com/login/oauth/authorize',
       linkedin: 'https://www.linkedin.com/oauth/v2/authorization',
       twitter: 'https://api.twitter.com/oauth/authenticate',
-      facebook: 'https://www.facebook.com/v18.0/dialog/oauth'
+      facebook: 'https://www.facebook.com/v18.0/dialog/oauth',
     };
 
     const config = this.config[provider as keyof OAuthConfig];
@@ -265,7 +290,7 @@ export class OAuthService {
       redirect_uri: config.callbackURL,
       state,
       scope: this.getDefaultScope(provider),
-      response_type: 'code'
+      response_type: 'code',
     });
 
     return `${baseUrls[provider as keyof typeof baseUrls]}?${params.toString()}`;
@@ -277,7 +302,7 @@ export class OAuthService {
       github: 'user:email',
       linkedin: 'r_liteprofile r_emailaddress',
       twitter: '',
-      facebook: 'email public_profile'
+      facebook: 'email public_profile',
     };
 
     return scopes[provider as keyof typeof scopes] || '';
@@ -291,7 +316,7 @@ export class OAuthService {
       google: 'https://oauth2.googleapis.com/revoke',
       github: 'https://api.github.com/applications/{client_id}/token',
       linkedin: 'https://api.linkedin.com/v2/oauth/revoke',
-      facebook: 'https://graph.facebook.com/me/permissions'
+      facebook: 'https://graph.facebook.com/me/permissions',
     };
 
     try {
@@ -305,7 +330,7 @@ export class OAuthService {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `token=${accessToken}`
+        body: `token=${accessToken}`,
       });
 
       return response.ok;
@@ -323,7 +348,7 @@ export class OAuthService {
       google: 'https://oauth2.googleapis.com/token',
       github: 'https://github.com/login/oauth/access_token',
       linkedin: 'https://www.linkedin.com/oauth/v2/accessToken',
-      facebook: 'https://graph.facebook.com/oauth/access_token'
+      facebook: 'https://graph.facebook.com/oauth/access_token',
     };
 
     try {
@@ -341,7 +366,7 @@ export class OAuthService {
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
         client_id: 'clientID' in config ? config.clientID : '',
-        client_secret: 'clientSecret' in config ? config.clientSecret : ''
+        client_secret: 'clientSecret' in config ? config.clientSecret : '',
       });
 
       const response = await fetch(url, {
@@ -349,7 +374,7 @@ export class OAuthService {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: params.toString()
+        body: params.toString(),
       });
 
       if (!response.ok) {
@@ -368,28 +393,26 @@ export class OAuthService {
 export const requireOAuth = (providers: string[] = []) => {
   return (req: any, res: any, next: any) => {
     const user = req.user;
-    
+
     if (!user) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required',
-        code: 'UNAUTHORIZED'
+        code: 'UNAUTHORIZED',
       });
     }
 
     // If specific providers are required, check if user has any of them
     if (providers.length > 0) {
       const userProviders = user.oauthProviders || [];
-      const hasRequiredProvider = providers.some(provider => 
-        userProviders.includes(provider)
-      );
+      const hasRequiredProvider = providers.some((provider) => userProviders.includes(provider));
 
       if (!hasRequiredProvider) {
         return res.status(403).json({
           success: false,
           error: `OAuth authentication required with one of: ${providers.join(', ')}`,
           code: 'OAUTH_REQUIRED',
-          availableProviders: providers
+          availableProviders: providers,
         });
       }
     }
@@ -407,7 +430,7 @@ export const linkOAuthAccount = async (req: any, res: any, next: any) => {
     return res.status(400).json({
       success: false,
       error: 'Invalid request for account linking',
-      code: 'INVALID_LINK_REQUEST'
+      code: 'INVALID_LINK_REQUEST',
     });
   }
 
@@ -415,14 +438,14 @@ export const linkOAuthAccount = async (req: any, res: any, next: any) => {
     // Check if OAuth account is already linked to another user
     const existingUser = await req.userService.findByOAuthProvider(
       oauthProfile.provider,
-      oauthProfile.providerId
+      oauthProfile.providerId,
     );
 
     if (existingUser && existingUser.id !== user.id) {
       return res.status(409).json({
         success: false,
         error: 'This OAuth account is already linked to another user',
-        code: 'OAUTH_ACCOUNT_TAKEN'
+        code: 'OAUTH_ACCOUNT_TAKEN',
       });
     }
 
@@ -434,7 +457,7 @@ export const linkOAuthAccount = async (req: any, res: any, next: any) => {
     return res.status(500).json({
       success: false,
       error: 'Failed to link OAuth account',
-      code: 'OAUTH_LINK_FAILED'
+      code: 'OAUTH_LINK_FAILED',
     });
   }
 };
@@ -478,7 +501,7 @@ export const oauthUtils = {
       firstName: profile.firstName,
       lastName: profile.lastName,
       avatar: profile.avatar,
-      profileUrl: profile.profileUrl
+      profileUrl: profile.profileUrl,
       // Exclude sensitive tokens from sanitized profile
     };
   },
@@ -507,11 +530,11 @@ export const oauthUtils = {
       github: 'github.com',
       linkedin: 'linkedin.com',
       twitter: 'twitter.com',
-      facebook: 'facebook.com'
+      facebook: 'facebook.com',
     };
 
     return domains[provider as keyof typeof domains] || 'unknown';
-  }
+  },
 };
 
 export default OAuthService;

@@ -254,7 +254,10 @@ export class MetricsCollector {
   }
 
   // Cache metrics
-  recordCacheOperation(operation: 'hit' | 'miss' | 'set' | 'delete', success: boolean = true): void {
+  recordCacheOperation(
+    operation: 'hit' | 'miss' | 'set' | 'delete',
+    success: boolean = true,
+  ): void {
     cacheOperationsTotal.inc({
       operation,
       status: success ? 'success' : 'error',
@@ -313,11 +316,14 @@ export class MetricsCollector {
       service: this.serviceName,
     });
 
-    fundingAmountTotal.inc({
-      round,
-      currency,
-      service: this.serviceName,
-    }, amount);
+    fundingAmountTotal.inc(
+      {
+        round,
+        currency,
+        service: this.serviceName,
+      },
+      amount,
+    );
   }
 
   recordNotification(channel: string, success: boolean): void {
@@ -351,7 +357,12 @@ export class MetricsCollector {
   }
 
   // External API calls
-  recordExternalApiCall(serviceName: string, endpoint: string, statusCode: number, duration: number): void {
+  recordExternalApiCall(
+    serviceName: string,
+    endpoint: string,
+    statusCode: number,
+    duration: number,
+  ): void {
     const labels = {
       service_name: serviceName,
       endpoint,
@@ -360,11 +371,14 @@ export class MetricsCollector {
     };
 
     externalApiCallsTotal.inc(labels);
-    externalApiDuration.observe({
-      service_name: serviceName,
-      endpoint,
-      service: this.serviceName,
-    }, duration / 1000);
+    externalApiDuration.observe(
+      {
+        service_name: serviceName,
+        endpoint,
+        service: this.serviceName,
+      },
+      duration / 1000,
+    );
   }
 
   // Queue metrics
@@ -375,11 +389,14 @@ export class MetricsCollector {
       service: this.serviceName,
     });
 
-    queueJobDuration.observe({
-      queue,
-      job_type: jobType,
-      service: this.serviceName,
-    }, duration / 1000);
+    queueJobDuration.observe(
+      {
+        queue,
+        job_type: jobType,
+        service: this.serviceName,
+      },
+      duration / 1000,
+    );
   }
 
   setQueueSize(queue: string, size: number): void {
@@ -447,10 +464,10 @@ export const metricsMiddleware = (serviceName: string) => {
 
     // Override res.end to capture metrics
     const originalEnd = res.end;
-    res.end = function(chunk: any, encoding: any) {
+    res.end = function (chunk: any, encoding: any) {
       const duration = Date.now() - startTime;
       const route = req.route?.path || req.path || 'unknown';
-      
+
       collector.recordHttpRequest(req.method, route, res.statusCode, duration);
       originalEnd.call(res, chunk, encoding);
     };

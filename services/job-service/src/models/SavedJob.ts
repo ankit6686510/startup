@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
-  Unique
+  Unique,
 } from 'typeorm';
 import { Job } from './Job';
 
@@ -88,7 +88,7 @@ export class SavedJob {
   }
 
   removeTag(tag: string): void {
-    this.tags = this.tags.filter(t => t !== tag);
+    this.tags = this.tags.filter((t) => t !== tag);
   }
 
   get isReminderDue(): boolean {

@@ -8,11 +8,11 @@ import rateLimit from 'express-rate-limit';
 import { AppDataSource } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
-import { 
-  requestId, 
-  sanitizeQuery, 
-  validateContentType, 
-  validateBodySize 
+import {
+  requestId,
+  sanitizeQuery,
+  validateContentType,
+  validateBodySize,
 } from './middleware/validation';
 import { optionalAuth } from './middleware/auth';
 import startupRoutes from './routes/startup.routes';
@@ -33,12 +33,14 @@ const limiter = rateLimit({
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    credentials: true,
+  }),
+);
 app.use(compression());
-app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
+app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
 app.use(limiter);
 app.use(requestId);
 app.use(sanitizeQuery);
@@ -63,7 +65,7 @@ app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
     message: 'Route not found',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 

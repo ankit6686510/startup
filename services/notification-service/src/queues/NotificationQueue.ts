@@ -55,7 +55,11 @@ export class NotificationQueue {
     }
   }
 
-  async process(jobName: string, concurrency: number, processor: Bull.ProcessCallbackFunction<any>): Promise<void> {
+  async process(
+    jobName: string,
+    concurrency: number,
+    processor: Bull.ProcessCallbackFunction<any>,
+  ): Promise<void> {
     this.queue.process(jobName, concurrency, processor);
     logger.info(`Queue processor registered for: ${jobName} with concurrency: ${concurrency}`);
   }

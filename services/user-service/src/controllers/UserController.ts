@@ -45,26 +45,14 @@ export class UserController {
       .optional()
       .isLength({ max: 100 })
       .withMessage('Location must be less than 100 characters'),
-    body('website')
-      .optional()
-      .isURL()
-      .withMessage('Please provide a valid URL'),
+    body('website').optional().isURL().withMessage('Please provide a valid URL'),
     body('phone')
       .optional()
       .isMobilePhone('any')
       .withMessage('Please provide a valid phone number'),
-    body('skills')
-      .optional()
-      .isArray()
-      .withMessage('Skills must be an array'),
-    body('interests')
-      .optional()
-      .isArray()
-      .withMessage('Interests must be an array'),
-    body('industries')
-      .optional()
-      .isArray()
-      .withMessage('Industries must be an array'),
+    body('skills').optional().isArray().withMessage('Skills must be an array'),
+    body('interests').optional().isArray().withMessage('Interests must be an array'),
+    body('industries').optional().isArray().withMessage('Industries must be an array'),
   ];
 
   getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -145,19 +133,21 @@ export class UserController {
           user: {
             id: user.id,
             role: user.role,
-            profile: user.profile ? {
-              displayName: user.profile.displayName,
-              bio: user.profile.bio,
-              title: user.profile.title,
-              company: user.profile.company,
-              location: user.profile.location,
-              website: user.profile.website,
-              socialLinks: user.profile.socialLinks,
-              skills: user.profile.skills,
-              interests: user.profile.interests,
-              industries: user.profile.industries,
-              isPublic: user.profile.isPublic,
-            } : null,
+            profile: user.profile
+              ? {
+                  displayName: user.profile.displayName,
+                  bio: user.profile.bio,
+                  title: user.profile.title,
+                  company: user.profile.company,
+                  location: user.profile.location,
+                  website: user.profile.website,
+                  socialLinks: user.profile.socialLinks,
+                  skills: user.profile.skills,
+                  interests: user.profile.interests,
+                  industries: user.profile.industries,
+                  isPublic: user.profile.isPublic,
+                }
+              : null,
             createdAt: user.createdAt,
           },
         },
@@ -335,15 +325,7 @@ export class UserController {
 
   searchUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const {
-        q,
-        role,
-        skills,
-        industries,
-        location,
-        page = 1,
-        limit = 20,
-      } = req.query;
+      const { q, role, skills, industries, location, page = 1, limit = 20 } = req.query;
 
       const queryBuilder = this.userRepository
         .createQueryBuilder('user')
@@ -356,7 +338,7 @@ export class UserController {
       if (q) {
         queryBuilder.andWhere(
           '(profile.firstName ILIKE :query OR profile.lastName ILIKE :query OR profile.displayName ILIKE :query OR profile.title ILIKE :query OR profile.bio ILIKE :query)',
-          { query: `%${q}%` }
+          { query: `%${q}%` },
         );
       }
 
@@ -391,21 +373,23 @@ export class UserController {
       res.json({
         success: true,
         data: {
-          users: users.map(user => ({
+          users: users.map((user) => ({
             id: user.id,
             role: user.role,
-            profile: user.profile ? {
-              displayName: user.profile.displayName,
-              bio: user.profile.bio,
-              title: user.profile.title,
-              company: user.profile.company,
-              location: user.profile.location,
-              website: user.profile.website,
-              socialLinks: user.profile.socialLinks,
-              skills: user.profile.skills,
-              interests: user.profile.interests,
-              industries: user.profile.industries,
-            } : null,
+            profile: user.profile
+              ? {
+                  displayName: user.profile.displayName,
+                  bio: user.profile.bio,
+                  title: user.profile.title,
+                  company: user.profile.company,
+                  location: user.profile.location,
+                  website: user.profile.website,
+                  socialLinks: user.profile.socialLinks,
+                  skills: user.profile.skills,
+                  interests: user.profile.interests,
+                  industries: user.profile.industries,
+                }
+              : null,
             createdAt: user.createdAt,
           })),
         },

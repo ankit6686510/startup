@@ -7,7 +7,7 @@ const config: Config.InitialOptions = {
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {
-    "^@/(.*)$": '<rootDir>/src/$1'
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/test-setup.ts'],
   collectCoverage: false,

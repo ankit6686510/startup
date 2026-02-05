@@ -13,26 +13,49 @@ export class InvestorController {
 
   // Validation rules
   static createInvestorValidation = [
-    body('name').isLength({ min: 1, max: 200 }).withMessage('Name must be between 1 and 200 characters'),
+    body('name')
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Name must be between 1 and 200 characters'),
     body('type').isIn(Object.values(InvestorType)).withMessage('Invalid investor type'),
     body('website').optional().isURL().withMessage('Invalid website URL'),
     body('email').optional().isEmail().withMessage('Invalid email address'),
-    body('minInvestment').optional().isInt({ min: 0 }).withMessage('Minimum investment must be a positive integer'),
-    body('maxInvestment').optional().isInt({ min: 0 }).withMessage('Maximum investment must be a positive integer'),
-    body('fundSize').optional().isInt({ min: 0 }).withMessage('Fund size must be a positive integer'),
+    body('minInvestment')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Minimum investment must be a positive integer'),
+    body('maxInvestment')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Maximum investment must be a positive integer'),
+    body('fundSize')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Fund size must be a positive integer'),
     body('investmentStages').optional().isArray().withMessage('Investment stages must be an array'),
     body('industries').optional().isArray().withMessage('Industries must be an array'),
     body('geographies').optional().isArray().withMessage('Geographies must be an array'),
   ];
 
   static updateInvestorValidation = [
-    body('name').optional().isLength({ min: 1, max: 200 }).withMessage('Name must be between 1 and 200 characters'),
+    body('name')
+      .optional()
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Name must be between 1 and 200 characters'),
     body('type').optional().isIn(Object.values(InvestorType)).withMessage('Invalid investor type'),
     body('website').optional().isURL().withMessage('Invalid website URL'),
     body('email').optional().isEmail().withMessage('Invalid email address'),
-    body('minInvestment').optional().isInt({ min: 0 }).withMessage('Minimum investment must be a positive integer'),
-    body('maxInvestment').optional().isInt({ min: 0 }).withMessage('Maximum investment must be a positive integer'),
-    body('fundSize').optional().isInt({ min: 0 }).withMessage('Fund size must be a positive integer'),
+    body('minInvestment')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Minimum investment must be a positive integer'),
+    body('maxInvestment')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Maximum investment must be a positive integer'),
+    body('fundSize')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Fund size must be a positive integer'),
     body('investmentStages').optional().isArray().withMessage('Investment stages must be an array'),
     body('industries').optional().isArray().withMessage('Industries must be an array'),
     body('geographies').optional().isArray().withMessage('Geographies must be an array'),
@@ -40,18 +63,30 @@ export class InvestorController {
 
   static getInvestorsValidation = [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-    query('types').optional().custom((value) => {
-      if (typeof value === 'string') {
-        return Object.values(InvestorType).includes(value as InvestorType);
-      }
-      if (Array.isArray(value)) {
-        return value.every(type => Object.values(InvestorType).includes(type));
-      }
-      return false;
-    }).withMessage('Invalid investor types'),
-    query('minInvestment').optional().isInt({ min: 0 }).withMessage('Minimum investment must be a positive integer'),
-    query('maxInvestment').optional().isInt({ min: 0 }).withMessage('Maximum investment must be a positive integer'),
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
+    query('types')
+      .optional()
+      .custom((value) => {
+        if (typeof value === 'string') {
+          return Object.values(InvestorType).includes(value as InvestorType);
+        }
+        if (Array.isArray(value)) {
+          return value.every((type) => Object.values(InvestorType).includes(type));
+        }
+        return false;
+      })
+      .withMessage('Invalid investor types'),
+    query('minInvestment')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Minimum investment must be a positive integer'),
+    query('maxInvestment')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Maximum investment must be a positive integer'),
   ];
 
   createInvestor = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -186,24 +221,27 @@ export class InvestorController {
       const filters: InvestorFilters = {};
       if (req.query.search) filters.search = req.query.search as string;
       if (req.query.types) {
-        filters.types = Array.isArray(req.query.types) 
-          ? req.query.types as InvestorType[] 
+        filters.types = Array.isArray(req.query.types)
+          ? (req.query.types as InvestorType[])
           : [req.query.types as InvestorType];
       }
       if (req.query.industries) {
-        filters.industries = Array.isArray(req.query.industries) 
-          ? req.query.industries as string[] 
+        filters.industries = Array.isArray(req.query.industries)
+          ? (req.query.industries as string[])
           : [req.query.industries as string];
       }
       if (req.query.geographies) {
-        filters.geographies = Array.isArray(req.query.geographies) 
-          ? req.query.geographies as string[] 
+        filters.geographies = Array.isArray(req.query.geographies)
+          ? (req.query.geographies as string[])
           : [req.query.geographies as string];
       }
-      if (req.query.minInvestment) filters.minInvestment = parseInt(req.query.minInvestment as string);
-      if (req.query.maxInvestment) filters.maxInvestment = parseInt(req.query.maxInvestment as string);
+      if (req.query.minInvestment)
+        filters.minInvestment = parseInt(req.query.minInvestment as string);
+      if (req.query.maxInvestment)
+        filters.maxInvestment = parseInt(req.query.maxInvestment as string);
       if (req.query.isVerified) filters.isVerified = req.query.isVerified === 'true';
-      if (req.query.isActivelyInvesting) filters.isActivelyInvesting = req.query.isActivelyInvesting === 'true';
+      if (req.query.isActivelyInvesting)
+        filters.isActivelyInvesting = req.query.isActivelyInvesting === 'true';
 
       const { investors, total } = await this.fundingService.getInvestors(filters, page, limit);
 
@@ -255,22 +293,27 @@ export class InvestorController {
 
       const filters: InvestorFilters = {};
       if (req.query.types) {
-        filters.types = Array.isArray(req.query.types) 
-          ? req.query.types as InvestorType[] 
+        filters.types = Array.isArray(req.query.types)
+          ? (req.query.types as InvestorType[])
           : [req.query.types as InvestorType];
       }
       if (req.query.industries) {
-        filters.industries = Array.isArray(req.query.industries) 
-          ? req.query.industries as string[] 
+        filters.industries = Array.isArray(req.query.industries)
+          ? (req.query.industries as string[])
           : [req.query.industries as string];
       }
       if (req.query.geographies) {
-        filters.geographies = Array.isArray(req.query.geographies) 
-          ? req.query.geographies as string[] 
+        filters.geographies = Array.isArray(req.query.geographies)
+          ? (req.query.geographies as string[])
           : [req.query.geographies as string];
       }
 
-      const { investors, total } = await this.fundingService.searchInvestors(q as string, filters, page, limit);
+      const { investors, total } = await this.fundingService.searchInvestors(
+        q as string,
+        filters,
+        page,
+        limit,
+      );
 
       res.json({
         success: true,
@@ -333,7 +376,11 @@ export class InvestorController {
     }
   };
 
-  getInvestorInvestments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getInvestorInvestments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { id } = req.params;
       const investments = await this.fundingService.getInvestmentsByInvestor(id);

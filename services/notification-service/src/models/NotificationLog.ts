@@ -1,17 +1,11 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  Index
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
 import { NotificationType, NotificationStatus } from './Notification';
 
 export enum LogLevel {
   DEBUG = 'debug',
   INFO = 'info',
   WARN = 'warn',
-  ERROR = 'error'
+  ERROR = 'error',
 }
 
 export enum LogAction {
@@ -26,7 +20,7 @@ export enum LogAction {
   CANCELLED = 'cancelled',
   BOUNCED = 'bounced',
   COMPLAINED = 'complained',
-  UNSUBSCRIBED = 'unsubscribed'
+  UNSUBSCRIBED = 'unsubscribed',
 }
 
 @Entity('notification_logs')
@@ -44,14 +38,14 @@ export class NotificationLog {
 
   @Column({
     type: 'enum',
-    enum: LogLevel
+    enum: LogLevel,
   })
   @Index()
   level: LogLevel;
 
   @Column({
     type: 'enum',
-    enum: LogAction
+    enum: LogAction,
   })
   @Index()
   action: LogAction;
@@ -66,14 +60,14 @@ export class NotificationLog {
   @Column({
     type: 'enum',
     enum: NotificationType,
-    nullable: true
+    nullable: true,
   })
   notificationType?: NotificationType;
 
   @Column({
     type: 'enum',
     enum: NotificationStatus,
-    nullable: true
+    nullable: true,
   })
   notificationStatus?: NotificationStatus;
 
@@ -160,7 +154,7 @@ export class NotificationLog {
     notificationId: string,
     action: LogAction,
     message: string,
-    details?: any
+    details?: any,
   ): Partial<NotificationLog> {
     return {
       notificationId,
@@ -176,7 +170,7 @@ export class NotificationLog {
     action: LogAction,
     message: string,
     error?: Error | any,
-    errorCode?: string
+    errorCode?: string,
   ): Partial<NotificationLog> {
     return {
       notificationId,
@@ -185,11 +179,13 @@ export class NotificationLog {
       message,
       errorMessage: error?.message || error?.toString(),
       errorCode,
-      errorDetails: error ? {
-        name: error.name,
-        stack: error.stack,
-        ...error
-      } : {},
+      errorDetails: error
+        ? {
+            name: error.name,
+            stack: error.stack,
+            ...error,
+          }
+        : {},
     };
   }
 
@@ -197,7 +193,7 @@ export class NotificationLog {
     notificationId: string,
     action: LogAction,
     message: string,
-    debugData?: any
+    debugData?: any,
   ): Partial<NotificationLog> {
     return {
       notificationId,
@@ -214,7 +210,7 @@ export class NotificationLog {
     provider: string,
     providerMessageId?: string,
     providerResponse?: any,
-    processingTime?: number
+    processingTime?: number,
   ): Partial<NotificationLog> {
     return {
       notificationId,
@@ -233,7 +229,7 @@ export class NotificationLog {
     action: LogAction,
     ipAddress?: string,
     userAgent?: string,
-    metadata?: any
+    metadata?: any,
   ): Partial<NotificationLog> {
     return {
       notificationId,
@@ -263,18 +259,16 @@ export class NotificationLog {
     this.level = LogLevel.ERROR;
     this.errorMessage = error?.message || error?.toString();
     this.errorCode = code;
-    this.errorDetails = error ? {
-      name: error.name,
-      stack: error.stack,
-      ...error
-    } : {};
+    this.errorDetails = error
+      ? {
+          name: error.name,
+          stack: error.stack,
+          ...error,
+        }
+      : {};
   }
 
-  setPerformanceMetrics(
-    processingTime?: number,
-    queueTime?: number,
-    deliveryTime?: number
-  ): void {
+  setPerformanceMetrics(processingTime?: number, queueTime?: number, deliveryTime?: number): void {
     if (processingTime !== undefined) this.processingTimeMs = processingTime;
     if (queueTime !== undefined) this.queueTimeMs = queueTime;
     if (deliveryTime !== undefined) this.deliveryTimeMs = deliveryTime;
@@ -289,7 +283,7 @@ export class NotificationLog {
     ipAddress?: string,
     userAgent?: string,
     deviceType?: string,
-    platform?: string
+    platform?: string,
   ): void {
     if (ipAddress) this.ipAddress = ipAddress;
     if (userAgent) this.userAgent = userAgent;
@@ -318,7 +312,9 @@ export class NotificationLog {
   }
 
   get isSuccess(): boolean {
-    return [LogAction.SENT, LogAction.DELIVERED, LogAction.OPENED, LogAction.CLICKED].includes(this.action);
+    return [LogAction.SENT, LogAction.DELIVERED, LogAction.OPENED, LogAction.CLICKED].includes(
+      this.action,
+    );
   }
 
   get isFailure(): boolean {

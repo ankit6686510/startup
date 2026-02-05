@@ -22,7 +22,7 @@ export class EncryptionService {
   constructor(algorithm: string = 'aes-256-gcm') {
     this.algorithm = algorithm;
     this.keyLength = 32; // 256 bits
-    this.ivLength = 16;  // 128 bits
+    this.ivLength = 16; // 128 bits
   }
 
   /**
@@ -45,19 +45,19 @@ export class EncryptionService {
   encrypt(data: string, key: string): EncryptionResult {
     const keyBuffer = Buffer.from(key, 'hex');
     const iv = crypto.randomBytes(this.ivLength);
-    
+
     const cipher = crypto.createCipher(this.algorithm, keyBuffer);
     cipher.setAAD(Buffer.from('StartupCompass', 'utf8'));
-    
+
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     const tag = cipher.getAuthTag();
-    
+
     return {
       encrypted,
       iv: iv.toString('hex'),
-      tag: tag.toString('hex')
+      tag: tag.toString('hex'),
     };
   }
 
@@ -68,14 +68,14 @@ export class EncryptionService {
     const keyBuffer = Buffer.from(key, 'hex');
     const iv = Buffer.from(params.iv, 'hex');
     const tag = Buffer.from(params.tag || '', 'hex');
-    
+
     const decipher = crypto.createDecipher(this.algorithm, keyBuffer);
     decipher.setAAD(Buffer.from('StartupCompass', 'utf8'));
     decipher.setAuthTag(tag);
-    
+
     let decrypted = decipher.update(params.encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   }
 
@@ -86,19 +86,19 @@ export class EncryptionService {
     const salt = crypto.randomBytes(16);
     const key = crypto.pbkdf2Sync(password, salt, 100000, this.keyLength, 'sha256');
     const iv = crypto.randomBytes(this.ivLength);
-    
+
     const cipher = crypto.createCipher(this.algorithm, key);
     cipher.setAAD(salt);
-    
+
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     const tag = cipher.getAuthTag();
-    
+
     return {
       encrypted,
       iv: Buffer.concat([salt, iv]).toString('hex'),
-      tag: tag.toString('hex')
+      tag: tag.toString('hex'),
     };
   }
 
@@ -109,17 +109,17 @@ export class EncryptionService {
     const combined = Buffer.from(params.iv, 'hex');
     const salt = combined.slice(0, 16);
     const iv = combined.slice(16);
-    
+
     const key = crypto.pbkdf2Sync(password, salt, 100000, this.keyLength, 'sha256');
     const tag = Buffer.from(params.tag || '', 'hex');
-    
+
     const decipher = crypto.createDecipher(this.algorithm, key);
     decipher.setAAD(salt);
     decipher.setAuthTag(tag);
-    
+
     let decrypted = decipher.update(params.encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   }
 
@@ -144,7 +144,7 @@ export class EncryptionService {
     const expectedSignature = this.createHMAC(data, secret);
     return crypto.timingSafeEqual(
       Buffer.from(signature, 'hex'),
-      Buffer.from(expectedSignature, 'hex')
+      Buffer.from(expectedSignature, 'hex'),
     );
   }
 
@@ -239,7 +239,11 @@ export class PasswordService {
     }
 
     // Sequential characters check
-    if (!/(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz|123|234|345|456|567|678|789)/i.test(password)) {
+    if (
+      !/(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz|123|234|345|456|567|678|789)/i.test(
+        password,
+      )
+    ) {
       score += 1;
     } else {
       feedback.push('Password should not contain sequential characters');
@@ -250,7 +254,7 @@ export class PasswordService {
     return {
       score,
       feedback,
-      isStrong
+      isStrong,
     };
   }
 
@@ -262,24 +266,27 @@ export class PasswordService {
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const numbers = '0123456789';
     const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-    
+
     const allChars = lowercase + uppercase + numbers + symbols;
-    
+
     let password = '';
-    
+
     // Ensure at least one character from each category
     password += lowercase[crypto.randomInt(0, lowercase.length)];
     password += uppercase[crypto.randomInt(0, uppercase.length)];
     password += numbers[crypto.randomInt(0, numbers.length)];
     password += symbols[crypto.randomInt(0, symbols.length)];
-    
+
     // Fill the rest randomly
     for (let i = 4; i < length; i++) {
       password += allChars[crypto.randomInt(0, allChars.length)];
     }
-    
+
     // Shuffle the password
-    return password.split('').sort(() => crypto.randomInt(0, 2) - 0.5).join('');
+    return password
+      .split('')
+      .sort(() => crypto.randomInt(0, 2) - 0.5)
+      .join('');
   }
 }
 
@@ -296,15 +303,15 @@ export class TokenService {
   generateToken(payload: any, expiresIn: number = 3600): string {
     const tokenData = {
       payload,
-      expiresAt: Date.now() + (expiresIn * 1000),
-      nonce: this.encryptionService.generateRandomString(16)
+      expiresAt: Date.now() + expiresIn * 1000,
+      nonce: this.encryptionService.generateRandomString(16),
     };
 
     const tokenString = JSON.stringify(tokenData);
     const key = process.env.TOKEN_ENCRYPTION_KEY || this.encryptionService.generateKey();
-    
+
     const encrypted = this.encryptionService.encrypt(tokenString, key);
-    
+
     return Buffer.from(JSON.stringify(encrypted)).toString('base64url');
   }
 
@@ -315,15 +322,15 @@ export class TokenService {
     try {
       const encryptedData = JSON.parse(Buffer.from(token, 'base64url').toString());
       const key = process.env.TOKEN_ENCRYPTION_KEY || this.encryptionService.generateKey();
-      
+
       const decrypted = this.encryptionService.decrypt(encryptedData, key);
       const tokenData = JSON.parse(decrypted);
-      
+
       // Check expiration
       if (Date.now() > tokenData.expiresAt) {
         return { isValid: false, error: 'Token expired' };
       }
-      
+
       return { isValid: true, payload: tokenData.payload };
     } catch (error) {
       return { isValid: false, error: 'Invalid token' };
@@ -361,7 +368,7 @@ export class DataProtection {
     const key = process.env.DATA_ENCRYPTION_KEY || this.encryptionService.generateKey();
     const jsonData = JSON.stringify(data);
     const encrypted = this.encryptionService.encrypt(jsonData, key);
-    
+
     return Buffer.from(JSON.stringify(encrypted)).toString('base64');
   }
 
@@ -373,7 +380,7 @@ export class DataProtection {
       const key = process.env.DATA_ENCRYPTION_KEY || this.encryptionService.generateKey();
       const encrypted = JSON.parse(Buffer.from(encryptedData, 'base64').toString());
       const decrypted = this.encryptionService.decrypt(encrypted, key);
-      
+
       return JSON.parse(decrypted);
     } catch (error) {
       throw new Error('Failed to decrypt sensitive data');
@@ -394,7 +401,10 @@ export class DataProtection {
       if (field in masked) {
         const value = masked[field];
         if (typeof value === 'string' && value.length > 0) {
-          masked[field] = value.substring(0, 2) + '*'.repeat(Math.max(0, value.length - 4)) + value.substring(Math.max(2, value.length - 2));
+          masked[field] =
+            value.substring(0, 2) +
+            '*'.repeat(Math.max(0, value.length - 4)) +
+            value.substring(Math.max(2, value.length - 2));
         }
       }
     }
@@ -477,7 +487,7 @@ export const securityUtils = {
   generateUploadToken: (userId: string, filename: string): string => {
     const tokenService = new TokenService();
     return tokenService.generateToken({ userId, filename }, 3600); // 1 hour expiry
-  }
+  },
 };
 
 // Export singleton instances
@@ -491,5 +501,5 @@ export default {
   PasswordService,
   TokenService,
   DataProtection,
-  securityUtils
+  securityUtils,
 };

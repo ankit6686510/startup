@@ -17,13 +17,25 @@ export class InvestmentController {
     body('investorId').notEmpty().withMessage('Investor ID is required'),
     body('amount').optional().isInt({ min: 1 }).withMessage('Amount must be a positive integer'),
     body('currency').optional().isIn(Object.values(Currency)).withMessage('Invalid currency'),
-    body('sharesAcquired').optional().isInt({ min: 0 }).withMessage('Shares acquired must be a positive integer'),
-    body('ownershipPercentage').optional().isFloat({ min: 0, max: 100 }).withMessage('Ownership percentage must be between 0 and 100'),
-    body('pricePerShare').optional().isFloat({ min: 0 }).withMessage('Price per share must be a positive number'),
+    body('sharesAcquired')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Shares acquired must be a positive integer'),
+    body('ownershipPercentage')
+      .optional()
+      .isFloat({ min: 0, max: 100 })
+      .withMessage('Ownership percentage must be between 0 and 100'),
+    body('pricePerShare')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Price per share must be a positive number'),
     body('investmentDate').optional().isISO8601().withMessage('Invalid investment date'),
     body('isLeadInvestor').optional().isBoolean().withMessage('Is lead investor must be a boolean'),
     body('isFollowOn').optional().isBoolean().withMessage('Is follow-on must be a boolean'),
-    body('boardSeats').optional().isInt({ min: 0 }).withMessage('Board seats must be a positive integer'),
+    body('boardSeats')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Board seats must be a positive integer'),
   ];
 
   createInvestment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -53,7 +65,11 @@ export class InvestmentController {
     }
   };
 
-  getInvestmentsByFundingRound = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getInvestmentsByFundingRound = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { fundingRoundId } = req.params;
       const investments = await this.fundingService.getInvestmentsByFundingRound(fundingRoundId);
@@ -69,7 +85,11 @@ export class InvestmentController {
     }
   };
 
-  getInvestmentsByInvestor = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getInvestmentsByInvestor = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { investorId } = req.params;
       const investments = await this.fundingService.getInvestmentsByInvestor(investorId);

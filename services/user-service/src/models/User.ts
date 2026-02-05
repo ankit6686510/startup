@@ -8,7 +8,7 @@ import {
   OneToMany,
   Index,
   BeforeInsert,
-  BeforeUpdate
+  BeforeUpdate,
 } from 'typeorm';
 import { UserRole, UserStatus } from '@startup-platform/types';
 import bcrypt from 'bcryptjs';
@@ -32,7 +32,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.USER
+    default: UserRole.USER,
   })
   @Index()
   role: UserRole;
@@ -40,7 +40,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserStatus,
-    default: UserStatus.PENDING_VERIFICATION
+    default: UserStatus.PENDING_VERIFICATION,
   })
   @Index()
   status: UserStatus;
@@ -110,16 +110,16 @@ export class User {
   updatedAt: Date;
 
   // Relations
-  @OneToOne(() => UserProfile, profile => profile.user, { cascade: true })
+  @OneToOne(() => UserProfile, (profile) => profile.user, { cascade: true })
   profile: UserProfile;
 
-  @OneToMany(() => UserSession, session => session.user)
+  @OneToMany(() => UserSession, (session) => session.user)
   sessions: UserSession[];
 
-  @OneToMany(() => EmailVerification, verification => verification.user)
+  @OneToMany(() => EmailVerification, (verification) => verification.user)
   emailVerifications: EmailVerification[];
 
-  @OneToMany(() => PasswordReset, passwordReset => passwordReset.user)
+  @OneToMany(() => PasswordReset, (passwordReset) => passwordReset.user)
   passwordResets: PasswordReset[];
 
   // Methods

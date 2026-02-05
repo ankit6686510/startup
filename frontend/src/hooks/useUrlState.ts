@@ -1,7 +1,8 @@
 'use client';
 
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
+
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 // URL state management hook
 export function useUrlState<T extends Record<string, any>>(

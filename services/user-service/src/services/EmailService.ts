@@ -134,7 +134,7 @@ export class EmailService {
         If you didn't create an account with us, please ignore this email.
         
         © 2024 StartupCompass. All rights reserved.
-      `
+      `,
     };
   }
 
@@ -201,7 +201,7 @@ export class EmailService {
         If you didn't request a password reset, please ignore this email.
         
         © 2024 StartupCompass. All rights reserved.
-      `
+      `,
     };
   }
 
@@ -281,7 +281,7 @@ export class EmailService {
         We're excited to have you on board!
         
         © 2024 StartupCompass. All rights reserved.
-      `
+      `,
     };
   }
 
@@ -344,7 +344,7 @@ export class EmailService {
         For your security, all existing sessions have been logged out.
         
         © 2024 StartupCompass. All rights reserved.
-      `
+      `,
     };
   }
 

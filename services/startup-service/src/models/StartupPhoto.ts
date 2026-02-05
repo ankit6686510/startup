@@ -4,7 +4,7 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
-  Index
+  Index,
 } from 'typeorm';
 import { Startup } from './Startup';
 
@@ -15,7 +15,7 @@ export enum PhotoCategory {
   EVENT = 'EVENT',
   CULTURE = 'CULTURE',
   ACHIEVEMENT = 'ACHIEVEMENT',
-  OTHER = 'OTHER'
+  OTHER = 'OTHER',
 }
 
 @Entity('startup_photos')
@@ -81,8 +81,8 @@ export class StartupPhoto {
   deletedAt: Date;
 
   // Relations
-  @ManyToOne(() => Startup, startup => startup.photos, {
-    onDelete: 'CASCADE'
+  @ManyToOne(() => Startup, (startup) => startup.photos, {
+    onDelete: 'CASCADE',
   })
   startup: Startup;
 

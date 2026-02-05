@@ -6,15 +6,15 @@ import compression from 'compression';
 import { config } from '@/config';
 import { logger } from '@/utils/logger';
 import { errorHandler, notFoundHandler } from '@/middleware/errorHandler';
-import { 
-  requestId, 
-  rateLimiter, 
+import {
+  requestId,
+  rateLimiter,
   authRateLimiter,
-  sanitizeQuery, 
-  validateContentType, 
+  sanitizeQuery,
+  validateContentType,
   validateBodySize,
   validateApiVersion,
-  requestLogger
+  requestLogger,
 } from '@/middleware/validation';
 import { optionalAuth, authenticateToken } from '@/middleware/auth';
 import {
@@ -23,7 +23,7 @@ import {
   jobServiceProxy,
   fundingServiceProxy,
   notificationServiceProxy,
-  newsAggregatorProxy
+  newsAggregatorProxy,
 } from '@/middleware/proxy';
 import healthRoutes from '@/routes/health';
 
@@ -33,47 +33,53 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Security middleware
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
     },
-  },
-}));
+  }),
+);
 
 // CORS configuration
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (config.cors.allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // In development, allow localhost with any port
-    if (config.server.env === 'development' && origin.includes('localhost')) {
-      return callback(null, true);
-    }
-    
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, etc.)
+      if (!origin) return callback(null, true);
+
+      if (config.cors.allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // In development, allow localhost with any port
+      if (config.server.env === 'development' && origin.includes('localhost')) {
+        return callback(null, true);
+      }
+
+      callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  }),
+);
 
 // Compression
 app.use(compression());
 
 // Request logging
-app.use(morgan('combined', { 
-  stream: { write: message => logger.info(message.trim()) } 
-}));
+app.use(
+  morgan('combined', {
+    stream: { write: (message) => logger.info(message.trim()) },
+  }),
+);
 
 // Custom middleware
 app.use(requestId);

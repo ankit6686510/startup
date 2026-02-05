@@ -16,14 +16,14 @@ export enum ApplicationStatus {
   OFFER_EXTENDED = 'OFFER_EXTENDED',
   ACCEPTED = 'ACCEPTED',
   DECLINED = 'DECLINED',
-  WITHDRAWN = 'WITHDRAWN'
+  WITHDRAWN = 'WITHDRAWN',
 }
 
 export enum DocumentType {
   RESUME = 'resume',
   COVER_LETTER = 'cover_letter',
   PORTFOLIO = 'portfolio',
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 export enum FunnelStage {
@@ -33,14 +33,14 @@ export enum FunnelStage {
   INTERVIEWED = 'interviewed',
   OFFERED = 'offered',
   HIRED = 'hired',
-  REJECTED = 'rejected'
+  REJECTED = 'rejected',
 }
 
 export enum SortOption {
   NEWEST = 'newest',
   OLDEST = 'oldest',
   STATUS = 'status',
-  QUALITY = 'quality'
+  QUALITY = 'quality',
 }
 
 // ==================== REQUEST INTERFACES ====================
@@ -304,7 +304,7 @@ export interface IApplicationManagementService {
     applicationId: string,
     documentType: DocumentType,
     file: UploadedFile,
-    isPrimary?: boolean
+    isPrimary?: boolean,
   ): Promise<ApplicationDocument>;
 
   getApplicationDocuments(applicationId: string): Promise<ApplicationDocument[]>;
@@ -317,7 +317,7 @@ export interface IApplicationManagementService {
     newStatus: ApplicationStatus,
     changedBy?: string,
     changeReason?: string,
-    notes?: string
+    notes?: string,
   ): Promise<{
     application: any;
     history: ApplicationStatusHistory;
@@ -334,13 +334,13 @@ export interface IApplicationManagementService {
     applicationIds: string[],
     newStatus: ApplicationStatus,
     changedBy?: string,
-    reason?: string
+    reason?: string,
   ): Promise<BulkUpdateStatusResponse>;
 
   getApplicationsByFilter(
     filters: ApplicationFilters,
     page?: number,
-    limit?: number
+    limit?: number,
   ): Promise<{
     applications: any[];
     total: number;
@@ -418,7 +418,7 @@ export class ApplicationError extends Error {
   constructor(
     public message: string,
     public statusCode: number = 400,
-    public code?: string
+    public code?: string,
   ) {
     super(message);
     this.name = 'ApplicationError';
@@ -426,7 +426,10 @@ export class ApplicationError extends Error {
 }
 
 export class ValidationError extends ApplicationError {
-  constructor(message: string, public fields?: Record<string, string>) {
+  constructor(
+    message: string,
+    public fields?: Record<string, string>,
+  ) {
     super(message, 400, 'VALIDATION_ERROR');
     this.name = 'ValidationError';
   }
@@ -460,7 +463,7 @@ export const DOCUMENT_TYPES = [
   DocumentType.RESUME,
   DocumentType.COVER_LETTER,
   DocumentType.PORTFOLIO,
-  DocumentType.OTHER
+  DocumentType.OTHER,
 ];
 
 export const APPLICATION_STATUSES = [
@@ -474,7 +477,7 @@ export const APPLICATION_STATUSES = [
   ApplicationStatus.OFFER_EXTENDED,
   ApplicationStatus.ACCEPTED,
   ApplicationStatus.DECLINED,
-  ApplicationStatus.WITHDRAWN
+  ApplicationStatus.WITHDRAWN,
 ];
 
 export const FUNNEL_STAGES = [
@@ -484,51 +487,42 @@ export const FUNNEL_STAGES = [
   FunnelStage.INTERVIEWED,
   FunnelStage.OFFERED,
   FunnelStage.HIRED,
-  FunnelStage.REJECTED
+  FunnelStage.REJECTED,
 ];
 
 export const STATUS_FLOW_MAP: Record<ApplicationStatus, ApplicationStatus[]> = {
   [ApplicationStatus.SUBMITTED]: [
     ApplicationStatus.VIEWED,
     ApplicationStatus.UNDER_REVIEW,
-    ApplicationStatus.REJECTED
+    ApplicationStatus.REJECTED,
   ],
-  [ApplicationStatus.VIEWED]: [
-    ApplicationStatus.UNDER_REVIEW,
-    ApplicationStatus.REJECTED
-  ],
-  [ApplicationStatus.UNDER_REVIEW]: [
-    ApplicationStatus.SHORTLISTED,
-    ApplicationStatus.REJECTED
-  ],
+  [ApplicationStatus.VIEWED]: [ApplicationStatus.UNDER_REVIEW, ApplicationStatus.REJECTED],
+  [ApplicationStatus.UNDER_REVIEW]: [ApplicationStatus.SHORTLISTED, ApplicationStatus.REJECTED],
   [ApplicationStatus.SHORTLISTED]: [
     ApplicationStatus.INTERVIEW_SCHEDULED,
     ApplicationStatus.REJECTED,
-    ApplicationStatus.INTERVIEWED
+    ApplicationStatus.INTERVIEWED,
   ],
   [ApplicationStatus.REJECTED]: [],
   [ApplicationStatus.INTERVIEW_SCHEDULED]: [
     ApplicationStatus.INTERVIEWED,
-    ApplicationStatus.REJECTED
+    ApplicationStatus.REJECTED,
   ],
-  [ApplicationStatus.INTERVIEWED]: [
-    ApplicationStatus.OFFER_EXTENDED,
-    ApplicationStatus.REJECTED
-  ],
+  [ApplicationStatus.INTERVIEWED]: [ApplicationStatus.OFFER_EXTENDED, ApplicationStatus.REJECTED],
   [ApplicationStatus.OFFER_EXTENDED]: [
     ApplicationStatus.ACCEPTED,
     ApplicationStatus.DECLINED,
-    ApplicationStatus.REJECTED
+    ApplicationStatus.REJECTED,
   ],
   [ApplicationStatus.ACCEPTED]: [],
   [ApplicationStatus.DECLINED]: [],
-  [ApplicationStatus.WITHDRAWN]: []
+  [ApplicationStatus.WITHDRAWN]: [],
 };
 
 export const DEFAULT_PAGINATION = {
   PAGE: 1,
   LIMIT: 50,
-  MAX_LIMIT: 100
+  MAX_LIMIT: 100,
 };
 
 export const FILE_UPLOAD_CONFIG = {
@@ -538,9 +532,9 @@ export const FILE_UPLOAD_CONFIG = {
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'image/jpeg',
-    'image/png'
+    'image/png',
   ],
-  ALLOWED_EXTENSIONS: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']
+  ALLOWED_EXTENSIONS: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
 };
 
 // ==================== TYPE GUARDS ====================

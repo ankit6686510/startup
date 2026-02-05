@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { StartupRepository } from '../repositories/StartupRepository';
 import { Startup } from '../models/Startup';
 import { Founder } from '../models/Founder';
-import { 
-  CreateStartupRequest, 
+import {
+  CreateStartupRequest,
   UpdateStartupRequest,
   GetStartupsRequest,
   PaginatedResponse,
@@ -12,13 +12,9 @@ import {
   GetStartupResponse,
   Industry,
   DataSource,
-  StartupStage
+  StartupStage,
 } from '@startup-platform/types';
-import { 
-  ValidationError, 
-  NotFoundError, 
-  ConflictError 
-} from '../middleware/errorHandler';
+import { ValidationError, NotFoundError, ConflictError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
 
 export class StartupService {
@@ -51,7 +47,7 @@ export class StartupService {
     return {
       startup: startup as any,
       founders: startup.founders || [],
-      metrics: startup.metrics || []
+      metrics: startup.metrics || [],
     };
   }
 
@@ -68,7 +64,7 @@ export class StartupService {
     return {
       startup: startup as any,
       founders: startup.founders || [],
-      metrics: startup.metrics || []
+      metrics: startup.metrics || [],
     };
   }
 
@@ -95,7 +91,7 @@ export class StartupService {
         logoUrl: data.logoUrl,
         socialLinks: data.socialLinks,
         dataSource: DataSource.USER_SUBMITTED,
-        verified: false
+        verified: false,
       };
 
       // Set location
@@ -113,7 +109,7 @@ export class StartupService {
       }
 
       // Prepare founders data
-      const foundersData: Partial<Founder>[] = data.founders.map(founder => ({
+      const foundersData: Partial<Founder>[] = data.founders.map((founder) => ({
         id: uuidv4(),
         name: founder.name.trim(),
         title: founder.title.trim(),
@@ -123,19 +119,18 @@ export class StartupService {
         twitterUrl: founder.twitterUrl,
         imageUrl: founder.imageUrl,
         isPrimary: founder.isPrimary || false,
-        equity: founder.equity
+        equity: founder.equity,
       }));
 
       // Ensure at least one primary founder
-      if (!foundersData.some(f => f.isPrimary)) {
+      if (!foundersData.some((f) => f.isPrimary)) {
         foundersData[0].isPrimary = true;
       }
 
       const startup = await this.startupRepository.create(startupData, foundersData);
-      
+
       logger.info(`Created startup: ${startup.name} (${startup.id})`);
       return startup;
-
     } catch (error) {
       logger.error('Error creating startup:', error);
       throw error;
@@ -163,7 +158,7 @@ export class StartupService {
           updates.slug = await this.generateUniqueSlug(data.name, id);
         }
       }
-      
+
       if (data.description) updates.description = data.description.trim();
       if (data.website) updates.website = data.website;
       if (data.industry) updates.industry = data.industry;
@@ -188,10 +183,9 @@ export class StartupService {
       }
 
       const updatedStartup = await this.startupRepository.update(id, updates);
-      
+
       logger.info(`Updated startup: ${id}`);
       return updatedStartup!;
-
     } catch (error) {
       logger.error('Error updating startup:', error);
       throw error;
@@ -254,7 +248,11 @@ export class StartupService {
       throw new ValidationError('Industry is required', 'industry');
     }
 
-    if (!data.foundedYear || data.foundedYear < 1800 || data.foundedYear > new Date().getFullYear()) {
+    if (
+      !data.foundedYear ||
+      data.foundedYear < 1800 ||
+      data.foundedYear > new Date().getFullYear()
+    ) {
       throw new ValidationError('Invalid founded year', 'foundedYear');
     }
 
@@ -269,10 +267,16 @@ export class StartupService {
     // Validate founders
     data.founders.forEach((founder, index) => {
       if (!founder.name || founder.name.trim().length === 0) {
-        throw new ValidationError(`Founder ${index + 1} name is required`, `founders[${index}].name`);
+        throw new ValidationError(
+          `Founder ${index + 1} name is required`,
+          `founders[${index}].name`,
+        );
       }
       if (!founder.title || founder.title.trim().length === 0) {
-        throw new ValidationError(`Founder ${index + 1} title is required`, `founders[${index}].title`);
+        throw new ValidationError(
+          `Founder ${index + 1} title is required`,
+          `founders[${index}].title`,
+        );
       }
     });
   }

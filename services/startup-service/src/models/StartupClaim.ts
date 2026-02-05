@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm';
 
 @Entity('startup_claims')
 @Index(['startupId'])
@@ -23,7 +30,7 @@ export class StartupClaim {
   @Column({
     type: 'enum',
     enum: ['pending', 'approved', 'rejected'],
-    default: 'pending'
+    default: 'pending',
   })
   status!: 'pending' | 'approved' | 'rejected';
 

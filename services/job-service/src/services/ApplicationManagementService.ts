@@ -1,7 +1,10 @@
 import { Repository, In, Between } from 'typeorm';
 import { AppDataSource } from '@/config/database';
 import { JobApplication, ApplicationStatus } from '@/models/JobApplication';
-import { ApplicationStatusHistory, ApplicationHistoryStatus } from '@/models/ApplicationStatusHistory';
+import {
+  ApplicationStatusHistory,
+  ApplicationHistoryStatus,
+} from '@/models/ApplicationStatusHistory';
 import { ApplicationDocument } from '@/models/ApplicationDocument';
 import { ApplicationAnalytics } from '@/models/ApplicationAnalytics';
 import { Job } from '@/models/Job';
@@ -55,10 +58,10 @@ export class ApplicationManagementService {
     applicationId: string,
     documentType: string,
     file: UploadedFile,
-    isPrimary: boolean = false
+    isPrimary: boolean = false,
   ): Promise<ApplicationDocument> {
     const application = await this.applicationRepository.findOne({
-      where: { id: applicationId }
+      where: { id: applicationId },
     });
 
     if (!application) {
@@ -67,10 +70,7 @@ export class ApplicationManagementService {
 
     // If this is primary, unmark other primary documents
     if (isPrimary) {
-      await this.documentRepository.update(
-        { applicationId, documentType },
-        { isPrimary: false }
-      );
+      await this.documentRepository.update({ applicationId, documentType }, { isPrimary: false });
     }
 
     // Generate storage key
@@ -91,8 +91,8 @@ export class ApplicationManagementService {
       isPrimary,
       uploadedBy: application.applicantId,
       metadata: {
-        uploadedVia: 'web'
-      }
+        uploadedVia: 'web',
+      },
     });
 
     const saved = await this.documentRepository.save(document);
@@ -113,7 +113,7 @@ export class ApplicationManagementService {
   async getApplicationDocuments(applicationId: string): Promise<ApplicationDocument[]> {
     return await this.documentRepository.find({
       where: { applicationId },
-      order: { isPrimary: 'DESC', createdAt: 'DESC' }
+      order: { isPrimary: 'DESC', createdAt: 'DESC' },
     });
   }
 
@@ -122,7 +122,7 @@ export class ApplicationManagementService {
    */
   async deleteApplicationDocument(documentId: string, applicationId: string): Promise<void> {
     const document = await this.documentRepository.findOne({
-      where: { id: documentId, applicationId }
+      where: { id: documentId, applicationId },
     });
 
     if (!document) {
@@ -146,10 +146,10 @@ export class ApplicationManagementService {
     newStatus: ApplicationStatus,
     changedBy?: string,
     changeReason?: string,
-    notes?: string
+    notes?: string,
   ): Promise<{ application: JobApplication; history: ApplicationStatusHistory }> {
     const application = await this.applicationRepository.findOne({
-      where: { id: applicationId }
+      where: { id: applicationId },
     });
 
     if (!application) {
@@ -168,8 +168,8 @@ export class ApplicationManagementService {
       notes,
       metadata: {
         timestamp: new Date().toISOString(),
-        changedVia: 'api'
-      }
+        changedVia: 'api',
+      },
     } as any);
 
     const savedHistory = await this.statusHistoryRepository.save(history as any);
@@ -193,7 +193,7 @@ export class ApplicationManagementService {
     // Update analytics
     await this.updateApplicationAnalytics(applicationId, {
       statusChange: true,
-      newStatus
+      newStatus,
     });
 
     // Trigger notification (integrate with notification service)
@@ -210,7 +210,7 @@ export class ApplicationManagementService {
   async getApplicationStatusHistory(applicationId: string): Promise<ApplicationStatusHistory[]> {
     return await this.statusHistoryRepository.find({
       where: { applicationId },
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
   }
 
@@ -219,7 +219,7 @@ export class ApplicationManagementService {
    */
   async getApplicationTimeline(applicationId: string): Promise<any[]> {
     const application = await this.applicationRepository.findOne({
-      where: { id: applicationId }
+      where: { id: applicationId },
     });
 
     if (!application) {
@@ -236,11 +236,11 @@ export class ApplicationManagementService {
     timeline.push({
       type: 'submission',
       timestamp: application.createdAt,
-      data: { status: application.status }
+      data: { status: application.status },
     });
 
     // Add status changes
-    history.forEach(h => {
+    history.forEach((h) => {
       timeline.push({
         type: 'status_change',
         timestamp: h.createdAt,
@@ -248,26 +248,26 @@ export class ApplicationManagementService {
           from: h.previousStatus,
           to: h.status,
           reason: h.changeReason,
-          notes: h.notes
-        } as any
+          notes: h.notes,
+        } as any,
       });
     });
 
     // Add document uploads
-    documents.forEach(d => {
+    documents.forEach((d) => {
       timeline.push({
         type: 'document_upload',
         timestamp: d.createdAt,
         data: {
           documentType: d.documentType,
-          fileName: d.fileName
-        }
+          fileName: d.fileName,
+        },
       });
     });
 
     // Sort by timestamp
-    return timeline.sort((a, b) =>
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    return timeline.sort(
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
   }
 
@@ -287,10 +287,10 @@ export class ApplicationManagementService {
 
     // Fetch all jobs
     const jobs = await this.jobRepository.find({
-      where: { id: In(jobIds) }
+      where: { id: In(jobIds) },
     });
 
-    const jobMap = new Map(jobs.map(j => [j.id, j]));
+    const jobMap = new Map(jobs.map((j) => [j.id, j]));
 
     for (const jobId of jobIds) {
       try {
@@ -308,7 +308,7 @@ export class ApplicationManagementService {
 
         // Check for duplicate application
         const existing = await this.applicationRepository.findOne({
-          where: { jobId, applicantId }
+          where: { jobId, applicantId },
         });
 
         if (existing) {
@@ -322,7 +322,7 @@ export class ApplicationManagementService {
           applicantId,
           ...commonData,
           emailAddress: commonData.emailAddress,
-          fullName: commonData.fullName
+          fullName: commonData.fullName,
         });
 
         const saved = await this.applicationRepository.save(application);
@@ -338,7 +338,7 @@ export class ApplicationManagementService {
       } catch (error) {
         failed.push({
           jobId,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -355,7 +355,7 @@ export class ApplicationManagementService {
     applicationIds: string[],
     newStatus: ApplicationStatus,
     changedBy?: string,
-    reason?: string
+    reason?: string,
   ): Promise<{
     updated: number;
     failed: Array<{ id: string; error: string }>;
@@ -369,7 +369,7 @@ export class ApplicationManagementService {
       } catch (error) {
         failed.push({
           id,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -378,7 +378,7 @@ export class ApplicationManagementService {
 
     return {
       updated: applicationIds.length - failed.length,
-      failed
+      failed,
     };
   }
 
@@ -388,13 +388,13 @@ export class ApplicationManagementService {
   async getApplicationsByFilter(
     filters: ApplicationFilters,
     page: number = 1,
-    limit: number = 50
+    limit: number = 50,
   ): Promise<{
     applications: JobApplication[];
     total: number;
     facets: any;
   }> {
-    let queryBuilder = this.applicationRepository.createQueryBuilder('app');
+    const queryBuilder = this.applicationRepository.createQueryBuilder('app');
 
     if (filters.status) {
       queryBuilder.andWhere('app.status = :status', { status: filters.status });
@@ -406,21 +406,20 @@ export class ApplicationManagementService {
 
     if (filters.applicantId) {
       queryBuilder.andWhere('app.applicantId = :applicantId', {
-        applicantId: filters.applicantId
+        applicantId: filters.applicantId,
       });
     }
 
     if (filters.startupId) {
-      queryBuilder.innerJoin('jobs', 'j', 'j.id = app.jobId')
-        .andWhere('j.startupId = :startupId', {
-          startupId: filters.startupId
-        });
+      queryBuilder.innerJoin('jobs', 'j', 'j.id = app.jobId').andWhere('j.startupId = :startupId', {
+        startupId: filters.startupId,
+      });
     }
 
     if (filters.createdAfter || filters.createdBefore) {
       queryBuilder.andWhere('app.createdAt BETWEEN :startDate AND :endDate', {
         startDate: filters.createdAfter || new Date('2000-01-01'),
-        endDate: filters.createdBefore || new Date()
+        endDate: filters.createdBefore || new Date(),
       });
     }
 
@@ -458,11 +457,11 @@ export class ApplicationManagementService {
       applications,
       total,
       facets: {
-        statuses: statusFacets.map(f => ({
+        statuses: statusFacets.map((f) => ({
           status: f.status,
-          count: parseInt(f.count)
-        }))
-      }
+          count: parseInt(f.count),
+        })),
+      },
     };
   }
 
@@ -471,9 +470,11 @@ export class ApplicationManagementService {
   /**
    * Create analytics record for application
    */
-  private async createApplicationAnalytics(application: JobApplication): Promise<ApplicationAnalytics> {
+  private async createApplicationAnalytics(
+    application: JobApplication,
+  ): Promise<ApplicationAnalytics> {
     const job = await this.jobRepository.findOne({
-      where: { id: application.jobId }
+      where: { id: application.jobId },
     });
 
     const analytics = this.analyticsRepository.create({
@@ -482,7 +483,7 @@ export class ApplicationManagementService {
       applicantId: application.applicantId,
       startupId: job?.startupId || '',
       funnelStage: 'applied',
-      submissionTimeMs: 0
+      submissionTimeMs: 0,
     });
 
     return await this.analyticsRepository.save(analytics);
@@ -491,12 +492,9 @@ export class ApplicationManagementService {
   /**
    * Update application analytics
    */
-  private async updateApplicationAnalytics(
-    applicationId: string,
-    data: any
-  ): Promise<void> {
+  private async updateApplicationAnalytics(applicationId: string, data: any): Promise<void> {
     const analytics = await this.analyticsRepository.findOne({
-      where: { applicationId }
+      where: { applicationId },
     });
 
     if (!analytics) {
@@ -516,7 +514,7 @@ export class ApplicationManagementService {
   async getApplicationAnalytics(applicationId: string): Promise<ApplicationAnalytics | null> {
     return await this.analyticsRepository.findOne({
       where: { applicationId },
-      relations: ['application']
+      relations: ['application'],
     });
   }
 
@@ -524,7 +522,7 @@ export class ApplicationManagementService {
    * Get recruiting pipeline analytics
    */
   async getPipelineAnalytics(startupId: string, jobId?: string): Promise<any> {
-    let queryBuilder = this.analyticsRepository
+    const queryBuilder = this.analyticsRepository
       .createQueryBuilder('analytics')
       .where('analytics.startupId = :startupId', { startupId });
 
@@ -542,16 +540,16 @@ export class ApplicationManagementService {
       interviewed: 0,
       offered: 0,
       hired: 0,
-      rejected: 0
+      rejected: 0,
     };
 
     const timings = {
       avgTimeToFirstResponse: 0,
       avgTimeToDecision: 0,
-      avgDaysInReview: 0
+      avgDaysInReview: 0,
     };
 
-    analytics.forEach(a => {
+    analytics.forEach((a) => {
       const stage = a.funnelStage.toLowerCase();
       if (stage in stages) {
         stages[stage as keyof typeof stages]++;
@@ -563,13 +561,15 @@ export class ApplicationManagementService {
     const conversions = {
       appliedToReviewed: total > 0 ? (stages.reviewed / total) * 100 : 0,
       reviewedToShortlisted: stages.reviewed > 0 ? (stages.shortlisted / stages.reviewed) * 100 : 0,
-      shortlistedToInterviewed: stages.shortlisted > 0 ? (stages.interviewed / stages.shortlisted) * 100 : 0,
-      interviewedToOffered: stages.interviewed > 0 ? (stages.offered / stages.interviewed) * 100 : 0,
-      offeredToHired: stages.offered > 0 ? (stages.hired / stages.offered) * 100 : 0
+      shortlistedToInterviewed:
+        stages.shortlisted > 0 ? (stages.interviewed / stages.shortlisted) * 100 : 0,
+      interviewedToOffered:
+        stages.interviewed > 0 ? (stages.offered / stages.interviewed) * 100 : 0,
+      offeredToHired: stages.offered > 0 ? (stages.hired / stages.offered) * 100 : 0,
     };
 
     // Calculate average timings
-    const nonNullTimings = analytics.filter(a => a.daysToDecision !== null);
+    const nonNullTimings = analytics.filter((a) => a.daysToDecision !== null);
     if (nonNullTimings.length > 0) {
       timings.avgTimeToDecision =
         nonNullTimings.reduce((sum, a) => sum + (a.daysToDecision || 0), 0) / nonNullTimings.length;
@@ -580,7 +580,7 @@ export class ApplicationManagementService {
       funnelStages: stages,
       conversionRates: conversions,
       timings,
-      topDropOffReason: await this.getTopDropOffReason(startupId, jobId)
+      topDropOffReason: await this.getTopDropOffReason(startupId, jobId),
     };
   }
 
@@ -588,7 +588,7 @@ export class ApplicationManagementService {
    * Get application quality metrics
    */
   async getQualityMetrics(startupId: string, jobId?: string): Promise<any> {
-    let queryBuilder = this.analyticsRepository
+    const queryBuilder = this.analyticsRepository
       .createQueryBuilder('analytics')
       .where('analytics.startupId = :startupId', { startupId });
 
@@ -599,15 +599,13 @@ export class ApplicationManagementService {
     const analytics = await queryBuilder.getMany();
 
     const scores = analytics
-      .filter(a => a.matchScore !== null)
-      .map(a => parseFloat(a.matchScore?.toString() || '0'));
+      .filter((a) => a.matchScore !== null)
+      .map((a) => parseFloat(a.matchScore?.toString() || '0'));
 
-    const avgMatchScore = scores.length > 0
-      ? scores.reduce((a, b) => a + b, 0) / scores.length
-      : 0;
+    const avgMatchScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
 
     const topApplicants = analytics
-      .filter(a => a.matchScore !== null)
+      .filter((a) => a.matchScore !== null)
       .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
       .slice(0, 10);
 
@@ -616,12 +614,12 @@ export class ApplicationManagementService {
       avgMatchScore: parseFloat(avgMatchScore.toFixed(2)),
       avgResponseRate: this.calculateAvgResponseRate(analytics),
       topApplicants,
-      qualityDistribution: this.getQualityDistribution(analytics)
+      qualityDistribution: this.getQualityDistribution(analytics),
     };
   }
 
   private async getTopDropOffReason(startupId: string, jobId?: string): Promise<string | null> {
-    let queryBuilder = this.analyticsRepository
+    const queryBuilder = this.analyticsRepository
       .createQueryBuilder('analytics')
       .select('analytics.funnelDropReason', 'reason')
       .addSelect('COUNT(*)', 'count')
@@ -640,22 +638,25 @@ export class ApplicationManagementService {
   }
 
   private calculateAvgResponseRate(analytics: ApplicationAnalytics[]): number {
-    const withResponse = analytics.filter(a => a.responseRate !== null);
+    const withResponse = analytics.filter((a) => a.responseRate !== null);
     if (withResponse.length === 0) return 0;
 
-    const total = withResponse.reduce((sum, a) => sum + (parseFloat(a.responseRate?.toString() || '0')), 0);
+    const total = withResponse.reduce(
+      (sum, a) => sum + parseFloat(a.responseRate?.toString() || '0'),
+      0,
+    );
     return parseFloat((total / withResponse.length).toFixed(2));
   }
 
   private getQualityDistribution(analytics: ApplicationAnalytics[]): any {
     const distribution = {
-      excellent: 0,    // 80-100
-      good: 0,         // 60-79
-      average: 0,      // 40-59
-      poor: 0          // 0-39
+      excellent: 0, // 80-100
+      good: 0, // 60-79
+      average: 0, // 40-59
+      poor: 0, // 0-39
     };
 
-    analytics.forEach(a => {
+    analytics.forEach((a) => {
       const score = a.matchScore || 0;
       if (score >= 80) distribution.excellent++;
       else if (score >= 60) distribution.good++;
@@ -674,7 +675,7 @@ export class ApplicationManagementService {
   private async triggerStatusNotification(
     applicationId: string,
     newStatus: ApplicationStatus,
-    previousStatus: ApplicationStatus
+    previousStatus: ApplicationStatus,
   ): Promise<void> {
     // TODO: Integrate with notification service
     // This will send emails/push notifications to:
@@ -683,7 +684,7 @@ export class ApplicationManagementService {
 
     const notificationMap = {
       [ApplicationStatus.UNDER_REVIEW]: 'Application under review',
-      [ApplicationStatus.SHORTLISTED]: 'Congratulations! You\'ve been shortlisted',
+      [ApplicationStatus.SHORTLISTED]: "Congratulations! You've been shortlisted",
       [ApplicationStatus.INTERVIEW_SCHEDULED]: 'Interview scheduled',
       [ApplicationStatus.REJECTED]: 'Application update',
       [ApplicationStatus.OFFER_EXTENDED]: 'Job offer received!',

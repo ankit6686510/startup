@@ -14,7 +14,7 @@ export class TestDatabase {
 
   async setup(serviceName: string): Promise<DataSource> {
     const testDbName = `test_${serviceName}_${Date.now()}`;
-    
+
     // Create test database
     await createDatabase({
       ifNotExist: true,
@@ -49,7 +49,7 @@ export class TestDatabase {
     if (this.dataSource) {
       const dbName = this.dataSource.options.database as string;
       await this.dataSource.destroy();
-      
+
       // Drop test database
       await dropDatabase({
         options: {
@@ -61,7 +61,7 @@ export class TestDatabase {
           database: dbName,
         },
       });
-      
+
       this.dataSource = null;
     }
   }
@@ -71,11 +71,9 @@ export class TestDatabase {
   }
 }
 
-export const setupTestDatabase = (serviceName: string) => 
+export const setupTestDatabase = (serviceName: string) =>
   TestDatabase.getInstance().setup(serviceName);
 
-export const cleanupTestDatabase = () => 
-  TestDatabase.getInstance().cleanup();
+export const cleanupTestDatabase = () => TestDatabase.getInstance().cleanup();
 
-export const getTestDataSource = () => 
-  TestDatabase.getInstance().getDataSource();
+export const getTestDataSource = () => TestDatabase.getInstance().getDataSource();
