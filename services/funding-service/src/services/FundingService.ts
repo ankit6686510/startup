@@ -6,10 +6,10 @@ import { Investment } from '@/models/Investment';
 import { Valuation, ValuationType, ValuationMethod } from '@/models/Valuation';
 import { MarketData, MarketDataType } from '@/models/MarketData';
 import { logger } from '@/utils/logger';
-import { 
-  FundingRound as FundingRoundType, 
+import {
+  FundingRound as FundingRoundType,
   InvestorType,
-  Currency 
+  Currency
 } from '@startup-platform/types';
 
 export interface FundingRoundFilters {
@@ -184,21 +184,21 @@ export class FundingService {
   async createFundingRound(data: FundingRoundCreateData): Promise<FundingRound> {
     const fundingRound = this.fundingRoundRepository.create(data);
     const savedRound = await this.fundingRoundRepository.save(fundingRound);
-    
+
     logger.info(`Funding round created: ${savedRound.id} for startup ${savedRound.startupId}`);
     return savedRound;
   }
 
   async updateFundingRound(id: string, data: Partial<FundingRoundCreateData>): Promise<FundingRound> {
     const fundingRound = await this.fundingRoundRepository.findOne({ where: { id } });
-    
+
     if (!fundingRound) {
       throw new Error('Funding round not found');
     }
 
     Object.assign(fundingRound, data);
     const updatedRound = await this.fundingRoundRepository.save(fundingRound);
-    
+
     logger.info(`Funding round updated: ${updatedRound.id}`);
     return updatedRound;
   }
@@ -211,19 +211,19 @@ export class FundingService {
   }
 
   async getFundingRounds(
-    filters: FundingRoundFilters, 
-    page: number = 1, 
+    filters: FundingRoundFilters,
+    page: number = 1,
     limit: number = 20
   ): Promise<{ rounds: FundingRound[], total: number }> {
     const queryBuilder = this.createFundingRoundQueryBuilder(filters);
-    
+
     // Pagination
     const offset = (page - 1) * limit;
     queryBuilder.skip(offset).take(limit);
 
     // Default sorting by announced date (newest first)
     queryBuilder.orderBy('round.announcedDate', 'DESC')
-               .addOrderBy('round.createdAt', 'DESC');
+      .addOrderBy('round.createdAt', 'DESC');
 
     const [rounds, total] = await queryBuilder.getManyAndCount();
     return { rounds, total };
@@ -271,20 +271,20 @@ export class FundingService {
 
     const savedInvestor = await this.investorRepository.save(investor);
     logger.info(`Investor created: ${savedInvestor.id} - ${savedInvestor.name}`);
-    
+
     return savedInvestor;
   }
 
   async updateInvestor(id: string, data: Partial<InvestorCreateData>): Promise<Investor> {
     const investor = await this.investorRepository.findOne({ where: { id } });
-    
+
     if (!investor) {
       throw new Error('Investor not found');
     }
 
     Object.assign(investor, data);
     const updatedInvestor = await this.investorRepository.save(investor);
-    
+
     logger.info(`Investor updated: ${updatedInvestor.id}`);
     return updatedInvestor;
   }
@@ -304,20 +304,20 @@ export class FundingService {
   }
 
   async getInvestors(
-    filters: InvestorFilters, 
-    page: number = 1, 
+    filters: InvestorFilters,
+    page: number = 1,
     limit: number = 20
   ): Promise<{ investors: Investor[], total: number }> {
     const queryBuilder = this.createInvestorQueryBuilder(filters);
-    
+
     // Pagination
     const offset = (page - 1) * limit;
     queryBuilder.skip(offset).take(limit);
 
     // Default sorting by credibility score and verification status
     queryBuilder.orderBy('investor.isVerified', 'DESC')
-               .addOrderBy('investor.credibilityScore', 'DESC')
-               .addOrderBy('investor.totalInvestmentsCount', 'DESC');
+      .addOrderBy('investor.credibilityScore', 'DESC')
+      .addOrderBy('investor.totalInvestmentsCount', 'DESC');
 
     const [investors, total] = await queryBuilder.getManyAndCount();
     return { investors, total };
@@ -332,12 +332,12 @@ export class FundingService {
   async createInvestment(data: InvestmentCreateData): Promise<Investment> {
     const investment = this.investmentRepository.create(data);
     const savedInvestment = await this.investmentRepository.save(investment);
-    
+
     // Update funding round investor count
     const fundingRound = await this.fundingRoundRepository.findOne({
       where: { id: data.fundingRoundId }
     });
-    
+
     if (fundingRound) {
       fundingRound.addInvestorCount();
       if (data.isLeadInvestor && data.investorId) {
@@ -367,10 +367,10 @@ export class FundingService {
   }
 
   // Valuation methods
-  async createValuation(data: any): Promise<Valuation> {
+  async createValuation(data: Partial<Valuation>): Promise<Valuation> {
     const valuation = this.valuationRepository.create(data);
-    const savedValuation = await this.valuationRepository.save(valuation);
-    
+    const savedValuation = await this.valuationRepository.save(valuation) as Valuation;
+
     logger.info(`Valuation created: ${savedValuation.id} for startup ${savedValuation.startupId}`);
     return savedValuation;
   }
@@ -395,10 +395,10 @@ export class FundingService {
   }
 
   // Market Data methods
-  async createMarketData(data: any): Promise<MarketData> {
+  async createMarketData(data: Partial<MarketData>): Promise<MarketData> {
     const marketData = this.marketDataRepository.create(data);
-    const savedData = await this.marketDataRepository.save(marketData);
-    
+    const savedData = await this.marketDataRepository.save(marketData) as MarketData;
+
     logger.info(`Market data created: ${savedData.id} - ${savedData.dataType}`);
     return savedData;
   }
@@ -531,7 +531,7 @@ export class FundingService {
     sampleSize: number;
   }> {
     const marketData = await this.getLatestMarketData(MarketDataType.VALUATION_MULTIPLES);
-    
+
     if (!marketData || marketData.industry !== industry) {
       return {
         averageValuation: 0,

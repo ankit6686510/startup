@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index,
@@ -12,10 +12,9 @@ import {
 import { Job } from './Job';
 
 @Entity('saved_jobs')
-@Index(['user_id'])
-@Index(['job_id'])
-@Index(['created_at'])
-@Unique(['user_id', 'job_id'])
+@Index(['jobId'])
+@Index(['createdAt'])
+@Unique(['userId', 'jobId'])
 export class SavedJob {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -75,7 +74,7 @@ export class SavedJob {
 
   clearReminder(): void {
     this.reminderSet = false;
-    this.reminderDate = null;
+    this.reminderDate = undefined;
   }
 
   updatePriority(priority: 'low' | 'medium' | 'high' | 'urgent'): void {

@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   Index
 } from 'typeorm';
 
@@ -19,10 +19,6 @@ export enum MarketDataType {
 }
 
 @Entity('market_data')
-@Index(['data_type'])
-@Index(['industry'])
-@Index(['geography'])
-@Index(['date'])
 export class MarketData {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -240,7 +236,7 @@ export class MarketData {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - this.date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     switch (this.periodType) {
       case 'daily': return diffDays <= 7;
       case 'weekly': return diffDays <= 30;
@@ -279,7 +275,7 @@ export class MarketData {
 
   get trendStrength(): 'weak' | 'moderate' | 'strong' {
     if (!this.quarterOverQuarterGrowth) return 'weak';
-    
+
     const absGrowth = Math.abs(this.quarterOverQuarterGrowth);
     if (absGrowth < 5) return 'weak';
     if (absGrowth < 15) return 'moderate';
@@ -288,7 +284,7 @@ export class MarketData {
 
   get marketPhase(): 'bull' | 'bear' | 'sideways' {
     if (!this.yearOverYearGrowth) return 'sideways';
-    
+
     if (this.yearOverYearGrowth > 10) return 'bull';
     if (this.yearOverYearGrowth < -10) return 'bear';
     return 'sideways';
@@ -321,14 +317,14 @@ export class MarketData {
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
     const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
     const standardDeviation = Math.sqrt(variance);
-    
+
     this.volatilityIndex = (standardDeviation / mean) * 100;
     return this.volatilityIndex;
   }
 
   updateMarketSentiment(sentimentScore: number): void {
     this.investorSentimentScore = Math.max(-1, Math.min(1, sentimentScore));
-    
+
     // Update market confidence based on sentiment
     this.marketConfidenceIndex = ((sentimentScore + 1) / 2) * 100;
   }
@@ -356,10 +352,10 @@ export class MarketData {
 
     values.sort((a, b) => a - b);
     const historicalAverage = values.reduce((sum, val) => sum + val, 0) / values.length;
-    
+
     const belowCount = values.filter(val => val < this.totalFundingAmount!).length;
     const percentile = (belowCount / values.length) * 100;
-    
+
     return {
       percentile,
       isAboveAverage: this.totalFundingAmount > historicalAverage,
@@ -395,12 +391,12 @@ export class MarketData {
     const intercept = (sumY - slope * sumX) / n;
 
     const predictedValue = slope * (n + 1) + intercept;
-    
+
     // Calculate confidence interval (simplified)
     const residuals = values.map((val, index) => val - (slope * (index + 1) + intercept));
     const mse = residuals.reduce((sum, res) => sum + res * res, 0) / (n - 2);
     const standardError = Math.sqrt(mse);
-    
+
     return {
       predictedValue: Math.max(0, predictedValue),
       confidenceInterval: {

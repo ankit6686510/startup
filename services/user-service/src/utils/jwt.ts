@@ -30,8 +30,8 @@ export class JWTUtil {
       role: user.role,
     };
 
-    return jwt.sign(payload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
+    return jwt.sign(payload, JWT_SECRET as string, {
+      expiresIn: JWT_EXPIRES_IN as any,
       issuer: 'startupcompass',
       audience: 'startupcompass-users',
     });
@@ -44,7 +44,7 @@ export class JWTUtil {
   static generateTokenPair(user: User): TokenPair {
     const accessToken = this.generateAccessToken(user);
     const refreshToken = this.generateRefreshToken();
-    
+
     // Calculate expiration times
     const expiresIn = this.getExpirationTime(JWT_EXPIRES_IN);
     const refreshExpiresIn = this.getExpirationTime(JWT_REFRESH_EXPIRES_IN);
@@ -82,7 +82,7 @@ export class JWTUtil {
     try {
       const decoded = this.decodeToken(token);
       if (!decoded) return true;
-      
+
       const currentTime = Math.floor(Date.now() / 1000);
       return decoded.exp < currentTime;
     } catch (error) {

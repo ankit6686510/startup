@@ -210,7 +210,7 @@ export class UserController {
       // Update or create profile
       let profile = user.profile;
       if (!profile) {
-        profile = this.profileRepository.create({ userId });
+        profile = this.profileRepository.create({ user: { id: userId } as any });
       }
 
       // Update profile fields
@@ -454,7 +454,7 @@ export class UserController {
       // Soft delete or anonymize user data
       user.email = `deleted_${Date.now()}@example.com`;
       user.status = 'inactive' as any;
-      
+
       await this.userRepository.save(user);
 
       res.json({

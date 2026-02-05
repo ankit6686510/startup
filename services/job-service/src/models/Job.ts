@@ -1,28 +1,27 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   OneToMany,
   Index
 } from 'typeorm';
-import { 
-  JobType, 
-  WorkLocation, 
-  ExperienceLevel, 
-  JobCategory 
+import {
+  JobType,
+  WorkLocation,
+  ExperienceLevel,
+  JobCategory
 } from '@startup-platform/types';
 import { JobApplication } from './JobApplication';
 import { SavedJob } from './SavedJob';
 
 @Entity('jobs')
-@Index(['startup_id'])
-@Index(['type', 'location_type'])
-@Index(['category', 'experience_level'])
-@Index(['is_active', 'expires_at'])
-@Index(['location_country', 'location_city'])
-@Index(['salary_min', 'salary_max'])
+@Index(['type', 'locationType'])
+@Index(['category', 'experienceLevel'])
+@Index(['isActive', 'expiresAt'])
+@Index(['locationCountry', 'locationCity'])
+@Index(['salaryMin', 'salaryMax'])
 export class Job {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -230,12 +229,12 @@ export class Job {
     if (this.locationType === WorkLocation.REMOTE) {
       return 'Remote';
     }
-    
+
     const parts = [];
     if (this.locationCity) parts.push(this.locationCity);
     if (this.locationState) parts.push(this.locationState);
     if (this.locationCountry) parts.push(this.locationCountry);
-    
+
     return parts.join(', ') || 'Not specified';
   }
 
@@ -243,7 +242,7 @@ export class Job {
     if (!this.salaryIsDisclosed || (!this.salaryMin && !this.salaryMax)) {
       return 'Not disclosed';
     }
-    
+
     const formatSalary = (amount: number) => {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -252,7 +251,7 @@ export class Job {
         maximumFractionDigits: 0,
       }).format(amount);
     };
-    
+
     if (this.salaryMin && this.salaryMax) {
       return `${formatSalary(this.salaryMin)} - ${formatSalary(this.salaryMax)}`;
     } else if (this.salaryMin) {
@@ -260,7 +259,7 @@ export class Job {
     } else if (this.salaryMax) {
       return `Up to ${formatSalary(this.salaryMax)}`;
     }
-    
+
     return 'Not disclosed';
   }
 
@@ -268,7 +267,7 @@ export class Job {
     if (!this.salaryEquityMin && !this.salaryEquityMax) {
       return 'Not specified';
     }
-    
+
     if (this.salaryEquityMin && this.salaryEquityMax) {
       return `${this.salaryEquityMin}% - ${this.salaryEquityMax}%`;
     } else if (this.salaryEquityMin) {
@@ -276,7 +275,7 @@ export class Job {
     } else if (this.salaryEquityMax) {
       return `Up to ${this.salaryEquityMax}%`;
     }
-    
+
     return 'Not specified';
   }
 

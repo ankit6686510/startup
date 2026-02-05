@@ -15,15 +15,15 @@ interface ServiceHealth {
 
 const checkServiceHealth = async (name: string, url: string): Promise<ServiceHealth> => {
   const start = Date.now();
-  
+
   try {
     const response = await fetch(`${url}/health`, {
       method: 'GET',
-      timeout: 5000,
+      signal: AbortSignal.timeout(5000),
     });
-    
+
     const responseTime = Date.now() - start;
-    
+
     if (response.ok) {
       return {
         name,
@@ -56,7 +56,7 @@ const checkServiceHealth = async (name: string, url: string): Promise<ServiceHea
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const uptime = process.uptime();
   const memoryUsage = process.memoryUsage();
-  
+
   res.json({
     success: true,
     status: 'healthy',
@@ -75,7 +75,7 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
 // Detailed health check with service dependencies
 router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
   const startTime = Date.now();
-  
+
   // Check all downstream services
   const serviceChecks = await Promise.all([
     checkServiceHealth('startup-service', config.services.startup),
@@ -85,17 +85,17 @@ router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
     checkServiceHealth('notification-service', config.services.notification),
     checkServiceHealth('news-aggregator', config.services.newsAggregator),
   ]);
-  
+
   const totalResponseTime = Date.now() - startTime;
   const healthyServices = serviceChecks.filter(service => service.status === 'healthy').length;
   const totalServices = serviceChecks.length;
-  
-  const overallStatus = healthyServices === totalServices ? 'healthy' : 
-                       healthyServices > 0 ? 'degraded' : 'unhealthy';
-  
+
+  const overallStatus = healthyServices === totalServices ? 'healthy' :
+    healthyServices > 0 ? 'degraded' : 'unhealthy';
+
   const uptime = process.uptime();
   const memoryUsage = process.memoryUsage();
-  
+
   const response = {
     success: true,
     status: overallStatus,
@@ -115,13 +115,13 @@ router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
       details: serviceChecks,
     },
   };
-  
+
   // Log unhealthy services
   const unhealthyServices = serviceChecks.filter(service => service.status !== 'healthy');
   if (unhealthyServices.length > 0) {
     logger.warn('Unhealthy services detected:', unhealthyServices);
   }
-  
+
   res.status(overallStatus === 'healthy' ? 200 : 503).json(response);
 }));
 
@@ -129,21 +129,21 @@ router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
 router.get('/ready', asyncHandler(async (req: Request, res: Response) => {
   // Check if the gateway is ready to serve traffic
   // This could include checking database connections, required services, etc.
-  
+
   const criticalServices = [
     config.services.startup,
     config.services.user,
   ];
-  
+
   const checks = await Promise.all(
     criticalServices.map(async (url, index) => {
       const serviceName = ['startup-service', 'user-service'][index];
       return checkServiceHealth(serviceName, url);
     })
   );
-  
+
   const allCriticalHealthy = checks.every(check => check.status === 'healthy');
-  
+
   if (allCriticalHealthy) {
     res.json({
       success: true,

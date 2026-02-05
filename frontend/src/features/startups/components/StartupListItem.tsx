@@ -1,10 +1,10 @@
 'use client';
 
-import { 
-  ArrowRightIcon, 
-  MapPinIcon, 
-  CalendarIcon, 
-  UsersIcon, 
+import {
+  ArrowRightIcon,
+  MapPinIcon,
+  CalendarIcon,
+  UsersIcon,
   ExternalLinkIcon,
   TrendingUpIcon,
   DollarSignIcon,
@@ -13,36 +13,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/stores/application';
-
-interface Startup {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  industry: string;
-  location: string;
-  foundedYear: number;
-  logo?: string;
-  website?: string;
-  totalFunding?: string;
-  stage: string;
-  employeeCount?: number;
-  verified: boolean;
-  trending: boolean;
-  founders: Array<{
-    name: string;
-    title: string;
-    imageUrl?: string;
-  }>;
-  tags: string[];
-}
+import { Startup } from '@/features/startups/types';
 
 interface StartupListItemProps {
   startup: Startup;
-  index: number;
 }
 
-export function StartupListItem({ startup, index }: StartupListItemProps) {
+export function StartupListItem({ startup }: StartupListItemProps) {
   const favorites = useFavorites();
   const isFavorited = favorites.startups.includes(startup.id);
 
@@ -75,10 +52,18 @@ export function StartupListItem({ startup, index }: StartupListItemProps) {
     window.location.href = `/startups/${startup.slug}`;
   };
 
+  const formattedFunding = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    notation: 'compact',
+    maximumFractionDigits: 1
+  }).format(startup.totalFunded || 0);
+
+  const foundedYear = new Date(startup.founded).getFullYear();
+
   return (
     <div
       className="group bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover:shadow-lg cursor-pointer animate-slide-in"
-      style={{ animationDelay: `${index * 0.03}s` }}
       onClick={handleItemClick}
     >
       <div className="flex items-start space-x-4">
@@ -114,10 +99,10 @@ export function StartupListItem({ startup, index }: StartupListItemProps) {
               </div>
               <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
                 <MapPinIcon className="h-4 w-4 mr-1" />
-                {startup.location}
+                {startup.location.city}, {startup.location.country}
                 <span className="mx-2">•</span>
                 <CalendarIcon className="h-4 w-4 mr-1" />
-                Founded {startup.foundedYear}
+                Founded {foundedYear}
               </div>
             </div>
 
@@ -157,14 +142,14 @@ export function StartupListItem({ startup, index }: StartupListItemProps) {
             <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', getIndustryBadgeColor(startup.industry))}>
               {startup.industry}
             </span>
-            {startup.tags.slice(0, 4).map((tag) => (
+            {startup.tags?.slice(0, 4).map((tag) => (
               <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
                 {tag}
               </span>
             ))}
-            {startup.tags.length > 4 && (
+            {(startup.tags?.length || 0) > 4 && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                +{startup.tags.length - 4}
+                +{(startup.tags?.length || 0) - 4}
               </span>
             )}
           </div>
@@ -176,10 +161,10 @@ export function StartupListItem({ startup, index }: StartupListItemProps) {
               <div className="flex items-center text-sm">
                 <DollarSignIcon className="h-4 w-4 text-gray-400 mr-1" />
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {startup.totalFunding || 'Undisclosed'}
+                  {formattedFunding}
                 </span>
                 <span className="text-gray-500 dark:text-gray-400 ml-1">
-                  • {startup.stage}
+                  • {startup.fundingStage.replace(/_/g, ' ')}
                 </span>
               </div>
               <div className="flex items-center text-sm">
@@ -197,18 +182,18 @@ export function StartupListItem({ startup, index }: StartupListItemProps) {
             <div className="flex items-center space-x-2">
               <span className="text-xs text-gray-500 dark:text-gray-400">Founded by:</span>
               <div className="flex items-center space-x-1">
-                {startup.founders.slice(0, 3).map((founder, idx) => (
+                {startup.founders?.slice(0, 3).map((founder, idx) => (
                   <div
                     key={idx}
                     className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-xs text-white font-medium"
-                    title={`${founder.name} - ${founder.title}`}
+                    title={`${founder.name} - ${founder.role}`}
                   >
                     {founder.name.charAt(0)}
                   </div>
                 ))}
-                {startup.founders.length > 3 && (
+                {(startup.founders?.length || 0) > 3 && (
                   <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center text-xs text-gray-600 dark:text-gray-300 font-medium">
-                    +{startup.founders.length - 3}
+                    +{(startup.founders?.length || 0) - 3}
                   </div>
                 )}
               </div>

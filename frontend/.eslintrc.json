@@ -1,9 +1,71 @@
 {
   "root": true,
-  "extends": "next/core-web-vitals",
+  "plugins": [
+    "import"
+  ],
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:storybook/recommended"
+  ],
   "rules": {
     "@typescript-eslint/no-explicit-any": "warn",
     "prefer-const": "error",
-    "no-var": "error"
-  }
+    "no-var": "error",
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index"
+        ],
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "@/components/**",
+            "group": "internal",
+            "position": "after"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": [
+          "react"
+        ],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/components/atoms/**/*"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@/components/molecules/*",
+                  "@/components/organisms/*"
+                ],
+                "message": "Atoms must remain pure and cannot import from Molecules or Organisms."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -35,10 +35,6 @@ export enum ValuationMethod {
 }
 
 @Entity('valuations')
-@Index(['startup_id'])
-@Index(['valuation_date'])
-@Index(['valuation_type'])
-@Index(['valuation_method'])
 export class Valuation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -372,7 +368,7 @@ export class Valuation {
   // Methods
   private formatCurrency(amount: number, currency: Currency): string {
     const value = amount / 100; // Convert from cents
-    
+
     if (value >= 1000000000) {
       return `${(value / 1000000000).toFixed(1)}B ${currency}`;
     } else if (value >= 1000000) {
@@ -380,7 +376,7 @@ export class Valuation {
     } else if (value >= 1000) {
       return `${(value / 1000).toFixed(0)}K ${currency}`;
     }
-    
+
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
@@ -394,7 +390,7 @@ export class Valuation {
       return this.amount;
     }
 
-    const weighted = 
+    const weighted =
       (this.scenarioAnalysis.optimistic.valuation * this.scenarioAnalysis.optimistic.probability) +
       (this.scenarioAnalysis.base.valuation * this.scenarioAnalysis.base.probability) +
       (this.scenarioAnalysis.pessimistic.valuation * this.scenarioAnalysis.pessimistic.probability);
@@ -498,7 +494,7 @@ export class Valuation {
   setValuationRange(low: number, high: number): void {
     this.valuationRangeLow = Math.min(low, high);
     this.valuationRangeHigh = Math.max(low, high);
-    
+
     // Set main valuation to midpoint if not already set
     if (!this.amount) {
       this.amount = Math.round((low + high) / 2);
@@ -513,7 +509,7 @@ export class Valuation {
   } {
     const difference = this.amount - marketValuation;
     const percentageDifference = (difference / marketValuation) * 100;
-    
+
     return {
       difference,
       percentageDifference,
@@ -536,7 +532,7 @@ export class Valuation {
     };
 
     const appropriateMethods = stageMethodMap[companyStage as keyof typeof stageMethodMap] || [];
-    
+
     if (!hasRevenue && [ValuationMethod.REVENUE_MULTIPLE, ValuationMethod.DISCOUNTED_CASH_FLOW].includes(this.valuationMethod)) {
       return false;
     }

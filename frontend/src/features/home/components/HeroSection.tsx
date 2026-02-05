@@ -1,19 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { ArrowRightIcon, SearchIcon, TrendingUpIcon, CommandIcon, PlayCircleIcon, UsersIcon } from 'lucide-react';
+import { ArrowRightIcon, TrendingUpIcon, CommandIcon, PlayCircleIcon, UsersIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { SearchBar } from '@/components/molecules/SearchBar';
 
 export function HeroSection() {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
-    }
-  };
 
   return (
     <section className="relative overflow-hidden bg-background text-foreground min-h-[90vh] flex items-center border-b border-border">
@@ -44,26 +36,15 @@ export function HeroSection() {
               Access real-time data on 10,000+ startups. Track funding rounds, analyze growth metrics, and discover the next unicorn before anyone else.
             </p>
 
-            <form onSubmit={handleSearch} className="max-w-md relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-accent to-muted rounded-lg blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-              <div className="relative flex items-center bg-white border border-input rounded-lg p-1.5 shadow-sm">
-                <SearchIcon className="ml-3 h-5 w-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search startups, investors, or trends..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 bg-transparent text-foreground placeholder-muted-foreground focus:outline-none"
-                />
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium px-4"
-                >
-                  Search
-                </Button>
-              </div>
-            </form>
+            <SearchBar
+              onSearch={(query) => {
+                if (query.trim()) {
+                  window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                }
+              }}
+              placeholder="Search startups, investors, or trends..."
+              className="max-w-md"
+            />
 
             <div className="flex flex-wrap gap-4 pt-4">
               <Button

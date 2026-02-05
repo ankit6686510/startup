@@ -1,41 +1,80 @@
-import dotenv from 'dotenv';
+import { z } from 'zod';
+import { commonSchemas, validateConfig } from '@startup-platform/config-validator';
 
-dotenv.config();
+const common = commonSchemas as any;
+
+const envSchema = z.object({
+  // Extend common schemas
+  NODE_ENV: common.nodeEnv,
+  PORT: common.port.default(3000),
+
+  // JWT
+  JWT_SECRET: common.jwtConfig.shape.secret,
+  JWT_EXPIRES_IN: common.jwtConfig.shape.expiresIn,
+
+  // Redis
+  REDIS_HOST: common.redisConfig.shape.host,
+  REDIS_PORT: common.redisConfig.shape.port,
+  REDIS_PASSWORD: z.string().optional(),
+
+  // Service URLs
+  STARTUP_SERVICE_URL: z.string().url().default('http://localhost:3001'),
+  USER_SERVICE_URL: z.string().url().default('http://localhost:3002'),
+  JOB_SERVICE_URL: z.string().url().default('http://localhost:3003'),
+  FUNDING_SERVICE_URL: z.string().url().default('http://localhost:3004'),
+  NOTIFICATION_SERVICE_URL: z.string().url().default('http://localhost:3005'),
+  NEWS_AGGREGATOR_URL: z.string().url().default('http://localhost:3006'),
+
+  // CORS & Rate Limit
+  ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
+  RATE_LIMIT_WINDOW_MS: z.string().transform(Number).default('900000'),
+  RATE_LIMIT_MAX_REQUESTS: z.string().transform(Number).default('100'),
+
+  // Logging
+  LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly']).default('info'),
+  LOG_FILE: z.string().default('logs/api-gateway.log'),
+
+  // API
+  API_VERSION: z.string().default('v1'),
+});
+
+// Validate and extract env vars
+const env = validateConfig(envSchema as any) as z.infer<typeof envSchema>;
 
 export const config = {
   server: {
-    port: parseInt(process.env.PORT || '3000'),
-    env: process.env.NODE_ENV || 'development',
+    port: env.PORT,
+    env: env.NODE_ENV,
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'fallback-secret-key',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    secret: env.JWT_SECRET,
+    expiresIn: env.JWT_EXPIRES_IN,
   },
   redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    password: process.env.REDIS_PASSWORD || '',
+    host: env.REDIS_HOST,
+    port: env.REDIS_PORT,
+    password: env.REDIS_PASSWORD,
   },
   services: {
-    startup: process.env.STARTUP_SERVICE_URL || 'http://localhost:3001',
-    user: process.env.USER_SERVICE_URL || 'http://localhost:3002',
-    job: process.env.JOB_SERVICE_URL || 'http://localhost:3003',
-    funding: process.env.FUNDING_SERVICE_URL || 'http://localhost:3004',
-    notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3005',
-    newsAggregator: process.env.NEWS_AGGREGATOR_URL || 'http://localhost:3006',
+    startup: env.STARTUP_SERVICE_URL,
+    user: env.USER_SERVICE_URL,
+    job: env.JOB_SERVICE_URL,
+    funding: env.FUNDING_SERVICE_URL,
+    notification: env.NOTIFICATION_SERVICE_URL,
+    newsAggregator: env.NEWS_AGGREGATOR_URL,
   },
   cors: {
-    allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    allowedOrigins: env.ALLOWED_ORIGINS.split(','),
   },
   rateLimit: {
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-    maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
+    windowMs: env.RATE_LIMIT_WINDOW_MS,
+    maxRequests: env.RATE_LIMIT_MAX_REQUESTS,
   },
   logging: {
-    level: process.env.LOG_LEVEL || 'info',
-    file: process.env.LOG_FILE || 'logs/api-gateway.log',
+    level: env.LOG_LEVEL,
+    file: env.LOG_FILE,
   },
   api: {
-    version: process.env.API_VERSION || 'v1',
+    version: env.API_VERSION,
   },
 };

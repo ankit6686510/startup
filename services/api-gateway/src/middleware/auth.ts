@@ -26,7 +26,7 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
   }
 
   try {
-    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    const decoded = jwt.verify(token, config.jwt.secret as string) as any;
     req.user = decoded;
     next();
   } catch (error) {
@@ -48,7 +48,7 @@ export const optionalAuth = (req: AuthenticatedRequest, res: Response, next: Nex
   }
 
   try {
-    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    const decoded = jwt.verify(token, config.jwt.secret as string) as any;
     req.user = decoded;
   } catch (error) {
     logger.warn('Optional auth token verification failed:', error);

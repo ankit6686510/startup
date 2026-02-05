@@ -29,8 +29,8 @@ export function StartupCard({ startup, variant = 'grid' }: StartupCardProps) {
     maximumFractionDigits: 1,
   }).format(startup.totalFunded);
 
-  const fundingStageLabel = startup.fundingStage.replace(/_/g, ' ');
-  const colorClass = fundingStageColors[startup.fundingStage];
+  const fundingStageLabel = (startup.fundingStage || 'UNKNOWN').replace(/_/g, ' ');
+  const colorClass = fundingStageColors[startup.fundingStage] || 'bg-slate-100 text-slate-800';
 
   if (variant === 'list') {
     return (

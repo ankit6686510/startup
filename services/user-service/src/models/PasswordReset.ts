@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -11,15 +11,10 @@ import {
 import { User } from './User';
 
 @Entity('password_resets')
-@Index(['user_id'])
-@Index(['token'])
-@Index(['expires_at'])
+@Entity('password_resets')
 export class PasswordReset {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'user_id' })
-  userId: string;
 
   @Column({ length: 255 })
   email: string;
@@ -60,6 +55,7 @@ export class PasswordReset {
   // Relations
   @ManyToOne(() => User, user => user.passwordResets, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
+  @Index()
   user: User;
 
   // Methods

@@ -1,16 +1,18 @@
 import Bull from 'bull';
-import Redis from 'redis';
+import { createClient, RedisClientType } from 'redis';
 import { logger } from '@/utils/logger';
 
 export class NotificationQueue {
   private queue: Bull.Queue;
-  private redisClient: Redis.RedisClientType;
+  private redisClient: RedisClientType;
 
   constructor() {
     // Create Redis connection
-    this.redisClient = Redis.createClient({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
+    this.redisClient = createClient({
+      socket: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+      },
       password: process.env.REDIS_PASSWORD || undefined,
     });
 
@@ -97,7 +99,7 @@ export class NotificationQueue {
   }
 
   async cleanQueue(grace: number, status: Bull.JobStatus): Promise<Bull.Job[]> {
-    const jobs = await this.queue.clean(grace, status);
+    const jobs = await this.queue.clean(grace, status as any);
     logger.info(`Cleaned ${jobs.length} ${status} jobs older than ${grace}ms`);
     return jobs;
   }
@@ -122,7 +124,7 @@ export class NotificationQueue {
         completed: counts.completed,
         failed: counts.failed,
         delayed: counts.delayed,
-        paused: counts.paused,
+        paused: (counts as any).paused || 0,
       };
     } catch (error) {
       logger.error('Failed to get queue health:', error);
@@ -210,7 +212,7 @@ export class NotificationQueue {
     delayedJobs: number;
   }> {
     const counts = await this.getJobCounts();
-    
+
     return {
       totalJobs: Object.values(counts).reduce((sum, count) => sum + count, 0),
       activeJobs: counts.active,
@@ -235,7 +237,7 @@ export class NotificationQueue {
 
   async retryAllFailed(): Promise<void> {
     const failedJobs = await this.queue.getFailed();
-    
+
     for (const job of failedJobs) {
       try {
         await job.retry();
@@ -244,7 +246,7 @@ export class NotificationQueue {
         logger.error(`Failed to retry job ${job.id}:`, error);
       }
     }
-    
+
     logger.info(`Retried ${failedJobs.length} failed jobs`);
   }
 

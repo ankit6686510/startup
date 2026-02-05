@@ -171,7 +171,7 @@ export class RecommendationService {
     });
 
     const viewedJobIds = recentViews.map(v => v.jobId);
-    
+
     // Find high-quality jobs posted in last 7 days that user hasn't seen
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -271,7 +271,7 @@ export class RecommendationService {
     const normalizedUserSkills = userSkills.map(s => s.toLowerCase());
 
     const matchingSkills = normalizedJobSkills.filter(skill =>
-      normalizedUserSkills.some(userSkill => 
+      normalizedUserSkills.some(userSkill =>
         userSkill.includes(skill) || skill.includes(userSkill)
       )
     );
@@ -292,8 +292,8 @@ export class RecommendationService {
       'EXECUTIVE': { min: 10, max: 30 }
     };
 
-    const levelRange = experienceLevelMap[job.experienceLevel as keyof typeof experienceLevelMap];
-    
+    const levelRange = experienceLevelMap[job.experienceLevel as unknown as keyof typeof experienceLevelMap];
+
     if (!levelRange) return 0.5; // Default moderate match
 
     if (userExperience >= levelRange.min && userExperience <= levelRange.max) {

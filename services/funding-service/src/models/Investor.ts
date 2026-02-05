@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   OneToMany,
   Index
 } from 'typeorm';
@@ -11,10 +11,6 @@ import { InvestorType } from '@startup-platform/types';
 import { Investment } from './Investment';
 
 @Entity('investors')
-@Index(['name'])
-@Index(['type'])
-@Index(['location_country'])
-@Index(['is_verified'])
 export class Investor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -23,8 +19,8 @@ export class Investor {
   @Index()
   name: string;
 
-  @Column({ length: 300, unique: true })
-  @Index()
+  @Column({ length: 300 })
+  @Index({ unique: true })
   slug: string;
 
   @Column('text', { nullable: true })
@@ -255,7 +251,7 @@ export class Investor {
     if (!this.minInvestment && !this.maxInvestment) {
       return 'Not specified';
     }
-    
+
     const formatAmount = (amount: number) => {
       if (amount >= 1000000) {
         return `$${(amount / 1000000).toFixed(1)}M`;
@@ -273,7 +269,7 @@ export class Investor {
     } else if (this.maxInvestment) {
       return `Up to ${formatAmount(this.maxInvestment)}`;
     }
-    
+
     return 'Not specified';
   }
 
@@ -399,7 +395,7 @@ export class Investor {
   matchesInvestmentCriteria(startupData: any): boolean {
     // Industry match
     if (this.industries.length > 0) {
-      const hasIndustryMatch = this.industries.some(industry => 
+      const hasIndustryMatch = this.industries.some(industry =>
         startupData.industry?.toLowerCase().includes(industry.toLowerCase())
       );
       if (!hasIndustryMatch) return false;
@@ -407,7 +403,7 @@ export class Investor {
 
     // Stage match
     if (this.investmentStages.length > 0) {
-      const hasStageMatch = this.investmentStages.some(stage => 
+      const hasStageMatch = this.investmentStages.some(stage =>
         startupData.stage?.toLowerCase().includes(stage.toLowerCase())
       );
       if (!hasStageMatch) return false;
@@ -415,7 +411,7 @@ export class Investor {
 
     // Geography match
     if (this.geographies.length > 0) {
-      const hasGeoMatch = this.geographies.some(geo => 
+      const hasGeoMatch = this.geographies.some(geo =>
         startupData.location?.toLowerCase().includes(geo.toLowerCase())
       );
       if (!hasGeoMatch) return false;
@@ -443,11 +439,11 @@ export class Investor {
 
   getInvestmentCapacity(): number {
     if (!this.fundSize || !this.totalInvestmentsCount) return 0;
-    
-    const estimatedDeployed = this.avgInvestmentAmount 
-      ? this.avgInvestmentAmount * this.totalInvestmentsCount 
+
+    const estimatedDeployed = this.avgInvestmentAmount
+      ? this.avgInvestmentAmount * this.totalInvestmentsCount
       : 0;
-    
+
     return Math.max(0, this.fundSize - estimatedDeployed);
   }
 

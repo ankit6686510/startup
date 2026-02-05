@@ -1,10 +1,10 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
-  OneToOne, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
   OneToMany,
   Index,
   BeforeInsert,
@@ -18,9 +18,6 @@ import { EmailVerification } from './EmailVerification';
 import { PasswordReset } from './PasswordReset';
 
 @Entity('users')
-@Index(['email'])
-@Index(['status'])
-@Index(['role'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -145,7 +142,7 @@ export class User {
 
   incrementFailedAttempts(): void {
     this.failedLoginAttempts += 1;
-    
+
     // Lock account after 5 failed attempts for 30 minutes
     if (this.failedLoginAttempts >= 5) {
       this.lockedUntil = new Date(Date.now() + 30 * 60 * 1000);
@@ -154,7 +151,7 @@ export class User {
 
   resetFailedAttempts(): void {
     this.failedLoginAttempts = 0;
-    this.lockedUntil = null;
+    this.lockedUntil = undefined;
   }
 
   updateLastLogin(ip?: string): void {

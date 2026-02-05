@@ -1,18 +1,14 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   Index
 } from 'typeorm';
 import { NotificationType, NotificationCategory } from './Notification';
 
 @Entity('notification_templates')
-@Index(['name'])
-@Index(['type'])
-@Index(['category'])
-@Index(['is_active'])
 export class NotificationTemplate {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -246,11 +242,11 @@ export class NotificationTemplate {
     text?: string;
   } {
     const lang = language || this.defaultLanguage;
-    
+
     if (lang !== this.defaultLanguage && this.translations[lang]) {
       return this.translations[lang];
     }
-    
+
     return {
       subject: this.subject,
       content: this.content,
@@ -270,7 +266,7 @@ export class NotificationTemplate {
 
     for (const variable of this.variables) {
       const value = data[variable.name];
-      
+
       // Check required variables
       if (variable.required && (value === undefined || value === null || value === '')) {
         missingRequired.push(variable.name);
@@ -293,19 +289,19 @@ export class NotificationTemplate {
       // Validation rules
       if (variable.validation) {
         const validation = variable.validation;
-        
+
         if (validation.min !== undefined && typeof value === 'number' && value < validation.min) {
           errors.push(`Variable '${variable.name}' must be at least ${validation.min}`);
         }
-        
+
         if (validation.max !== undefined && typeof value === 'number' && value > validation.max) {
           errors.push(`Variable '${variable.name}' must be at most ${validation.max}`);
         }
-        
+
         if (validation.pattern && typeof value === 'string' && !new RegExp(validation.pattern).test(value)) {
           errors.push(`Variable '${variable.name}' does not match required pattern`);
         }
-        
+
         if (validation.enum && !validation.enum.includes(value)) {
           errors.push(`Variable '${variable.name}' must be one of: ${validation.enum.join(', ')}`);
         }
@@ -362,7 +358,7 @@ export class NotificationTemplate {
     }
 
     this.isValidated = errors.length === 0;
-    this.validationErrors = errors.length > 0 ? errors.join('; ') : null;
+    this.validationErrors = errors.length > 0 ? errors.join('; ') : undefined;
 
     return {
       isValid: this.isValidated,

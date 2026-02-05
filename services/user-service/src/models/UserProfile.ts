@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   OneToOne,
   JoinColumn,
   Index
@@ -11,13 +11,9 @@ import {
 import { User } from './User';
 
 @Entity('user_profiles')
-@Index(['user_id'])
 export class UserProfile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'user_id' })
-  userId: string;
 
   @Column({ name: 'first_name', length: 100, nullable: true })
   firstName?: string;
@@ -118,6 +114,7 @@ export class UserProfile {
   // Relations
   @OneToOne(() => User, user => user.profile, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
+  @Index()
   user: User;
 
   // Virtual getters

@@ -155,3 +155,6 @@ dump.rdb
 # Application specific
 uploads/
 static/media/
+
+*storybook.log
+storybook-static

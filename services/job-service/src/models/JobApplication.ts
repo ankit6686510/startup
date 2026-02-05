@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -23,10 +23,10 @@ export enum ApplicationStatus {
 }
 
 @Entity('job_applications')
-@Index(['job_id'])
-@Index(['applicant_id'])
+@Index(['jobId'])
+@Index(['applicantId'])
 @Index(['status'])
-@Index(['created_at'])
+@Index(['createdAt'])
 export class JobApplication {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -35,7 +35,6 @@ export class JobApplication {
   jobId: string;
 
   @Column({ name: 'applicant_id' })
-  @Index()
   applicantId: string; // User ID of the applicant
 
   @Column({
@@ -43,7 +42,6 @@ export class JobApplication {
     enum: ApplicationStatus,
     default: ApplicationStatus.SUBMITTED
   })
-  @Index()
   status: ApplicationStatus;
 
   // Application content
@@ -224,7 +222,7 @@ export class JobApplication {
     this.status = newStatus;
     this.reviewedAt = new Date();
     this.reviewedBy = updatedBy;
-    
+
     if (notes) {
       if (newStatus === ApplicationStatus.REJECTED) {
         this.rejectionReason = notes;
@@ -248,12 +246,12 @@ export class JobApplication {
 
   calculateOverallScore(): number {
     const scores = [this.resumeScore, this.cultureFitScore, this.technicalScore].filter(score => score !== null && score !== undefined);
-    
+
     if (scores.length === 0) return 0;
-    
+
     const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     this.overallScore = Math.round(average * 100) / 100;
-    
+
     return this.overallScore;
   }
 

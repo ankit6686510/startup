@@ -86,9 +86,9 @@ export const validateBodySize = (maxSize: number = 10) => {
 
 // API version validation
 export const validateApiVersion = (req: Request, res: Response, next: NextFunction) => {
-  const version = req.path.split('/')[2]; // /api/v1/...
+  const version = req.path.split('/')[1]; // /v1/...
   const supportedVersions = ['v1'];
-  
+
   if (!supportedVersions.includes(version)) {
     return res.status(400).json({
       success: false,
@@ -96,14 +96,14 @@ export const validateApiVersion = (req: Request, res: Response, next: NextFuncti
       timestamp: new Date().toISOString(),
     });
   }
-  
+
   next();
 };
 
 // Request logging middleware
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
     logger.info('Request completed', {
@@ -116,6 +116,6 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
       requestId: (req as any).requestId,
     });
   });
-  
+
   next();
 };

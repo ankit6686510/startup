@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -11,9 +11,9 @@ import {
 import { JobApplication } from './JobApplication';
 
 @Entity('application_documents')
-@Index(['application_id'])
-@Index(['document_type'])
-@Index(['created_at'])
+@Index(['applicationId'])
+@Index(['documentType'])
+@Index(['createdAt'])
 export class ApplicationDocument {
   @PrimaryGeneratedColumn('uuid')
   id: string;

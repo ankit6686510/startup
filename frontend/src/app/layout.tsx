@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from './providers';
+import { ScoutWidget } from '@/features/ai-scout/components/ScoutWidget';
+import { LiveAlertsProvider } from '@/features/live-ticker/context';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -62,7 +64,10 @@ export default function RootLayout({
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body className={`${inter.className} h-full antialiased`}>
         <Providers>
-          {children}
+          <LiveAlertsProvider>
+            {children}
+            <ScoutWidget />
+          </LiveAlertsProvider>
         </Providers>
       </body>
     </html>

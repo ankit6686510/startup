@@ -70,11 +70,11 @@ export class AuthService {
 
     // Create user profile
     const profile = this.profileRepository.create({
-      userId: savedUser.id,
+      user: savedUser,
       firstName: data.firstName,
       lastName: data.lastName,
-      displayName: data.firstName && data.lastName ? 
-        `${data.firstName} ${data.lastName}` : 
+      displayName: data.firstName && data.lastName ?
+        `${data.firstName} ${data.lastName}` :
         data.firstName || data.lastName,
     });
 
@@ -170,7 +170,7 @@ export class AuthService {
   async sendEmailVerification(user: User): Promise<void> {
     // Invalidate existing verifications
     await this.emailVerificationRepository.update(
-      { userId: user.id, isUsed: false },
+      { user: { id: user.id }, isUsed: false },
       { isUsed: true }
     );
 
@@ -178,7 +178,7 @@ export class AuthService {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     const verification = this.emailVerificationRepository.create({
-      userId: user.id,
+      user: user,
       email: user.email,
       token,
       expiresAt,
@@ -188,7 +188,7 @@ export class AuthService {
 
     // Send email
     await this.emailService.sendEmailVerification(user, token);
-    
+
     logger.info(`Email verification sent to: ${user.email}`);
   }
 
@@ -231,7 +231,7 @@ export class AuthService {
 
     // Invalidate existing password resets
     await this.passwordResetRepository.update(
-      { userId: user.id, isUsed: false },
+      { user: { id: user.id }, isUsed: false },
       { isUsed: true }
     );
 
@@ -239,7 +239,7 @@ export class AuthService {
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     const passwordReset = this.passwordResetRepository.create({
-      userId: user.id,
+      user: user,
       email: user.email,
       token,
       expiresAt,
@@ -249,7 +249,7 @@ export class AuthService {
 
     // Send email
     await this.emailService.sendPasswordReset(user, token);
-    
+
     logger.info(`Password reset sent to: ${user.email}`);
   }
 
@@ -305,9 +305,9 @@ export class AuthService {
 
   async revokeAllUserSessions(userId: string, reason?: string): Promise<void> {
     await this.sessionRepository.update(
-      { userId, isActive: true },
-      { 
-        isActive: false, 
+      { user: { id: userId }, isActive: true },
+      {
+        isActive: false,
         revokedAt: new Date(),
         revokeReason: reason || 'All sessions revoked'
       }
@@ -317,12 +317,12 @@ export class AuthService {
   }
 
   private async createSession(
-    user: User, 
-    tokens: TokenPair, 
+    user: User,
+    tokens: TokenPair,
     loginData: LoginData
   ): Promise<UserSession> {
     const session = this.sessionRepository.create({
-      userId: user.id,
+      user: user,
       token: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       expiresAt: JWTUtil.getTokenExpirationDate(process.env.JWT_EXPIRES_IN || '7d'),
@@ -336,14 +336,14 @@ export class AuthService {
 
   async getUserSessions(userId: string): Promise<UserSession[]> {
     return await this.sessionRepository.find({
-      where: { userId, isActive: true },
+      where: { user: { id: userId }, isActive: true },
       order: { lastUsedAt: 'DESC' }
     });
   }
 
   async revokeSession(sessionId: string, userId: string): Promise<void> {
     const session = await this.sessionRepository.findOne({
-      where: { id: sessionId, userId }
+      where: { id: sessionId, user: { id: userId } }
     });
 
     if (session) {

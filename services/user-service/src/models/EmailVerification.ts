@@ -1,9 +1,9 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Index
@@ -11,15 +11,10 @@ import {
 import { User } from './User';
 
 @Entity('email_verifications')
-@Index(['user_id'])
-@Index(['token'])
-@Index(['expires_at'])
+@Entity('email_verifications')
 export class EmailVerification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'user_id' })
-  userId: string;
 
   @Column({ length: 255 })
   email: string;
@@ -60,6 +55,7 @@ export class EmailVerification {
   // Relations
   @ManyToOne(() => User, user => user.emailVerifications, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
+  @Index()
   user: User;
 
   // Methods

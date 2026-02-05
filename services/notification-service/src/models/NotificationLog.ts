@@ -1,8 +1,8 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
   Index
 } from 'typeorm';
 import { NotificationType, NotificationStatus } from './Notification';
@@ -30,11 +30,6 @@ export enum LogAction {
 }
 
 @Entity('notification_logs')
-@Index(['notification_id'])
-@Index(['user_id'])
-@Index(['action'])
-@Index(['level'])
-@Index(['created_at'])
 export class NotificationLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -157,6 +152,7 @@ export class NotificationLog {
   metadata: Record<string, any>;
 
   @CreateDateColumn({ name: 'created_at' })
+  @Index()
   createdAt: Date;
 
   // Static factory methods
@@ -346,43 +342,43 @@ export class NotificationLog {
     const timestamp = this.createdAt.toISOString();
     const level = this.level.toUpperCase();
     const action = this.action.toUpperCase();
-    
+
     let message = `[${timestamp}] ${level} - ${action}: ${this.message}`;
-    
+
     if (this.provider) {
       message += ` (Provider: ${this.provider})`;
     }
-    
+
     if (this.errorMessage) {
       message += ` - Error: ${this.errorMessage}`;
     }
-    
+
     return message;
   }
 
   getFormattedDetails(): string {
     const details: string[] = [];
-    
+
     if (this.details) {
       details.push(`Details: ${this.details}`);
     }
-    
+
     if (this.processingTimeMs) {
       details.push(`Processing Time: ${this.processingTimeMs}ms`);
     }
-    
+
     if (this.provider && this.providerMessageId) {
       details.push(`Provider: ${this.provider} (ID: ${this.providerMessageId})`);
     }
-    
+
     if (this.ipAddress) {
       details.push(`IP: ${this.ipAddress}`);
     }
-    
+
     if (this.userAgent) {
       details.push(`User Agent: ${this.userAgent}`);
     }
-    
+
     return details.join(' | ');
   }
 

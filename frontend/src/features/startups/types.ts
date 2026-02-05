@@ -8,13 +8,14 @@ export type EmployeeRange = '1-10' | '11-50' | '51-100' | '101-500' | '501-1000'
 export interface Startup {
   id: string;
   name: string;
+  slug: string;
   tagline: string;
   description: string;
   logo?: string;
   website?: string;
   founded: string; // ISO date
   status: StartupStatus;
-  
+
   // Basic Info
   industry: string;
   subIndustries?: string[];
@@ -26,23 +27,23 @@ export interface Startup {
       longitude: number;
     };
   };
-  
+
   // Team
   foundersCount: number;
   founders?: Founder[];
   employeeCount?: EmployeeRange;
-  
+
   // Funding
   fundingStage: FundingStage;
   totalFunded: number; // in USD
   lastFundingRound?: FundingRound;
   fundingHistory?: FundingRound[];
-  
+
   // Metrics
   followersCount: number;
   isFollowing?: boolean;
   isSaved?: boolean;
-  
+
   // Media
   images?: string[];
   socialMedia?: {
@@ -50,10 +51,15 @@ export interface Startup {
     linkedin?: string;
     crunchbase?: string;
   };
-  
+
   // Metadata
   createdAt: string;
   updatedAt: string;
+
+  // UI Flags
+  tags?: string[];
+  verified?: boolean;
+  trending?: boolean;
 }
 
 // Founder/Team Member

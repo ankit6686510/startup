@@ -3,11 +3,11 @@ import { body, query, validationResult } from 'express-validator';
 import { JobService, JobFilters } from '@/services/JobService';
 import { RecommendationService, UserProfile } from '@/services/RecommendationService';
 import { logger } from '@/utils/logger';
-import { 
-  JobType, 
-  WorkLocation, 
-  ExperienceLevel, 
-  JobCategory 
+import {
+  JobType,
+  WorkLocation,
+  ExperienceLevel,
+  JobCategory
 } from '@startup-platform/types';
 
 export class JobController {
@@ -388,13 +388,15 @@ export class JobController {
     } catch (error) {
       logger.error('Get job stats error:', error);
       next(error);
+    }
+  };
 
   // ==================== JOB RECOMMENDATIONS ====================
 
   getRecommendations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.headers['x-user-id'] as string;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -484,7 +486,7 @@ export class JobController {
   getMissedJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.headers['x-user-id'] as string;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -656,7 +658,7 @@ export class JobController {
   saveJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.headers['x-user-id'] as string;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -686,7 +688,7 @@ export class JobController {
   unsaveJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.headers['x-user-id'] as string;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -713,7 +715,7 @@ export class JobController {
   getSavedJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.headers['x-user-id'] as string;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -766,8 +768,8 @@ export class JobController {
       if (req.query.salaryMin) filters.salaryMin = parseInt(req.query.salaryMin as string);
       if (req.query.salaryMax) filters.salaryMax = parseInt(req.query.salaryMax as string);
       if (req.query.skills) {
-        filters.skills = Array.isArray(req.query.skills) 
-          ? req.query.skills as string[] 
+        filters.skills = Array.isArray(req.query.skills)
+          ? req.query.skills as string[]
           : [req.query.skills as string];
       }
       if (req.query.isRemote) filters.isRemote = req.query.isRemote === 'true';
@@ -802,8 +804,6 @@ export class JobController {
     } catch (error) {
       logger.error('Advanced search error:', error);
       next(error);
-    }
-  };
     }
   };
 }

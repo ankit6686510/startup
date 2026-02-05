@@ -1,22 +1,19 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   Index
 } from 'typeorm';
-import { 
-  JobType, 
-  WorkLocation, 
-  ExperienceLevel, 
-  JobCategory 
+import {
+  JobType,
+  WorkLocation,
+  ExperienceLevel,
+  JobCategory
 } from '@startup-platform/types';
 
 @Entity('job_alerts')
-@Index(['user_id'])
-@Index(['is_active'])
-@Index(['last_sent_at'])
 export class JobAlert {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -196,30 +193,30 @@ export class JobAlert {
 
   get searchCriteriaString(): string {
     const criteria = [];
-    
+
     if (this.keywords.length > 0) {
       criteria.push(`Keywords: ${this.keywords.join(', ')}`);
     }
-    
+
     if (this.locations.length > 0) {
       criteria.push(`Locations: ${this.locations.join(', ')}`);
     }
-    
+
     if (this.categories.length > 0) {
       criteria.push(`Categories: ${this.categories.join(', ')}`);
     }
-    
+
     if (this.jobTypes.length > 0) {
       criteria.push(`Types: ${this.jobTypes.join(', ')}`);
     }
-    
+
     if (this.salaryMin || this.salaryMax) {
       const salaryRange = [];
       if (this.salaryMin) salaryRange.push(`${this.salaryMin}+`);
       if (this.salaryMax) salaryRange.push(`up to ${this.salaryMax}`);
       criteria.push(`Salary: ${salaryRange.join(' - ')} ${this.salaryCurrency}`);
     }
-    
+
     return criteria.join(' | ') || 'All jobs';
   }
 
@@ -293,7 +290,7 @@ export class JobAlert {
 
   hasKeywordMatch(jobTitle: string, jobDescription: string): boolean {
     if (this.keywords.length === 0) return true;
-    
+
     const content = `${jobTitle} ${jobDescription}`.toLowerCase();
     return this.keywords.some(keyword => content.includes(keyword.toLowerCase()));
   }
@@ -301,17 +298,17 @@ export class JobAlert {
   hasLocationMatch(jobLocation: string): boolean {
     if (this.locations.length === 0) return true;
     if (this.remoteOnly) return true; // Remote jobs match any location preference
-    
-    return this.locations.some(location => 
+
+    return this.locations.some(location =>
       jobLocation.toLowerCase().includes(location.toLowerCase())
     );
   }
 
   hasSkillMatch(jobSkills: string[]): boolean {
     if (this.skills.length === 0) return true;
-    
+
     const jobSkillsLower = jobSkills.map(skill => skill.toLowerCase());
-    return this.skills.some(skill => 
+    return this.skills.some(skill =>
       jobSkillsLower.some(jobSkill => jobSkill.includes(skill))
     );
   }

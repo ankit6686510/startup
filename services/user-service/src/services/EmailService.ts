@@ -19,7 +19,7 @@ export class EmailService {
     this.fromName = process.env.FROM_NAME || 'StartupCompass';
     this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: process.env.SMTP_SECURE === 'true',
@@ -32,32 +32,32 @@ export class EmailService {
 
   async sendEmailVerification(user: User, token: string): Promise<void> {
     const verificationUrl = `${this.frontendUrl}/verify-email?token=${token}`;
-    
+
     const template = this.generateEmailVerificationTemplate(user, verificationUrl);
-    
+
     await this.sendEmail(user.email, template);
     logger.info(`Email verification sent to: ${user.email}`);
   }
 
   async sendPasswordReset(user: User, token: string): Promise<void> {
     const resetUrl = `${this.frontendUrl}/reset-password?token=${token}`;
-    
+
     const template = this.generatePasswordResetTemplate(user, resetUrl);
-    
+
     await this.sendEmail(user.email, template);
     logger.info(`Password reset email sent to: ${user.email}`);
   }
 
   async sendWelcomeEmail(user: User): Promise<void> {
     const template = this.generateWelcomeTemplate(user);
-    
+
     await this.sendEmail(user.email, template);
     logger.info(`Welcome email sent to: ${user.email}`);
   }
 
   async sendPasswordChangedNotification(user: User): Promise<void> {
     const template = this.generatePasswordChangedTemplate(user);
-    
+
     await this.sendEmail(user.email, template);
     logger.info(`Password changed notification sent to: ${user.email}`);
   }
@@ -79,7 +79,7 @@ export class EmailService {
 
   private generateEmailVerificationTemplate(user: User, verificationUrl: string): EmailTemplate {
     const displayName = user.profile?.displayName || user.profile?.fullName || 'there';
-    
+
     return {
       subject: 'Verify your email address - StartupCompass',
       html: `
@@ -140,7 +140,7 @@ export class EmailService {
 
   private generatePasswordResetTemplate(user: User, resetUrl: string): EmailTemplate {
     const displayName = user.profile?.displayName || user.profile?.fullName || 'there';
-    
+
     return {
       subject: 'Reset your password - StartupCompass',
       html: `
@@ -207,7 +207,7 @@ export class EmailService {
 
   private generateWelcomeTemplate(user: User): EmailTemplate {
     const displayName = user.profile?.displayName || user.profile?.fullName || 'there';
-    
+
     return {
       subject: 'Welcome to StartupCompass! 🚀',
       html: `
@@ -287,7 +287,7 @@ export class EmailService {
 
   private generatePasswordChangedTemplate(user: User): EmailTemplate {
     const displayName = user.profile?.displayName || user.profile?.fullName || 'there';
-    
+
     return {
       subject: 'Password changed - StartupCompass',
       html: `

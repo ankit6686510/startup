@@ -2,11 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import { body, query, validationResult } from 'express-validator';
 import { NotificationService, NotificationFilters } from '@/services/NotificationService';
 import { logger } from '@/utils/logger';
-import { 
-  NotificationType, 
-  NotificationPriority, 
+import {
+  NotificationType,
+  NotificationPriority,
   NotificationCategory,
-  NotificationStatus 
+  NotificationStatus
 } from '@/models/Notification';
 
 export class NotificationController {
@@ -182,36 +182,36 @@ export class NotificationController {
 
       const filters: NotificationFilters = {};
       if (req.query.recipientIds) {
-        filters.recipientIds = Array.isArray(req.query.recipientIds) 
-          ? req.query.recipientIds as string[] 
+        filters.recipientIds = Array.isArray(req.query.recipientIds)
+          ? req.query.recipientIds as string[]
           : [req.query.recipientIds as string];
       }
       if (req.query.types) {
-        filters.types = Array.isArray(req.query.types) 
-          ? req.query.types as NotificationType[] 
+        filters.types = Array.isArray(req.query.types)
+          ? req.query.types as NotificationType[]
           : [req.query.types as NotificationType];
       }
       if (req.query.statuses) {
-        filters.statuses = Array.isArray(req.query.statuses) 
-          ? req.query.statuses as NotificationStatus[] 
+        filters.statuses = Array.isArray(req.query.statuses)
+          ? req.query.statuses as NotificationStatus[]
           : [req.query.statuses as NotificationStatus];
       }
       if (req.query.priorities) {
-        filters.priorities = Array.isArray(req.query.priorities) 
-          ? req.query.priorities as NotificationPriority[] 
+        filters.priorities = Array.isArray(req.query.priorities)
+          ? req.query.priorities as NotificationPriority[]
           : [req.query.priorities as NotificationPriority];
       }
       if (req.query.categories) {
-        filters.categories = Array.isArray(req.query.categories) 
-          ? req.query.categories as NotificationCategory[] 
+        filters.categories = Array.isArray(req.query.categories)
+          ? req.query.categories as NotificationCategory[]
           : [req.query.categories as NotificationCategory];
       }
       if (req.query.dateFrom) filters.dateFrom = new Date(req.query.dateFrom as string);
       if (req.query.dateTo) filters.dateTo = new Date(req.query.dateTo as string);
       if (req.query.campaignId) filters.campaignId = req.query.campaignId as string;
       if (req.query.tags) {
-        filters.tags = Array.isArray(req.query.tags) 
-          ? req.query.tags as string[] 
+        filters.tags = Array.isArray(req.query.tags)
+          ? req.query.tags as string[]
           : [req.query.tags as string];
       }
 
@@ -219,8 +219,8 @@ export class NotificationController {
 
       res.json({
         success: true,
-        data: { 
-          notifications: notifications.map(n => n.toSummary()) 
+        data: {
+          notifications: notifications.map(n => n.toSummary())
         },
         meta: {
           pagination: {
@@ -239,6 +239,31 @@ export class NotificationController {
     }
   };
 
+  getNotificationById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const notification = await this.notificationService.getNotificationById(id);
+
+      if (!notification) {
+        res.status(404).json({
+          success: false,
+          message: 'Notification not found',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: { notification: notification.toSummary() },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error('Get notification by ID error:', error);
+      next(error);
+    }
+  };
+
   getUserNotifications = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { userId } = req.params;
@@ -249,8 +274,8 @@ export class NotificationController {
 
       res.json({
         success: true,
-        data: { 
-          notifications: notifications.map(n => n.toSummary()) 
+        data: {
+          notifications: notifications.map(n => n.toSummary())
         },
         meta: {
           pagination: {
