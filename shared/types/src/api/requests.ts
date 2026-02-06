@@ -1,14 +1,14 @@
 import { PaginationParams, SearchParams } from '../common/pagination';
 import { LocationFilter } from '../common/location';
-import { 
-  Industry, 
-  FundingRound, 
-  JobType, 
-  WorkLocation, 
-  ExperienceLevel, 
+import {
+  Industry,
+  FundingRound,
+  JobType,
+  WorkLocation,
+  ExperienceLevel,
   JobCategory,
   StartupStatus,
-  NewsType
+  NewsType,
 } from '../common/enums';
 
 // Generic API request structure

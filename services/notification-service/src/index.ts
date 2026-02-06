@@ -11,6 +11,7 @@ import { errorHandler, notFoundHandler } from '@/middleware/errorHandler';
 import { logger } from '@/utils/logger';
 import { NotificationService } from '@/services/NotificationService';
 import { NotificationQueue } from '@/queues/NotificationQueue';
+import { KafkaEventConsumer } from '@/consumers/KafkaEventConsumer';
 import notificationRoutes from '@/routes/notification.routes';
 import healthRoutes from '@/routes/health.routes';
 
@@ -34,33 +35,39 @@ const limiter = rateLimit({
 });
 
 // Security middleware
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
     },
-  },
-}));
+  }),
+);
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id', 'X-User-Role', 'X-User-Email'],
-}));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id', 'X-User-Role', 'X-User-Email'],
+  }),
+);
 
 // Compression
 app.use(compression());
 
 // Request logging
-app.use(morgan('combined', { 
-  stream: { write: message => logger.info(message.trim()) } 
-}));
+app.use(
+  morgan('combined', {
+    stream: { write: (message) => logger.info(message.trim()) },
+  }),
+);
 
 // Rate limiting
 app.use(limiter);
@@ -98,6 +105,7 @@ app.use(errorHandler);
 // Setup services
 const notificationService = new NotificationService();
 const notificationQueue = new NotificationQueue();
+const kafkaConsumer = new KafkaEventConsumer();
 
 // Setup scheduled tasks
 const setupScheduledTasks = () => {
@@ -144,7 +152,7 @@ const setupQueueProcessors = () => {
   // Send notification processor
   notificationQueue.process('send-notification', concurrency, async (job) => {
     const { notificationId } = job.data;
-    
+
     try {
       await notificationService.sendNotification(notificationId);
       await job.progress(100);
@@ -174,12 +182,17 @@ const startServer = async () => {
     // Setup queue processors
     setupQueueProcessors();
 
+    // Start Kafka consumer
+    await kafkaConsumer.start();
+    logger.info('Kafka event consumer started');
+
     app.listen(PORT, () => {
       logger.info(`Notification Service running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
       logger.info('Available endpoints:');
       logger.info('  - Notifications: /api/v1/notifications');
       logger.info('  - Health: /health');
+      logger.info('Kafka consumer listening to: user.events, startup.events, job.events');
     });
   } catch (error) {
     logger.error('Failed to start Notification Service:', error);
@@ -190,15 +203,20 @@ const startServer = async () => {
 // Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   logger.info(`${signal} received, shutting down gracefully`);
-  
+
   try {
+    // Stop Kafka consumer
+    await kafkaConsumer.stop();
+    logger.info('Kafka consumer stopped');
+
+    // Close database and queue connections
     await AppDataSource.destroy();
     await notificationQueue.close();
     logger.info('Database and queue connections closed');
   } catch (error) {
     logger.error('Error during shutdown:', error);
   }
-  
+
   process.exit(0);
 };
 

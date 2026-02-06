@@ -16,7 +16,7 @@ export const validate = (validations: ValidationChain[]) => {
       const firstError = errors.array()[0];
       throw new ValidationError(
         firstError.msg,
-        'param' in firstError ? String(firstError.param) : 'unknown'
+        'param' in firstError ? String(firstError.param) : 'unknown',
       );
     }
 
@@ -27,23 +27,23 @@ export const validate = (validations: ValidationChain[]) => {
 // Request logging middleware
 export const logRequest = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
     console.log(`${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
   });
-  
+
   next();
 };
 
 // Request ID middleware
 export const requestId = (req: Request, res: Response, next: NextFunction) => {
-  const requestId = req.headers['x-request-id'] || 
-                   `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+  const requestId =
+    req.headers['x-request-id'] || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
   req.headers['x-request-id'] = requestId as string;
   res.setHeader('X-Request-ID', requestId);
-  
+
   next();
 };
 
@@ -51,14 +51,17 @@ export const requestId = (req: Request, res: Response, next: NextFunction) => {
 export const corsHeaders = (req: Request, res: Response, next: NextFunction) => {
   res.header('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGINS || '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Request-ID',
+  );
   res.header('Access-Control-Expose-Headers', 'X-Request-ID');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
   }
-  
+
   next();
 };
 
@@ -77,11 +80,11 @@ export const validateBodySize = (maxSize: number = 10) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const contentLength = parseInt(req.headers['content-length'] || '0');
     const maxBytes = maxSize * 1024 * 1024; // Convert MB to bytes
-    
+
     if (contentLength > maxBytes) {
       throw new ValidationError(`Request body too large. Maximum size is ${maxSize}MB`);
     }
-    
+
     next();
   };
 };
@@ -99,38 +102,38 @@ export const sanitizeQuery = (req: Request, res: Response, next: NextFunction) =
       }
     }
   }
-  
+
   next();
 };
 
 // Rate limiting helpers
 export const createRateLimit = (maxRequests: number, windowMs: number) => {
   const requests = new Map<string, number[]>();
-  
+
   return (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
     const now = Date.now();
-    
+
     if (!requests.has(ip)) {
       requests.set(ip, []);
     }
-    
+
     const userRequests = requests.get(ip)!;
     // Remove requests outside the time window
-    const validRequests = userRequests.filter(time => now - time < windowMs);
-    
+    const validRequests = userRequests.filter((time) => now - time < windowMs);
+
     if (validRequests.length >= maxRequests) {
       res.status(429).json({
         success: false,
         message: 'Too many requests',
-        retryAfter: Math.ceil(windowMs / 1000)
+        retryAfter: Math.ceil(windowMs / 1000),
       });
       return;
     }
-    
+
     validRequests.push(now);
     requests.set(ip, validRequests);
-    
+
     next();
   };
 };

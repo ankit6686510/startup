@@ -6,7 +6,7 @@ import {
   NotificationType,
   NotificationPriority,
   NotificationCategory,
-  NotificationStatus
+  NotificationStatus,
 } from '@/models/Notification';
 
 export class NotificationController {
@@ -20,10 +20,18 @@ export class NotificationController {
   static createNotificationValidation = [
     body('recipientId').notEmpty().withMessage('Recipient ID is required'),
     body('type').isIn(Object.values(NotificationType)).withMessage('Invalid notification type'),
-    body('title').isLength({ min: 1, max: 500 }).withMessage('Title must be between 1 and 500 characters'),
+    body('title')
+      .isLength({ min: 1, max: 500 })
+      .withMessage('Title must be between 1 and 500 characters'),
     body('content').isLength({ min: 1 }).withMessage('Content is required'),
-    body('priority').optional().isIn(Object.values(NotificationPriority)).withMessage('Invalid priority'),
-    body('category').optional().isIn(Object.values(NotificationCategory)).withMessage('Invalid category'),
+    body('priority')
+      .optional()
+      .isIn(Object.values(NotificationPriority))
+      .withMessage('Invalid priority'),
+    body('category')
+      .optional()
+      .isIn(Object.values(NotificationCategory))
+      .withMessage('Invalid category'),
     body('scheduledAt').optional().isISO8601().withMessage('Invalid scheduled date'),
     body('expiresAt').optional().isISO8601().withMessage('Invalid expiration date'),
     body('recipientEmail').optional().isEmail().withMessage('Invalid email address'),
@@ -32,25 +40,34 @@ export class NotificationController {
 
   static getNotificationsValidation = [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-    query('types').optional().custom((value) => {
-      if (typeof value === 'string') {
-        return Object.values(NotificationType).includes(value as NotificationType);
-      }
-      if (Array.isArray(value)) {
-        return value.every(type => Object.values(NotificationType).includes(type));
-      }
-      return false;
-    }).withMessage('Invalid notification types'),
-    query('statuses').optional().custom((value) => {
-      if (typeof value === 'string') {
-        return Object.values(NotificationStatus).includes(value as NotificationStatus);
-      }
-      if (Array.isArray(value)) {
-        return value.every(status => Object.values(NotificationStatus).includes(status));
-      }
-      return false;
-    }).withMessage('Invalid notification statuses'),
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
+    query('types')
+      .optional()
+      .custom((value) => {
+        if (typeof value === 'string') {
+          return Object.values(NotificationType).includes(value as NotificationType);
+        }
+        if (Array.isArray(value)) {
+          return value.every((type) => Object.values(NotificationType).includes(type));
+        }
+        return false;
+      })
+      .withMessage('Invalid notification types'),
+    query('statuses')
+      .optional()
+      .custom((value) => {
+        if (typeof value === 'string') {
+          return Object.values(NotificationStatus).includes(value as NotificationStatus);
+        }
+        if (Array.isArray(value)) {
+          return value.every((status) => Object.values(NotificationStatus).includes(status));
+        }
+        return false;
+      })
+      .withMessage('Invalid notification statuses'),
   ];
 
   createNotification = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -183,27 +200,27 @@ export class NotificationController {
       const filters: NotificationFilters = {};
       if (req.query.recipientIds) {
         filters.recipientIds = Array.isArray(req.query.recipientIds)
-          ? req.query.recipientIds as string[]
+          ? (req.query.recipientIds as string[])
           : [req.query.recipientIds as string];
       }
       if (req.query.types) {
         filters.types = Array.isArray(req.query.types)
-          ? req.query.types as NotificationType[]
+          ? (req.query.types as NotificationType[])
           : [req.query.types as NotificationType];
       }
       if (req.query.statuses) {
         filters.statuses = Array.isArray(req.query.statuses)
-          ? req.query.statuses as NotificationStatus[]
+          ? (req.query.statuses as NotificationStatus[])
           : [req.query.statuses as NotificationStatus];
       }
       if (req.query.priorities) {
         filters.priorities = Array.isArray(req.query.priorities)
-          ? req.query.priorities as NotificationPriority[]
+          ? (req.query.priorities as NotificationPriority[])
           : [req.query.priorities as NotificationPriority];
       }
       if (req.query.categories) {
         filters.categories = Array.isArray(req.query.categories)
-          ? req.query.categories as NotificationCategory[]
+          ? (req.query.categories as NotificationCategory[])
           : [req.query.categories as NotificationCategory];
       }
       if (req.query.dateFrom) filters.dateFrom = new Date(req.query.dateFrom as string);
@@ -211,16 +228,20 @@ export class NotificationController {
       if (req.query.campaignId) filters.campaignId = req.query.campaignId as string;
       if (req.query.tags) {
         filters.tags = Array.isArray(req.query.tags)
-          ? req.query.tags as string[]
+          ? (req.query.tags as string[])
           : [req.query.tags as string];
       }
 
-      const { notifications, total } = await this.notificationService.getNotifications(filters, page, limit);
+      const { notifications, total } = await this.notificationService.getNotifications(
+        filters,
+        page,
+        limit,
+      );
 
       res.json({
         success: true,
         data: {
-          notifications: notifications.map(n => n.toSummary())
+          notifications: notifications.map((n) => n.toSummary()),
         },
         meta: {
           pagination: {
@@ -270,12 +291,16 @@ export class NotificationController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
 
-      const { notifications, total } = await this.notificationService.getUserNotifications(userId, page, limit);
+      const { notifications, total } = await this.notificationService.getUserNotifications(
+        userId,
+        page,
+        limit,
+      );
 
       res.json({
         success: true,
         data: {
-          notifications: notifications.map(n => n.toSummary())
+          notifications: notifications.map((n) => n.toSummary()),
         },
         meta: {
           pagination: {

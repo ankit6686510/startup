@@ -4,14 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Index
+  Index,
 } from 'typeorm';
-import {
-  JobType,
-  WorkLocation,
-  ExperienceLevel,
-  JobCategory
-} from '@startup-platform/types';
+import { JobType, WorkLocation, ExperienceLevel, JobCategory } from '@startup-platform/types';
 
 @Entity('job_alerts')
 export class JobAlert {
@@ -43,7 +38,7 @@ export class JobAlert {
     type: 'enum',
     enum: JobType,
     array: true,
-    default: '{}'
+    default: '{}',
   })
   jobTypes: JobType[];
 
@@ -51,7 +46,7 @@ export class JobAlert {
     type: 'enum',
     enum: WorkLocation,
     array: true,
-    default: '{}'
+    default: '{}',
   })
   locationTypes: WorkLocation[];
 
@@ -59,7 +54,7 @@ export class JobAlert {
     type: 'enum',
     enum: ExperienceLevel,
     array: true,
-    default: '{}'
+    default: '{}',
   })
   experienceLevels: ExperienceLevel[];
 
@@ -67,7 +62,7 @@ export class JobAlert {
     type: 'enum',
     enum: JobCategory,
     array: true,
-    default: '{}'
+    default: '{}',
   })
   categories: JobCategory[];
 
@@ -255,7 +250,7 @@ export class JobAlert {
   }
 
   removeKeyword(keyword: string): void {
-    this.keywords = this.keywords.filter(k => k !== keyword.toLowerCase());
+    this.keywords = this.keywords.filter((k) => k !== keyword.toLowerCase());
   }
 
   addLocation(location: string): void {
@@ -265,7 +260,7 @@ export class JobAlert {
   }
 
   removeLocation(location: string): void {
-    this.locations = this.locations.filter(l => l !== location);
+    this.locations = this.locations.filter((l) => l !== location);
   }
 
   addSkill(skill: string): void {
@@ -275,7 +270,7 @@ export class JobAlert {
   }
 
   removeSkill(skill: string): void {
-    this.skills = this.skills.filter(s => s !== skill.toLowerCase());
+    this.skills = this.skills.filter((s) => s !== skill.toLowerCase());
   }
 
   getClickThroughRate(): number {
@@ -292,24 +287,22 @@ export class JobAlert {
     if (this.keywords.length === 0) return true;
 
     const content = `${jobTitle} ${jobDescription}`.toLowerCase();
-    return this.keywords.some(keyword => content.includes(keyword.toLowerCase()));
+    return this.keywords.some((keyword) => content.includes(keyword.toLowerCase()));
   }
 
   hasLocationMatch(jobLocation: string): boolean {
     if (this.locations.length === 0) return true;
     if (this.remoteOnly) return true; // Remote jobs match any location preference
 
-    return this.locations.some(location =>
-      jobLocation.toLowerCase().includes(location.toLowerCase())
+    return this.locations.some((location) =>
+      jobLocation.toLowerCase().includes(location.toLowerCase()),
     );
   }
 
   hasSkillMatch(jobSkills: string[]): boolean {
     if (this.skills.length === 0) return true;
 
-    const jobSkillsLower = jobSkills.map(skill => skill.toLowerCase());
-    return this.skills.some(skill =>
-      jobSkillsLower.some(jobSkill => jobSkill.includes(skill))
-    );
+    const jobSkillsLower = jobSkills.map((skill) => skill.toLowerCase());
+    return this.skills.some((skill) => jobSkillsLower.some((jobSkill) => jobSkill.includes(skill)));
   }
 }

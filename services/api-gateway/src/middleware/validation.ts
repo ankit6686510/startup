@@ -44,10 +44,10 @@ export const authRateLimiter = createRateLimiter(15 * 60 * 1000, 5); // 5 reques
 // Query sanitization middleware
 export const sanitizeQuery = (req: Request, res: Response, next: NextFunction) => {
   if (req.query) {
-    Object.keys(req.query).forEach(key => {
+    Object.keys(req.query).forEach((key) => {
       if (typeof req.query[key] === 'string') {
         // Remove potential NoSQL injection patterns
-        req.query[key] = (req.query[key] as string).replace(/[{}$]/g, '');
+        req.query[key] = req.query[key].replace(/[{}$]/g, '');
       }
     });
   }

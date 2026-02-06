@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
     let dataPoints = 6;
     let baseValue = 10000;
-    let growth = 0.05; // 5% monthly
+    const growth = 0.05; // 5% monthly
 
     if (range === '1m') {
         dataPoints = 4; // weeks

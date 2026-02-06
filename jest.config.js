@@ -12,6 +12,9 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@tests/(.*)$': '<rootDir>/tests/$1'
   },
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }]
+  },
   setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts'],
   collectCoverageFrom: [
     'services/**/src/**/*.ts',
@@ -27,17 +30,26 @@ module.exports = {
     {
       displayName: 'unit',
       testMatch: ['<rootDir>/services/**/src/**/*.test.ts'],
-      setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts']
+      setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts'],
+      transform: {
+        '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }]
+      }
     },
     {
       displayName: 'integration',
       testMatch: ['<rootDir>/tests/integration/**/*.test.ts'],
-      setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts']
+      setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts'],
+      transform: {
+        '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }]
+      }
     },
     {
       displayName: 'e2e',
       testMatch: ['<rootDir>/tests/e2e/**/*.test.ts'],
-      setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts']
+      setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.ts'],
+      transform: {
+        '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }]
+      }
     }
   ]
 };

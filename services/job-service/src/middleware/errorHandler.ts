@@ -37,12 +37,7 @@ export class NotFoundError extends AppError {
   }
 }
 
-export const errorHandler = (
-  error: ApiError,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const errorHandler = (error: ApiError, req: Request, res: Response, next: NextFunction) => {
   let { statusCode = 500, message } = error;
 
   // Log error with context
@@ -91,7 +86,7 @@ export const errorHandler = (
     timestamp: new Date().toISOString(),
     ...(process.env.NODE_ENV === 'development' && {
       stack: error.stack,
-      details: error
+      details: error,
     }),
   });
 };

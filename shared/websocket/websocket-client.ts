@@ -20,21 +20,22 @@ export class WebSocketClient {
   private socket: Socket;
   private config: WebSocketClientConfig;
   private eventHandlers: Map<string, Set<Function>> = new Map();
-  private connectionState: 'disconnected' | 'connecting' | 'connected' | 'reconnecting' = 'disconnected';
+  private connectionState: 'disconnected' | 'connecting' | 'connected' | 'reconnecting' =
+    'disconnected';
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number;
 
   constructor(config: WebSocketClientConfig) {
     this.config = config;
     this.maxReconnectAttempts = config.reconnectionAttempts || 5;
-    
+
     this.socket = io(config.url, {
       auth: config.auth,
       autoConnect: config.autoConnect !== false,
       reconnection: config.reconnection !== false,
       reconnectionAttempts: this.maxReconnectAttempts,
       reconnectionDelay: config.reconnectionDelay || 1000,
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
     });
 
     this.setupEventHandlers();
@@ -191,7 +192,7 @@ export class WebSocketClient {
   private emit(event: string, data: any): void {
     const handlers = this.eventHandlers.get(event);
     if (handlers) {
-      handlers.forEach(handler => {
+      handlers.forEach((handler) => {
         try {
           handler(data);
         } catch (error) {
@@ -215,7 +216,7 @@ export class WebSocketClient {
     this.socket.emit('private_message', {
       recipientId,
       message,
-      type
+      type,
     });
   }
 
@@ -223,7 +224,7 @@ export class WebSocketClient {
     this.socket.emit('room_message', {
       room,
       message,
-      type
+      type,
     });
   }
 
@@ -267,7 +268,7 @@ export function useWebSocket(config: WebSocketClientConfig) {
 
   useEffect(() => {
     const wsClient = new WebSocketClient(config);
-    
+
     wsClient.on('connection_state_change', (data) => {
       setConnectionState(data.state);
     });
@@ -291,7 +292,7 @@ export function useWebSocket(config: WebSocketClientConfig) {
     client,
     connectionState,
     error,
-    isConnected: connectionState === 'connected'
+    isConnected: connectionState === 'connected',
   };
 }
 
@@ -336,7 +337,7 @@ export const webSocketUtils = {
 
       cleanup() {
         this.stopTyping();
-      }
+      },
     };
   },
 
@@ -367,7 +368,7 @@ export const webSocketUtils = {
         } else {
           queue.push({
             type: 'private_message',
-            data: { recipientId, message, type }
+            data: { recipientId, message, type },
           });
         }
       },
@@ -378,7 +379,7 @@ export const webSocketUtils = {
         } else {
           queue.push({
             type: 'room_message',
-            data: { room, message, type }
+            data: { room, message, type },
           });
         }
       },
@@ -389,7 +390,7 @@ export const webSocketUtils = {
 
       clearQueue() {
         queue.length = 0;
-      }
+      },
     };
   },
 
@@ -402,7 +403,7 @@ export const webSocketUtils = {
 
     client.on('notification', (notification) => {
       notifications.unshift(notification);
-      
+
       // Keep only the latest notifications
       if (notifications.length > maxNotifications) {
         notifications.splice(maxNotifications);
@@ -415,25 +416,25 @@ export const webSocketUtils = {
       },
 
       getUnreadCount() {
-        return notifications.filter(n => !n.read).length;
+        return notifications.filter((n) => !n.read).length;
       },
 
       markAsRead(notificationId: string) {
-        const notification = notifications.find(n => n.id === notificationId);
+        const notification = notifications.find((n) => n.id === notificationId);
         if (notification) {
           notification.read = true;
         }
       },
 
       markAllAsRead() {
-        notifications.forEach(n => n.read = true);
+        notifications.forEach((n) => (n.read = true));
       },
 
       clearNotifications() {
         notifications.length = 0;
-      }
+      },
     };
-  }
+  },
 };
 
 export default WebSocketClient;

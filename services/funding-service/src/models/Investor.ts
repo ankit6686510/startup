@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  Index
+  Index,
 } from 'typeorm';
 import { InvestorType } from '@startup-platform/types';
 import { Investment } from './Investment';
@@ -28,7 +28,7 @@ export class Investor {
 
   @Column({
     type: 'enum',
-    enum: InvestorType
+    enum: InvestorType,
   })
   @Index()
   type: InvestorType;
@@ -235,7 +235,7 @@ export class Investor {
   updatedAt: Date;
 
   // Relations
-  @OneToMany(() => Investment, investment => investment.investor)
+  @OneToMany(() => Investment, (investment) => investment.investor)
   investments: Investment[];
 
   // Virtual getters
@@ -300,7 +300,7 @@ export class Investor {
   // Methods
   updatePortfolioStats(investments: Investment[]): void {
     this.portfolioCompaniesCount = investments.length;
-    this.activeInvestmentsCount = investments.filter(inv => inv.isActive).length;
+    this.activeInvestmentsCount = investments.filter((inv) => inv.isActive).length;
     this.totalInvestmentsCount = investments.length;
 
     if (investments.length > 0) {
@@ -308,8 +308,8 @@ export class Investor {
       this.avgInvestmentAmount = Math.round(totalAmount / investments.length);
 
       const dates = investments
-        .map(inv => inv.investmentDate)
-        .filter(date => date)
+        .map((inv) => inv.investmentDate)
+        .filter((date) => date)
         .sort((a, b) => a!.getTime() - b!.getTime());
 
       if (dates.length > 0) {
@@ -343,7 +343,8 @@ export class Investor {
 
     // Recent activity score
     if (this.lastActivityDate) {
-      const daysSinceActivity = (Date.now() - this.lastActivityDate.getTime()) / (1000 * 60 * 60 * 24);
+      const daysSinceActivity =
+        (Date.now() - this.lastActivityDate.getTime()) / (1000 * 60 * 60 * 24);
       if (daysSinceActivity < 30) score += 10;
       else if (daysSinceActivity < 90) score += 5;
     }
@@ -395,24 +396,24 @@ export class Investor {
   matchesInvestmentCriteria(startupData: any): boolean {
     // Industry match
     if (this.industries.length > 0) {
-      const hasIndustryMatch = this.industries.some(industry =>
-        startupData.industry?.toLowerCase().includes(industry.toLowerCase())
+      const hasIndustryMatch = this.industries.some((industry) =>
+        startupData.industry?.toLowerCase().includes(industry.toLowerCase()),
       );
       if (!hasIndustryMatch) return false;
     }
 
     // Stage match
     if (this.investmentStages.length > 0) {
-      const hasStageMatch = this.investmentStages.some(stage =>
-        startupData.stage?.toLowerCase().includes(stage.toLowerCase())
+      const hasStageMatch = this.investmentStages.some((stage) =>
+        startupData.stage?.toLowerCase().includes(stage.toLowerCase()),
       );
       if (!hasStageMatch) return false;
     }
 
     // Geography match
     if (this.geographies.length > 0) {
-      const hasGeoMatch = this.geographies.some(geo =>
-        startupData.location?.toLowerCase().includes(geo.toLowerCase())
+      const hasGeoMatch = this.geographies.some((geo) =>
+        startupData.location?.toLowerCase().includes(geo.toLowerCase()),
       );
       if (!hasGeoMatch) return false;
     }

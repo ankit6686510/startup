@@ -58,10 +58,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '📄',
         action: {
           label: 'View Application',
-          url: '/jobs/{{jobId}}/applications/{{applicationId}}'
+          url: '/jobs/{{jobId}}/applications/{{applicationId}}',
         },
         priority: 'normal',
-        channels: ['in-app', 'email']
+        channels: ['in-app', 'email'],
       },
       {
         id: 'job_application_status_update',
@@ -71,10 +71,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '📋',
         action: {
           label: 'View Details',
-          url: '/applications/{{applicationId}}'
+          url: '/applications/{{applicationId}}',
         },
         priority: 'high',
-        channels: ['in-app', 'email', 'push']
+        channels: ['in-app', 'email', 'push'],
       },
       {
         id: 'new_job_match',
@@ -84,10 +84,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '🎯',
         action: {
           label: 'View Job',
-          url: '/jobs/{{jobId}}'
+          url: '/jobs/{{jobId}}',
         },
         priority: 'normal',
-        channels: ['in-app', 'push']
+        channels: ['in-app', 'push'],
       },
 
       // Startup-related notifications
@@ -99,10 +99,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '💰',
         action: {
           label: 'View Details',
-          url: '/startups/{{startupId}}/funding'
+          url: '/startups/{{startupId}}/funding',
         },
         priority: 'normal',
-        channels: ['in-app']
+        channels: ['in-app'],
       },
       {
         id: 'startup_job_posted',
@@ -112,10 +112,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '🚀',
         action: {
           label: 'View Job',
-          url: '/jobs/{{jobId}}'
+          url: '/jobs/{{jobId}}',
         },
         priority: 'normal',
-        channels: ['in-app']
+        channels: ['in-app'],
       },
       {
         id: 'startup_milestone',
@@ -125,10 +125,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '🎉',
         action: {
           label: 'View Startup',
-          url: '/startups/{{startupId}}'
+          url: '/startups/{{startupId}}',
         },
         priority: 'normal',
-        channels: ['in-app']
+        channels: ['in-app'],
       },
 
       // User-related notifications
@@ -140,10 +140,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '👀',
         action: {
           label: 'View Profile',
-          url: '/users/{{viewerId}}'
+          url: '/users/{{viewerId}}',
         },
         priority: 'low',
-        channels: ['in-app']
+        channels: ['in-app'],
       },
       {
         id: 'connection_request',
@@ -153,10 +153,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '🤝',
         action: {
           label: 'View Request',
-          url: '/connections/requests'
+          url: '/connections/requests',
         },
         priority: 'normal',
-        channels: ['in-app', 'email']
+        channels: ['in-app', 'email'],
       },
       {
         id: 'message_received',
@@ -166,10 +166,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '💬',
         action: {
           label: 'View Message',
-          url: '/messages/{{conversationId}}'
+          url: '/messages/{{conversationId}}',
         },
         priority: 'high',
-        channels: ['in-app', 'push']
+        channels: ['in-app', 'push'],
       },
 
       // System notifications
@@ -181,10 +181,10 @@ export class RealTimeNotificationService extends EventEmitter {
         icon: '🔒',
         action: {
           label: 'Review Security',
-          url: '/settings/security'
+          url: '/settings/security',
         },
         priority: 'urgent',
-        channels: ['in-app', 'email', 'sms']
+        channels: ['in-app', 'email', 'sms'],
       },
       {
         id: 'system_maintenance',
@@ -193,11 +193,11 @@ export class RealTimeNotificationService extends EventEmitter {
         message: 'System maintenance scheduled for {{maintenanceTime}}',
         icon: '🔧',
         priority: 'normal',
-        channels: ['in-app']
-      }
+        channels: ['in-app'],
+      },
     ];
 
-    templates.forEach(template => {
+    templates.forEach((template) => {
       this.templates.set(template.id, template);
     });
   }
@@ -208,7 +208,7 @@ export class RealTimeNotificationService extends EventEmitter {
   public async sendNotification(
     templateId: string,
     recipients: NotificationRecipient[],
-    context: NotificationContext = {}
+    context: NotificationContext = {},
   ): Promise<void> {
     const template = this.templates.get(templateId);
     if (!template) {
@@ -227,7 +227,7 @@ export class RealTimeNotificationService extends EventEmitter {
   public async sendCustomNotification(
     notification: Partial<NotificationTemplate>,
     recipients: NotificationRecipient[],
-    context: NotificationContext = {}
+    context: NotificationContext = {},
   ): Promise<void> {
     const fullNotification: NotificationTemplate = {
       id: `custom_${Date.now()}`,
@@ -236,7 +236,7 @@ export class RealTimeNotificationService extends EventEmitter {
       message: notification.message || '',
       priority: notification.priority || 'normal',
       channels: notification.channels || ['in-app'],
-      ...notification
+      ...notification,
     };
 
     for (const recipient of recipients) {
@@ -248,27 +248,24 @@ export class RealTimeNotificationService extends EventEmitter {
   /**
    * Send job alert notifications
    */
-  public async sendJobAlert(
-    jobData: any,
-    recipients: NotificationRecipient[]
-  ): Promise<void> {
+  public async sendJobAlert(jobData: any, recipients: NotificationRecipient[]): Promise<void> {
     const context = {
       jobId: jobData.id,
       jobTitle: jobData.title,
       companyName: jobData.company,
       location: jobData.location,
-      salary: jobData.salary
+      salary: jobData.salary,
     };
 
     await this.sendNotification('new_job_match', recipients, context);
 
     // Also send via WebSocket for real-time updates
-    recipients.forEach(recipient => {
+    recipients.forEach((recipient) => {
       if (recipient.preferences.inApp) {
         this.wsServer.sendNotificationToUser(recipient.userId, {
           type: 'job_alert',
           job: jobData,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     });
@@ -281,10 +278,10 @@ export class RealTimeNotificationService extends EventEmitter {
     startupId: string,
     updateType: 'funding' | 'job' | 'milestone' | 'news',
     updateData: any,
-    recipients: NotificationRecipient[]
+    recipients: NotificationRecipient[],
   ): Promise<void> {
     let templateId: string;
-    let context: NotificationContext = { startupId, ...updateData };
+    const context: NotificationContext = { startupId, ...updateData };
 
     switch (updateType) {
       case 'funding':
@@ -306,7 +303,7 @@ export class RealTimeNotificationService extends EventEmitter {
     this.wsServer.sendStartupUpdate(startupId, {
       type: updateType,
       data: updateData,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -315,23 +312,26 @@ export class RealTimeNotificationService extends EventEmitter {
    */
   public async sendFundingUpdate(
     fundingData: any,
-    recipients: NotificationRecipient[]
+    recipients: NotificationRecipient[],
   ): Promise<void> {
     const context = {
       startupId: fundingData.startupId,
       startupName: fundingData.startupName,
       amount: this.formatCurrency(fundingData.amount, fundingData.currency),
       round: fundingData.round,
-      leadInvestor: fundingData.leadInvestor
+      leadInvestor: fundingData.leadInvestor,
     };
 
     await this.sendNotification('startup_funding_announced', recipients, context);
 
     // Send real-time update via WebSocket
-    this.wsServer.sendFundingUpdate({}, {
-      funding: fundingData,
-      timestamp: Date.now()
-    });
+    this.wsServer.sendFundingUpdate(
+      {},
+      {
+        funding: fundingData,
+        timestamp: Date.now(),
+      },
+    );
   }
 
   /**
@@ -339,14 +339,14 @@ export class RealTimeNotificationService extends EventEmitter {
    */
   public async sendApplicationStatusUpdate(
     applicationData: any,
-    recipient: NotificationRecipient
+    recipient: NotificationRecipient,
   ): Promise<void> {
     const context = {
       applicationId: applicationData.id,
       jobId: applicationData.jobId,
       jobTitle: applicationData.jobTitle,
       status: applicationData.status,
-      companyName: applicationData.companyName
+      companyName: applicationData.companyName,
     };
 
     await this.sendNotification('job_application_status_update', [recipient], context);
@@ -357,11 +357,11 @@ export class RealTimeNotificationService extends EventEmitter {
    */
   public async sendSecurityAlert(
     alertMessage: string,
-    recipient: NotificationRecipient
+    recipient: NotificationRecipient,
   ): Promise<void> {
     const context = {
       alertMessage,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     await this.sendNotification('account_security_alert', [recipient], context);
@@ -372,7 +372,7 @@ export class RealTimeNotificationService extends EventEmitter {
    */
   public async broadcastSystemNotification(
     notification: Partial<NotificationTemplate>,
-    targetRole?: string
+    targetRole?: string,
   ): Promise<void> {
     const systemNotification = {
       id: `system_${Date.now()}`,
@@ -382,7 +382,7 @@ export class RealTimeNotificationService extends EventEmitter {
       priority: notification.priority || 'normal',
       channels: ['in-app'],
       timestamp: Date.now(),
-      ...notification
+      ...notification,
     };
 
     if (targetRole) {
@@ -405,7 +405,7 @@ export class RealTimeNotificationService extends EventEmitter {
    */
   public markAsRead(userId: string, notificationId: string): void {
     const history = this.notificationHistory.get(userId) || [];
-    const notification = history.find(n => n.id === notificationId);
+    const notification = history.find((n) => n.id === notificationId);
     if (notification) {
       notification.read = true;
       notification.readAt = new Date();
@@ -417,7 +417,7 @@ export class RealTimeNotificationService extends EventEmitter {
    */
   public getUnreadCount(userId: string): number {
     const history = this.notificationHistory.get(userId) || [];
-    return history.filter(n => !n.read).length;
+    return history.filter((n) => !n.read).length;
   }
 
   /**
@@ -439,7 +439,7 @@ export class RealTimeNotificationService extends EventEmitter {
   private buildNotification(
     template: NotificationTemplate,
     recipient: NotificationRecipient,
-    context: NotificationContext
+    context: NotificationContext,
   ): any {
     const notification = {
       id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -448,17 +448,19 @@ export class RealTimeNotificationService extends EventEmitter {
       title: this.interpolateString(template.title, context),
       message: this.interpolateString(template.message, context),
       icon: template.icon,
-      action: template.action ? {
-        label: template.action.label,
-        url: this.interpolateString(template.action.url, context)
-      } : undefined,
+      action: template.action
+        ? {
+            label: template.action.label,
+            url: this.interpolateString(template.action.url, context),
+          }
+        : undefined,
       priority: template.priority,
       channels: this.filterChannelsByPreferences(template.channels, recipient.preferences),
       userId: recipient.userId,
       createdAt: new Date(),
       expiresAt: template.expiresAt,
       read: false,
-      context
+      context,
     };
 
     return notification;
@@ -466,7 +468,7 @@ export class RealTimeNotificationService extends EventEmitter {
 
   private async deliverNotification(
     notification: any,
-    recipient: NotificationRecipient
+    recipient: NotificationRecipient,
   ): Promise<void> {
     // Store in history
     if (!this.notificationHistory.has(recipient.userId)) {
@@ -502,7 +504,7 @@ export class RealTimeNotificationService extends EventEmitter {
     this.emit('notification_sent', {
       notification,
       recipient,
-      channels: notification.channels
+      channels: notification.channels,
     });
   }
 
@@ -510,42 +512,51 @@ export class RealTimeNotificationService extends EventEmitter {
     this.wsServer.sendNotificationToUser(recipient.userId, notification);
   }
 
-  private async deliverEmailNotification(notification: any, recipient: NotificationRecipient): Promise<void> {
+  private async deliverEmailNotification(
+    notification: any,
+    recipient: NotificationRecipient,
+  ): Promise<void> {
     // This would integrate with your email service
     console.log(`📧 Email notification sent to ${recipient.email}: ${notification.title}`);
-    
+
     // Emit event for email service to handle
     this.emit('email_notification', {
       to: recipient.email,
       subject: notification.title,
       content: notification.message,
-      notification
+      notification,
     });
   }
 
-  private async deliverPushNotification(notification: any, recipient: NotificationRecipient): Promise<void> {
+  private async deliverPushNotification(
+    notification: any,
+    recipient: NotificationRecipient,
+  ): Promise<void> {
     // This would integrate with your push notification service (FCM, APNS, etc.)
     console.log(`📱 Push notification sent to user ${recipient.userId}: ${notification.title}`);
-    
+
     // Emit event for push service to handle
     this.emit('push_notification', {
       userId: recipient.userId,
       title: notification.title,
       body: notification.message,
       data: notification.context,
-      notification
+      notification,
     });
   }
 
-  private async deliverSMSNotification(notification: any, recipient: NotificationRecipient): Promise<void> {
+  private async deliverSMSNotification(
+    notification: any,
+    recipient: NotificationRecipient,
+  ): Promise<void> {
     // This would integrate with your SMS service (Twilio, etc.)
     console.log(`📱 SMS notification sent to user ${recipient.userId}: ${notification.title}`);
-    
+
     // Emit event for SMS service to handle
     this.emit('sms_notification', {
       userId: recipient.userId,
       message: `${notification.title}: ${notification.message}`,
-      notification
+      notification,
     });
   }
 
@@ -557,9 +568,9 @@ export class RealTimeNotificationService extends EventEmitter {
 
   private filterChannelsByPreferences(
     channels: string[],
-    preferences: NotificationRecipient['preferences']
+    preferences: NotificationRecipient['preferences'],
   ): string[] {
-    return channels.filter(channel => {
+    return channels.filter((channel) => {
       switch (channel) {
         case 'in-app':
           return preferences.inApp;
@@ -580,7 +591,7 @@ export class RealTimeNotificationService extends EventEmitter {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(amount);
   }
 }

@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  OneToOne,
+  Index,
+} from 'typeorm';
 import { StartupStatus, StartupStage, Industry, DataSource } from '@startup-platform/types';
 import { Founder } from './Founder';
 import { StartupMetrics } from './StartupMetrics';
@@ -6,6 +15,11 @@ import { StartupTeam } from './StartupTeam';
 import { StartupPhoto } from './StartupPhoto';
 import { StartupVerification } from './StartupVerification';
 import { StartupFollow } from './StartupFollow';
+import { StartupMember } from './StartupMember';
+import { StartupPost } from './StartupPost';
+import { StartupFinancials } from './StartupFinancials';
+import { StartupMilestone } from './StartupMilestone';
+
 
 @Entity('startups')
 @Index(['industry', 'status'])
@@ -47,20 +61,20 @@ export class Startup {
 
   @Column({
     type: 'enum',
-    enum: Industry
+    enum: Industry,
   })
   industry: Industry;
 
   @Column({
     type: 'enum',
     enum: StartupStatus,
-    default: StartupStatus.ACTIVE
+    default: StartupStatus.ACTIVE,
   })
   status: StartupStatus;
 
   @Column({
     type: 'enum',
-    enum: StartupStage
+    enum: StartupStage,
   })
   stage: StartupStage;
 
@@ -105,7 +119,7 @@ export class Startup {
     name: 'data_source',
     type: 'enum',
     enum: DataSource,
-    default: DataSource.MANUAL
+    default: DataSource.MANUAL,
   })
   dataSource: DataSource;
 
@@ -144,23 +158,36 @@ export class Startup {
   updatedAt: Date;
 
   // Relations
-  @OneToMany(() => Founder, founder => founder.startup, { cascade: true })
+  @OneToMany(() => Founder, (founder) => founder.startup, { cascade: true })
   founders: Founder[];
 
-  @OneToMany(() => StartupMetrics, metrics => metrics.startup)
+  @OneToMany(() => StartupMetrics, (metrics) => metrics.startup)
   metrics: StartupMetrics[];
 
-  @OneToMany(() => StartupTeam, member => member.startup)
+  @OneToMany(() => StartupTeam, (member) => member.startup)
   teamMembers: StartupTeam[];
 
-  @OneToMany(() => StartupPhoto, photo => photo.startup)
+  @OneToMany(() => StartupPhoto, (photo) => photo.startup)
   photos: StartupPhoto[];
 
-  @OneToOne(() => StartupVerification, verification => verification.startup)
+  @OneToOne(() => StartupVerification, (verification) => verification.startup)
   verification: StartupVerification;
 
-  @OneToMany(() => StartupFollow, follow => follow.startup)
+  @OneToMany(() => StartupFollow, (follow) => follow.startup)
   followers: StartupFollow[];
+
+  @OneToMany(() => StartupMember, (member) => member.startup)
+  members: StartupMember[];
+
+  @OneToMany(() => StartupPost, (post) => post.startup)
+  posts: StartupPost[];
+
+  @OneToMany(() => StartupFinancials, (financial) => financial.startup)
+  financials: StartupFinancials[];
+
+  @OneToMany(() => StartupMilestone, (milestone) => milestone.startup)
+  milestones: StartupMilestone[];
+
 
   // Virtual getters for location object
   get location() {
@@ -171,10 +198,13 @@ export class Startup {
       state: this.locationState,
       region: this.locationRegion,
       isRemote: this.locationIsRemote,
-      coordinates: this.locationLatitude && this.locationLongitude ? {
-        latitude: Number(this.locationLatitude),
-        longitude: Number(this.locationLongitude)
-      } : undefined
+      coordinates:
+        this.locationLatitude && this.locationLongitude
+          ? {
+            latitude: Number(this.locationLatitude),
+            longitude: Number(this.locationLongitude),
+          }
+          : undefined,
     };
   }
 

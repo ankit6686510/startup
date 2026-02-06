@@ -3,12 +3,7 @@ import { body, query, validationResult } from 'express-validator';
 import { JobService, JobFilters } from '@/services/JobService';
 import { RecommendationService, UserProfile } from '@/services/RecommendationService';
 import { logger } from '@/utils/logger';
-import {
-  JobType,
-  WorkLocation,
-  ExperienceLevel,
-  JobCategory
-} from '@startup-platform/types';
+import { JobType, WorkLocation, ExperienceLevel, JobCategory } from '@startup-platform/types';
 
 export class JobController {
   private jobService: JobService;
@@ -22,36 +17,81 @@ export class JobController {
   // Validation rules
   static createJobValidation = [
     body('startupId').notEmpty().withMessage('Startup ID is required'),
-    body('title').isLength({ min: 1, max: 200 }).withMessage('Title must be between 1 and 200 characters'),
-    body('description').isLength({ min: 50 }).withMessage('Description must be at least 50 characters'),
+    body('title')
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Title must be between 1 and 200 characters'),
+    body('description')
+      .isLength({ min: 50 })
+      .withMessage('Description must be at least 50 characters'),
     body('type').isIn(Object.values(JobType)).withMessage('Invalid job type'),
     body('locationType').isIn(Object.values(WorkLocation)).withMessage('Invalid location type'),
-    body('experienceLevel').isIn(Object.values(ExperienceLevel)).withMessage('Invalid experience level'),
+    body('experienceLevel')
+      .isIn(Object.values(ExperienceLevel))
+      .withMessage('Invalid experience level'),
     body('category').isIn(Object.values(JobCategory)).withMessage('Invalid job category'),
     body('skills').isArray().withMessage('Skills must be an array'),
-    body('salaryMin').optional().isInt({ min: 0 }).withMessage('Minimum salary must be a positive number'),
-    body('salaryMax').optional().isInt({ min: 0 }).withMessage('Maximum salary must be a positive number'),
+    body('salaryMin')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Minimum salary must be a positive number'),
+    body('salaryMax')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Maximum salary must be a positive number'),
   ];
 
   static updateJobValidation = [
-    body('title').optional().isLength({ min: 1, max: 200 }).withMessage('Title must be between 1 and 200 characters'),
-    body('description').optional().isLength({ min: 50 }).withMessage('Description must be at least 50 characters'),
+    body('title')
+      .optional()
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Title must be between 1 and 200 characters'),
+    body('description')
+      .optional()
+      .isLength({ min: 50 })
+      .withMessage('Description must be at least 50 characters'),
     body('type').optional().isIn(Object.values(JobType)).withMessage('Invalid job type'),
-    body('locationType').optional().isIn(Object.values(WorkLocation)).withMessage('Invalid location type'),
-    body('experienceLevel').optional().isIn(Object.values(ExperienceLevel)).withMessage('Invalid experience level'),
-    body('category').optional().isIn(Object.values(JobCategory)).withMessage('Invalid job category'),
+    body('locationType')
+      .optional()
+      .isIn(Object.values(WorkLocation))
+      .withMessage('Invalid location type'),
+    body('experienceLevel')
+      .optional()
+      .isIn(Object.values(ExperienceLevel))
+      .withMessage('Invalid experience level'),
+    body('category')
+      .optional()
+      .isIn(Object.values(JobCategory))
+      .withMessage('Invalid job category'),
     body('skills').optional().isArray().withMessage('Skills must be an array'),
-    body('salaryMin').optional().isInt({ min: 0 }).withMessage('Minimum salary must be a positive number'),
-    body('salaryMax').optional().isInt({ min: 0 }).withMessage('Maximum salary must be a positive number'),
+    body('salaryMin')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Minimum salary must be a positive number'),
+    body('salaryMax')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Maximum salary must be a positive number'),
   ];
 
   static searchJobsValidation = [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-    query('category').optional().isIn(Object.values(JobCategory)).withMessage('Invalid job category'),
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
+    query('category')
+      .optional()
+      .isIn(Object.values(JobCategory))
+      .withMessage('Invalid job category'),
     query('type').optional().isIn(Object.values(JobType)).withMessage('Invalid job type'),
-    query('locationType').optional().isIn(Object.values(WorkLocation)).withMessage('Invalid location type'),
-    query('experienceLevel').optional().isIn(Object.values(ExperienceLevel)).withMessage('Invalid experience level'),
+    query('locationType')
+      .optional()
+      .isIn(Object.values(WorkLocation))
+      .withMessage('Invalid location type'),
+    query('experienceLevel')
+      .optional()
+      .isIn(Object.values(ExperienceLevel))
+      .withMessage('Invalid experience level'),
   ];
 
   createJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -214,15 +254,20 @@ export class JobController {
       if (req.query.category) filters.category = req.query.category as JobCategory;
       if (req.query.type) filters.type = req.query.type as JobType;
       if (req.query.locationType) filters.locationType = req.query.locationType as WorkLocation;
-      if (req.query.experienceLevel) filters.experienceLevel = req.query.experienceLevel as ExperienceLevel;
+      if (req.query.experienceLevel)
+        filters.experienceLevel = req.query.experienceLevel as ExperienceLevel;
       if (req.query.location) filters.location = req.query.location as string;
       if (req.query.salaryMin) filters.salaryMin = parseInt(req.query.salaryMin as string);
       if (req.query.salaryMax) filters.salaryMax = parseInt(req.query.salaryMax as string);
       if (req.query.skills) {
-        filters.skills = Array.isArray(req.query.skills) ? req.query.skills as string[] : [req.query.skills as string];
+        filters.skills = Array.isArray(req.query.skills)
+          ? (req.query.skills as string[])
+          : [req.query.skills as string];
       }
       if (req.query.startupIds) {
-        filters.startupIds = Array.isArray(req.query.startupIds) ? req.query.startupIds as string[] : [req.query.startupIds as string];
+        filters.startupIds = Array.isArray(req.query.startupIds)
+          ? (req.query.startupIds as string[])
+          : [req.query.startupIds as string];
       }
       if (req.query.isRemote) filters.isRemote = req.query.isRemote === 'true';
       if (req.query.isFeatured) filters.isFeatured = req.query.isFeatured === 'true';
@@ -314,7 +359,8 @@ export class JobController {
       if (req.query.category) filters.category = req.query.category as JobCategory;
       if (req.query.type) filters.type = req.query.type as JobType;
       if (req.query.locationType) filters.locationType = req.query.locationType as WorkLocation;
-      if (req.query.experienceLevel) filters.experienceLevel = req.query.experienceLevel as ExperienceLevel;
+      if (req.query.experienceLevel)
+        filters.experienceLevel = req.query.experienceLevel as ExperienceLevel;
       if (req.query.location) filters.location = req.query.location as string;
 
       const { jobs, total } = await this.jobService.searchJobs(q as string, filters, page, limit);
@@ -412,7 +458,7 @@ export class JobController {
         skills: req.body.skills || [],
         experience: req.body.experience,
         location: req.body.location,
-        preferences: req.body.preferences
+        preferences: req.body.preferences,
       };
 
       const limit = parseInt(req.query.limit as string) || 20;
@@ -421,7 +467,7 @@ export class JobController {
       const recommendations = await this.recommendationService.getRecommendations(
         userProfile,
         limit,
-        excludeJobIds
+        excludeJobIds,
       );
 
       res.json({
@@ -429,7 +475,7 @@ export class JobController {
         data: { recommendations },
         meta: {
           total: recommendations.length,
-          algorithm: 'skill-based-scoring'
+          algorithm: 'skill-based-scoring',
         },
         timestamp: new Date().toISOString(),
       });
@@ -451,7 +497,7 @@ export class JobController {
         data: { jobs: similarJobs },
         meta: {
           referenceJobId: jobId,
-          total: similarJobs.length
+          total: similarJobs.length,
         },
         timestamp: new Date().toISOString(),
       });
@@ -473,7 +519,7 @@ export class JobController {
         data: { jobs: trendingJobs },
         meta: {
           total: trendingJobs.length,
-          timeWindow: `${timeWindow} days`
+          timeWindow: `${timeWindow} days`,
         },
         timestamp: new Date().toISOString(),
       });
@@ -503,7 +549,7 @@ export class JobController {
         success: true,
         data: { jobs: missedJobs },
         meta: {
-          total: missedJobs.length
+          total: missedJobs.length,
         },
         timestamp: new Date().toISOString(),
       });
@@ -526,7 +572,7 @@ export class JobController {
         ipAddress: req.ip,
         userAgent: req.get('user-agent'),
         referrer: req.get('referer'),
-        utmParams: req.body.utmParams
+        utmParams: req.body.utmParams,
       };
 
       const view = await this.jobService.trackJobView(jobId, viewData);
@@ -550,7 +596,7 @@ export class JobController {
         clickedApply: req.body.clickedApply,
         clickedSave: req.body.clickedSave,
         clickedShare: req.body.clickedShare,
-        scrolledPercentage: req.body.scrolledPercentage
+        scrolledPercentage: req.body.scrolledPercentage,
       };
 
       await this.jobService.updateViewEngagement(viewId, engagementData);
@@ -763,13 +809,14 @@ export class JobController {
       if (req.query.category) filters.category = req.query.category as JobCategory;
       if (req.query.type) filters.type = req.query.type as JobType;
       if (req.query.locationType) filters.locationType = req.query.locationType as WorkLocation;
-      if (req.query.experienceLevel) filters.experienceLevel = req.query.experienceLevel as ExperienceLevel;
+      if (req.query.experienceLevel)
+        filters.experienceLevel = req.query.experienceLevel as ExperienceLevel;
       if (req.query.location) filters.location = req.query.location as string;
       if (req.query.salaryMin) filters.salaryMin = parseInt(req.query.salaryMin as string);
       if (req.query.salaryMax) filters.salaryMax = parseInt(req.query.salaryMax as string);
       if (req.query.skills) {
         filters.skills = Array.isArray(req.query.skills)
-          ? req.query.skills as string[]
+          ? (req.query.skills as string[])
           : [req.query.skills as string];
       }
       if (req.query.isRemote) filters.isRemote = req.query.isRemote === 'true';
@@ -780,14 +827,14 @@ export class JobController {
         sort,
         page,
         limit,
-        includeFacets
+        includeFacets,
       });
 
       res.json({
         success: true,
         data: {
           jobs: result.jobs,
-          facets: result.facets
+          facets: result.facets,
         },
         meta: {
           pagination: {
@@ -797,7 +844,7 @@ export class JobController {
             totalPages: Math.ceil(result.total / limit),
           },
           filters,
-          sort
+          sort,
         },
         timestamp: new Date().toISOString(),
       });

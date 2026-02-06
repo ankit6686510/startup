@@ -4,7 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Index
+  Index,
 } from 'typeorm';
 
 export enum NotificationType {
@@ -14,7 +14,7 @@ export enum NotificationType {
   IN_APP = 'in_app',
   SLACK = 'slack',
   DISCORD = 'discord',
-  WEBHOOK = 'webhook'
+  WEBHOOK = 'webhook',
 }
 
 export enum NotificationStatus {
@@ -26,14 +26,14 @@ export enum NotificationStatus {
   OPENED = 'opened',
   CLICKED = 'clicked',
   FAILED = 'failed',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
 }
 
 export enum NotificationPriority {
   LOW = 'low',
   NORMAL = 'normal',
   HIGH = 'high',
-  URGENT = 'urgent'
+  URGENT = 'urgent',
 }
 
 export enum NotificationCategory {
@@ -43,7 +43,7 @@ export enum NotificationCategory {
   SECURITY = 'security',
   SOCIAL = 'social',
   REMINDER = 'reminder',
-  ALERT = 'alert'
+  ALERT = 'alert',
 }
 
 @Entity('notifications')
@@ -65,7 +65,7 @@ export class Notification {
 
   @Column({
     type: 'enum',
-    enum: NotificationType
+    enum: NotificationType,
   })
   @Index()
   type: NotificationType;
@@ -73,7 +73,7 @@ export class Notification {
   @Column({
     type: 'enum',
     enum: NotificationStatus,
-    default: NotificationStatus.PENDING
+    default: NotificationStatus.PENDING,
   })
   @Index()
   status: NotificationStatus;
@@ -81,7 +81,7 @@ export class Notification {
   @Column({
     type: 'enum',
     enum: NotificationPriority,
-    default: NotificationPriority.NORMAL
+    default: NotificationPriority.NORMAL,
   })
   @Index()
   priority: NotificationPriority;
@@ -89,7 +89,7 @@ export class Notification {
   @Column({
     type: 'enum',
     enum: NotificationCategory,
-    default: NotificationCategory.SYSTEM
+    default: NotificationCategory.SYSTEM,
   })
   @Index()
   category: NotificationCategory;
@@ -262,9 +262,11 @@ export class Notification {
   }
 
   get canRetry(): boolean {
-    return this.retryCount < this.maxRetries &&
+    return (
+      this.retryCount < this.maxRetries &&
       this.status === NotificationStatus.FAILED &&
-      !this.isExpired;
+      !this.isExpired
+    );
   }
 
   get deliveryTime(): number | null {
@@ -276,15 +278,12 @@ export class Notification {
     return [
       NotificationStatus.DELIVERED,
       NotificationStatus.OPENED,
-      NotificationStatus.CLICKED
+      NotificationStatus.CLICKED,
     ].includes(this.status);
   }
 
   get isInteracted(): boolean {
-    return [
-      NotificationStatus.OPENED,
-      NotificationStatus.CLICKED
-    ].includes(this.status);
+    return [NotificationStatus.OPENED, NotificationStatus.CLICKED].includes(this.status);
   }
 
   // Methods
@@ -353,7 +352,7 @@ export class Notification {
   }
 
   removeTag(tag: string): void {
-    this.tags = this.tags.filter(t => t !== tag);
+    this.tags = this.tags.filter((t) => t !== tag);
   }
 
   addAttachment(url: string): void {
@@ -384,7 +383,8 @@ export class Notification {
 
   shouldSendNow(): boolean {
     if (this.isExpired) return false;
-    if (this.status !== NotificationStatus.PENDING && this.status !== NotificationStatus.QUEUED) return false;
+    if (this.status !== NotificationStatus.PENDING && this.status !== NotificationStatus.QUEUED)
+      return false;
     if (this.scheduledAt && this.scheduledAt > new Date()) return false;
     return true;
   }
@@ -394,7 +394,9 @@ export class Notification {
   }
 
   getDisplayContent(): string {
-    return this.summary || this.content.substring(0, 100) + (this.content.length > 100 ? '...' : '');
+    return (
+      this.summary || this.content.substring(0, 100) + (this.content.length > 100 ? '...' : '')
+    );
   }
 
   toSummary() {

@@ -4,12 +4,12 @@ import { Startup } from '../models/Startup';
 import { Founder } from '../models/Founder';
 import { StartupMetrics } from '../models/StartupMetrics';
 import { logger } from '../utils/logger';
-import { 
-  Industry, 
-  StartupStatus, 
+import {
+  Industry,
+  StartupStatus,
   StartupStage,
-  FundingRound, 
-  DataSource 
+  FundingRound,
+  DataSource,
 } from '@startup-platform/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,7 +17,8 @@ const sampleStartups = [
   {
     name: 'TechVision AI',
     slug: 'techvision-ai',
-    description: 'Revolutionary AI platform that transforms business operations through intelligent automation and predictive analytics.',
+    description:
+      'Revolutionary AI platform that transforms business operations through intelligent automation and predictive analytics.',
     website: 'https://techvision-ai.com',
     industry: Industry.AI_ML,
     foundedYear: 2021,
@@ -26,7 +27,7 @@ const sampleStartups = [
     logoUrl: 'https://via.placeholder.com/200x200?text=TechVision',
     socialLinks: {
       linkedin: 'https://linkedin.com/company/techvision-ai',
-      twitter: 'https://twitter.com/techvision_ai'
+      twitter: 'https://twitter.com/techvision_ai',
     },
     locationCountry: 'United States',
     locationCountryCode: 'US',
@@ -51,7 +52,7 @@ const sampleStartups = [
         email: 'sarah@techvision-ai.com',
         linkedinUrl: 'https://linkedin.com/in/sarahchen',
         isPrimary: true,
-        equity: 35.5
+        equity: 35.5,
       },
       {
         name: 'David Rodriguez',
@@ -60,14 +61,15 @@ const sampleStartups = [
         email: 'david@techvision-ai.com',
         linkedinUrl: 'https://linkedin.com/in/davidrodriguez',
         isPrimary: false,
-        equity: 32.0
-      }
-    ]
+        equity: 32.0,
+      },
+    ],
   },
   {
     name: 'GreenTech Solutions',
     slug: 'greentech-solutions',
-    description: 'Sustainable technology company developing innovative solutions for renewable energy and carbon reduction.',
+    description:
+      'Sustainable technology company developing innovative solutions for renewable energy and carbon reduction.',
     website: 'https://greentech-solutions.com',
     industry: Industry.CLEANTECH,
     foundedYear: 2020,
@@ -76,7 +78,7 @@ const sampleStartups = [
     logoUrl: 'https://via.placeholder.com/200x200?text=GreenTech',
     socialLinks: {
       linkedin: 'https://linkedin.com/company/greentech-solutions',
-      twitter: 'https://twitter.com/greentech_sol'
+      twitter: 'https://twitter.com/greentech_sol',
     },
     locationCountry: 'Germany',
     locationCountryCode: 'DE',
@@ -84,8 +86,8 @@ const sampleStartups = [
     locationState: 'Berlin',
     locationRegion: 'Europe',
     locationIsRemote: true,
-    locationLatitude: 52.5200,
-    locationLongitude: 13.4050,
+    locationLatitude: 52.52,
+    locationLongitude: 13.405,
     totalFunding: 12000000,
     stage: StartupStage.SCALING,
     status: StartupStatus.ACTIVE,
@@ -101,14 +103,15 @@ const sampleStartups = [
         email: 'anna@greentech-solutions.com',
         linkedinUrl: 'https://linkedin.com/in/annamueller',
         isPrimary: true,
-        equity: 45.0
-      }
-    ]
+        equity: 45.0,
+      },
+    ],
   },
   {
     name: 'HealthBot',
     slug: 'healthbot',
-    description: 'AI-powered healthcare assistant providing personalized medical guidance and appointment scheduling.',
+    description:
+      'AI-powered healthcare assistant providing personalized medical guidance and appointment scheduling.',
     website: 'https://healthbot.io',
     industry: Industry.HEALTHTECH,
     foundedYear: 2022,
@@ -117,7 +120,7 @@ const sampleStartups = [
     logoUrl: 'https://via.placeholder.com/200x200?text=HealthBot',
     socialLinks: {
       linkedin: 'https://linkedin.com/company/healthbot-ai',
-      twitter: 'https://twitter.com/healthbot_ai'
+      twitter: 'https://twitter.com/healthbot_ai',
     },
     locationCountry: 'Canada',
     locationCountryCode: 'CA',
@@ -142,7 +145,7 @@ const sampleStartups = [
         email: 'michael@healthbot.io',
         linkedinUrl: 'https://linkedin.com/in/drmichaelthompson',
         isPrimary: true,
-        equity: 40.0
+        equity: 40.0,
       },
       {
         name: 'Lisa Park',
@@ -151,14 +154,15 @@ const sampleStartups = [
         email: 'lisa@healthbot.io',
         linkedinUrl: 'https://linkedin.com/in/lisapark',
         isPrimary: false,
-        equity: 35.0
-      }
-    ]
+        equity: 35.0,
+      },
+    ],
   },
   {
     name: 'EduLearn Platform',
     slug: 'edulearn-platform',
-    description: 'Interactive online learning platform with AI-powered personalized curriculum and progress tracking.',
+    description:
+      'Interactive online learning platform with AI-powered personalized curriculum and progress tracking.',
     website: 'https://edulearn.com',
     industry: Industry.EDTECH,
     foundedYear: 2019,
@@ -167,7 +171,7 @@ const sampleStartups = [
     logoUrl: 'https://via.placeholder.com/200x200?text=EduLearn',
     socialLinks: {
       linkedin: 'https://linkedin.com/company/edulearn-platform',
-      twitter: 'https://twitter.com/edulearn'
+      twitter: 'https://twitter.com/edulearn',
     },
     locationCountry: 'India',
     locationCountryCode: 'IN',
@@ -192,14 +196,15 @@ const sampleStartups = [
         email: 'rajesh@edulearn.com',
         linkedinUrl: 'https://linkedin.com/in/rajeshkumar',
         isPrimary: true,
-        equity: 50.0
-      }
-    ]
+        equity: 50.0,
+      },
+    ],
   },
   {
     name: 'CryptoWallet Pro',
     slug: 'cryptowallet-pro',
-    description: 'Secure, user-friendly cryptocurrency wallet with advanced trading features and DeFi integration.',
+    description:
+      'Secure, user-friendly cryptocurrency wallet with advanced trading features and DeFi integration.',
     website: 'https://cryptowallet-pro.com',
     industry: Industry.FINTECH,
     foundedYear: 2021,
@@ -208,7 +213,7 @@ const sampleStartups = [
     logoUrl: 'https://via.placeholder.com/200x200?text=CryptoWallet',
     socialLinks: {
       linkedin: 'https://linkedin.com/company/cryptowallet-pro',
-      twitter: 'https://twitter.com/cryptowallet_pro'
+      twitter: 'https://twitter.com/cryptowallet_pro',
     },
     locationCountry: 'Singapore',
     locationCountryCode: 'SG',
@@ -233,7 +238,7 @@ const sampleStartups = [
         email: 'alex@cryptowallet-pro.com',
         linkedinUrl: 'https://linkedin.com/in/alexkim',
         isPrimary: true,
-        equity: 42.0
+        equity: 42.0,
       },
       {
         name: 'Emily Zhang',
@@ -242,10 +247,10 @@ const sampleStartups = [
         email: 'emily@cryptowallet-pro.com',
         linkedinUrl: 'https://linkedin.com/in/emilyzhang',
         isPrimary: false,
-        equity: 38.0
-      }
-    ]
-  }
+        equity: 38.0,
+      },
+    ],
+  },
 ];
 
 const seedDatabase = async () => {
@@ -269,11 +274,11 @@ const seedDatabase = async () => {
     // Create startups with founders
     for (const startupData of sampleStartups) {
       const { founders, ...startup } = startupData;
-      
+
       // Create startup
       const startupEntity = startupRepository.create({
         id: uuidv4(),
-        ...startup
+        ...startup,
       });
       const savedStartup = await startupRepository.save(startupEntity);
       logger.info(`Created startup: ${savedStartup.name}`);
@@ -283,7 +288,7 @@ const seedDatabase = async () => {
         const founderEntity = founderRepository.create({
           id: uuidv4(),
           ...founderData,
-          startupId: savedStartup.id
+          startupId: savedStartup.id,
         });
         await founderRepository.save(founderEntity);
         logger.info(`Created founder: ${founderEntity.name}`);
@@ -298,7 +303,7 @@ const seedDatabase = async () => {
           users: Math.floor(Math.random() * 50000),
           activeUsers: Math.floor(Math.random() * 25000),
           employees: startup.employeeCount,
-          dataSource: DataSource.MANUAL
+          dataSource: DataSource.MANUAL,
         },
         {
           startupId: savedStartup.id,
@@ -307,31 +312,30 @@ const seedDatabase = async () => {
           users: Math.floor(Math.random() * 100000),
           activeUsers: Math.floor(Math.random() * 50000),
           employees: startup.employeeCount + Math.floor(Math.random() * 10),
-          dataSource: DataSource.MANUAL
-        }
+          dataSource: DataSource.MANUAL,
+        },
       ];
 
       for (const metricData of metricsData) {
         const metricEntity = metricsRepository.create({
           id: uuidv4(),
-          ...metricData
+          ...metricData,
         });
         await metricsRepository.save(metricEntity);
       }
     }
 
     logger.info(`Successfully seeded ${sampleStartups.length} startups with founders and metrics`);
-    
+
     // Log summary
     const startupCount = await startupRepository.count();
     const founderCount = await founderRepository.count();
     const metricsCount = await metricsRepository.count();
-    
+
     logger.info(`Database seeding completed:`);
     logger.info(`- Startups: ${startupCount}`);
     logger.info(`- Founders: ${founderCount}`);
     logger.info(`- Metrics: ${metricsCount}`);
-
   } catch (error) {
     logger.error('Error seeding database:', error);
     process.exit(1);

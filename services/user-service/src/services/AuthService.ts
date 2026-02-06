@@ -10,6 +10,7 @@ import { EmailService } from './EmailService';
 import { logger } from '@/utils/logger';
 import { UserRole, UserStatus } from '@startup-platform/types';
 import crypto from 'crypto';
+import { KafkaProducer, KAFKA_TOPICS, UserRegisteredEvent, UserProfileUpdatedEvent, UserDeletedEvent } from '@startup/kafka-client';
 
 export interface RegisterData {
   email: string;
@@ -39,6 +40,7 @@ export class AuthService {
   private emailVerificationRepository: Repository<EmailVerification>;
   private passwordResetRepository: Repository<PasswordReset>;
   private emailService: EmailService;
+  private kafkaProducer: KafkaProducer;
 
   constructor() {
     this.userRepository = AppDataSource.getRepository(User);
@@ -47,11 +49,23 @@ export class AuthService {
     this.emailVerificationRepository = AppDataSource.getRepository(EmailVerification);
     this.passwordResetRepository = AppDataSource.getRepository(PasswordReset);
     this.emailService = new EmailService();
+
+    // Initialize Kafka producer
+    this.kafkaProducer = new KafkaProducer({
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+      clientId: 'user-service',
+      logger: logger,
+    });
+
+    // Connect to Kafka
+    this.kafkaProducer.connect().catch((error) => {
+      logger.error('Failed to connect Kafka producer in AuthService', error);
+    });
   }
 
   async register(data: RegisterData): Promise<User> {
     const existingUser = await this.userRepository.findOne({
-      where: { email: data.email.toLowerCase() }
+      where: { email: data.email.toLowerCase() },
     });
 
     if (existingUser) {
@@ -73,15 +87,40 @@ export class AuthService {
       user: savedUser,
       firstName: data.firstName,
       lastName: data.lastName,
-      displayName: data.firstName && data.lastName ?
-        `${data.firstName} ${data.lastName}` :
-        data.firstName || data.lastName,
+      displayName:
+        data.firstName && data.lastName
+          ? `${data.firstName} ${data.lastName}`
+          : data.firstName || data.lastName,
     });
 
     await this.profileRepository.save(profile);
 
     // Send verification email
     await this.sendEmailVerification(savedUser);
+
+    // Publish UserRegisteredEvent to Kafka
+    try {
+      await this.kafkaProducer.publish<UserRegisteredEvent>(
+        KAFKA_TOPICS.USER_EVENTS,
+        {
+          eventType: 'UserRegistered',
+          data: {
+            userId: savedUser.id,
+            email: savedUser.email,
+            role: savedUser.role as any,
+            firstName: data.firstName,
+            lastName: data.lastName,
+          },
+        },
+        {
+          key: savedUser.id, // Partition by userId for ordering
+        },
+      );
+      logger.info(`UserRegisteredEvent published for user: ${savedUser.email}`);
+    } catch (error) {
+      // Log error but don't fail registration
+      logger.error('Failed to publish UserRegisteredEvent', error);
+    }
 
     logger.info(`User registered: ${savedUser.email}`);
     return savedUser;
@@ -90,7 +129,7 @@ export class AuthService {
   async login(data: LoginData): Promise<AuthResult> {
     const user = await this.userRepository.findOne({
       where: { email: data.email.toLowerCase() },
-      relations: ['profile']
+      relations: ['profile'],
     });
 
     if (!user) {
@@ -131,7 +170,7 @@ export class AuthService {
 
   async logout(sessionToken: string): Promise<void> {
     const session = await this.sessionRepository.findOne({
-      where: { token: sessionToken }
+      where: { token: sessionToken },
     });
 
     if (session) {
@@ -144,7 +183,7 @@ export class AuthService {
   async refreshToken(refreshToken: string): Promise<TokenPair> {
     const session = await this.sessionRepository.findOne({
       where: { refreshToken },
-      relations: ['user']
+      relations: ['user'],
     });
 
     if (!session || !session.isValid() || session.isRefreshExpired()) {
@@ -158,7 +197,9 @@ export class AuthService {
     session.token = tokens.accessToken;
     session.refreshToken = tokens.refreshToken;
     session.expiresAt = JWTUtil.getTokenExpirationDate(process.env.JWT_EXPIRES_IN || '7d');
-    session.refreshExpiresAt = JWTUtil.getTokenExpirationDate(process.env.JWT_REFRESH_EXPIRES_IN || '30d');
+    session.refreshExpiresAt = JWTUtil.getTokenExpirationDate(
+      process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+    );
     session.updateLastUsed();
 
     await this.sessionRepository.save(session);
@@ -171,7 +212,7 @@ export class AuthService {
     // Invalidate existing verifications
     await this.emailVerificationRepository.update(
       { user: { id: user.id }, isUsed: false },
-      { isUsed: true }
+      { isUsed: true },
     );
 
     const token = JWTUtil.generateEmailVerificationToken();
@@ -195,7 +236,7 @@ export class AuthService {
   async verifyEmail(token: string): Promise<User> {
     const verification = await this.emailVerificationRepository.findOne({
       where: { token },
-      relations: ['user']
+      relations: ['user'],
     });
 
     if (!verification || !verification.isValid()) {
@@ -220,7 +261,7 @@ export class AuthService {
 
   async sendPasswordReset(email: string): Promise<void> {
     const user = await this.userRepository.findOne({
-      where: { email: email.toLowerCase() }
+      where: { email: email.toLowerCase() },
     });
 
     if (!user) {
@@ -232,7 +273,7 @@ export class AuthService {
     // Invalidate existing password resets
     await this.passwordResetRepository.update(
       { user: { id: user.id }, isUsed: false },
-      { isUsed: true }
+      { isUsed: true },
     );
 
     const token = JWTUtil.generatePasswordResetToken();
@@ -256,7 +297,7 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string): Promise<User> {
     const passwordReset = await this.passwordResetRepository.findOne({
       where: { token },
-      relations: ['user']
+      relations: ['user'],
     });
 
     if (!passwordReset || !passwordReset.isValid()) {
@@ -282,9 +323,13 @@ export class AuthService {
     return user;
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
     const user = await this.userRepository.findOne({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user) {
@@ -309,8 +354,8 @@ export class AuthService {
       {
         isActive: false,
         revokedAt: new Date(),
-        revokeReason: reason || 'All sessions revoked'
-      }
+        revokeReason: reason || 'All sessions revoked',
+      },
     );
 
     logger.info(`All sessions revoked for user: ${userId}`);
@@ -319,7 +364,7 @@ export class AuthService {
   private async createSession(
     user: User,
     tokens: TokenPair,
-    loginData: LoginData
+    loginData: LoginData,
   ): Promise<UserSession> {
     const session = this.sessionRepository.create({
       user: user,
@@ -337,13 +382,13 @@ export class AuthService {
   async getUserSessions(userId: string): Promise<UserSession[]> {
     return await this.sessionRepository.find({
       where: { user: { id: userId }, isActive: true },
-      order: { lastUsedAt: 'DESC' }
+      order: { lastUsedAt: 'DESC' },
     });
   }
 
   async revokeSession(sessionId: string, userId: string): Promise<void> {
     const session = await this.sessionRepository.findOne({
-      where: { id: sessionId, user: { id: userId } }
+      where: { id: sessionId, user: { id: userId } },
     });
 
     if (session) {

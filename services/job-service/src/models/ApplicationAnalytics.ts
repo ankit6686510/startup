@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { JobApplication } from './JobApplication';
 
@@ -49,7 +49,13 @@ export class ApplicationAnalytics {
   @Column({ name: 'view_count', default: 0 })
   viewCount: number; // How many times recruiter viewed
 
-  @Column({ name: 'avg_view_duration_seconds', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'avg_view_duration_seconds',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   avgViewDurationSeconds: number;
 
   // Status timing
@@ -126,7 +132,9 @@ export class ApplicationAnalytics {
   recordView(durationSeconds: number): void {
     this.viewCount++;
     this.avgViewDurationSeconds =
-      (parseFloat(this.avgViewDurationSeconds.toString()) * (this.viewCount - 1) + durationSeconds) / this.viewCount;
+      (parseFloat(this.avgViewDurationSeconds.toString()) * (this.viewCount - 1) +
+        durationSeconds) /
+      this.viewCount;
     this.viewedAt = new Date();
   }
 }

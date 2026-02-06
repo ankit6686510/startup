@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+} from 'typeorm';
 import { Startup } from './Startup';
 
 @Entity('founders')
@@ -44,7 +53,7 @@ export class Founder {
   updatedAt!: Date;
 
   // Relations
-  @ManyToOne(() => Startup, startup => startup.founders, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Startup, (startup) => startup.founders, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'startup_id' })
   startup!: Startup;
 }

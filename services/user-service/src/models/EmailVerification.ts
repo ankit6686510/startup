@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { User } from './User';
 
@@ -53,7 +53,7 @@ export class EmailVerification {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, user => user.emailVerifications, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.emailVerifications, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   @Index()
   user: User;

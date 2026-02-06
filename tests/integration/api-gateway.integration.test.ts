@@ -8,9 +8,9 @@ import TestHelpers from '../utils/test-helpers';
 const createMockApp = () => {
   const express = require('express');
   const app = express();
-  
+
   app.use(express.json());
-  
+
   // Mock health endpoint
   app.get('/health', (req: any, res: any) => {
     res.json({
@@ -27,7 +27,7 @@ const createMockApp = () => {
       uptime: process.uptime(),
     });
   });
-  
+
   // Mock authentication middleware
   app.use('/api', (req: any, res: any, next: any) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -37,7 +37,7 @@ const createMockApp = () => {
     req.user = { id: 'test-user', email: 'test@example.com' };
     next();
   });
-  
+
   // Mock service routes
   app.get('/api/users/profile', (req: any, res: any) => {
     res.json({
@@ -50,7 +50,7 @@ const createMockApp = () => {
       },
     });
   });
-  
+
   app.get('/api/jobs', (req: any, res: any) => {
     res.json({
       success: true,
@@ -69,7 +69,7 @@ const createMockApp = () => {
       },
     });
   });
-  
+
   app.get('/api/funding', (req: any, res: any) => {
     res.json({
       success: true,
@@ -83,13 +83,13 @@ const createMockApp = () => {
       ],
     });
   });
-  
+
   return app;
 };
 
 describe('API Gateway Integration Tests', () => {
   let app: any;
-  
+
   beforeAll(async () => {
     await setupTestDatabase('api-gateway');
     await setupTestRedis();
@@ -103,9 +103,7 @@ describe('API Gateway Integration Tests', () => {
 
   describe('Health Checks', () => {
     test('should return healthy status for all services', async () => {
-      const response = await request(app)
-        .get('/health')
-        .expect(200);
+      const response = await request(app).get('/health').expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.status).toBe('healthy');
@@ -119,21 +117,19 @@ describe('API Gateway Integration Tests', () => {
 
   describe('Authentication Flow', () => {
     test('should reject requests without authentication token', async () => {
-      const response = await request(app)
-        .get('/api/users/profile')
-        .expect(401);
+      const response = await request(app).get('/api/users/profile').expect(401);
 
       TestHelpers.expectUnauthorized(response);
     });
 
     test('should accept requests with valid authentication token', async () => {
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/api/users/profile',
-        user
+        user,
       ).expect(200);
 
       TestHelpers.expectSuccess(response);
@@ -145,12 +141,12 @@ describe('API Gateway Integration Tests', () => {
   describe('Service Routing', () => {
     test('should route user service requests correctly', async () => {
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/api/users/profile',
-        user
+        user,
       ).expect(200);
 
       expect(response.body.success).toBe(true);
@@ -162,12 +158,12 @@ describe('API Gateway Integration Tests', () => {
 
     test('should route job service requests correctly', async () => {
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/api/jobs',
-        user
+        user,
       ).expect(200);
 
       expect(response.body.success).toBe(true);
@@ -179,12 +175,12 @@ describe('API Gateway Integration Tests', () => {
 
     test('should route funding service requests correctly', async () => {
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/api/funding',
-        user
+        user,
       ).expect(200);
 
       expect(response.body.success).toBe(true);
@@ -197,12 +193,12 @@ describe('API Gateway Integration Tests', () => {
       // This would test what happens when a downstream service is down
       // For now, we'll test that the gateway responds appropriately
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/api/users/profile',
-        user
+        user,
       );
 
       expect(response.status).toBeLessThan(500);
@@ -210,12 +206,12 @@ describe('API Gateway Integration Tests', () => {
 
     test('should return 404 for unknown routes', async () => {
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/api/unknown-service',
-        user
+        user,
       ).expect(404);
     });
   });
@@ -223,19 +219,14 @@ describe('API Gateway Integration Tests', () => {
   describe('Rate Limiting', () => {
     test('should handle multiple concurrent requests', async () => {
       const user = TestHelpers.generateTestUser();
-      
-      const promises = Array(10).fill(null).map(() =>
-        TestHelpers.makeAuthenticatedRequest(
-          app,
-          'get',
-          '/api/users/profile',
-          user
-        )
-      );
+
+      const promises = Array(10)
+        .fill(null)
+        .map(() => TestHelpers.makeAuthenticatedRequest(app, 'get', '/api/users/profile', user));
 
       const responses = await Promise.all(promises);
-      
-      responses.forEach(response => {
+
+      responses.forEach((response) => {
         expect(response.status).toBeLessThan(500);
       });
     });
@@ -252,12 +243,12 @@ describe('API Gateway Integration Tests', () => {
 
     test('should return proper response format', async () => {
       const user = TestHelpers.generateTestUser();
-      
+
       const response = await TestHelpers.makeAuthenticatedRequest(
         app,
         'get',
         '/api/users/profile',
-        user
+        user,
       ).expect(200);
 
       expect(response.headers['content-type']).toMatch(/application\/json/);

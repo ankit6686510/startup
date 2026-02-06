@@ -17,7 +17,7 @@ router.post(
   authenticateJWT,
   upload.single('file'),
   ApplicationController.uploadDocumentValidation,
-  asyncHandler(controller.uploadDocument.bind(controller))
+  asyncHandler(controller.uploadDocument.bind(controller)),
 );
 
 /**
@@ -27,7 +27,7 @@ router.post(
 router.get(
   '/:applicationId/documents',
   authenticateJWT,
-  asyncHandler(controller.getApplicationDocuments.bind(controller))
+  asyncHandler(controller.getApplicationDocuments.bind(controller)),
 );
 
 /**
@@ -37,7 +37,7 @@ router.get(
 router.delete(
   '/:applicationId/documents/:documentId',
   authenticateJWT,
-  asyncHandler(controller.deleteDocument.bind(controller))
+  asyncHandler(controller.deleteDocument.bind(controller)),
 );
 
 // ==================== STATUS MANAGEMENT ====================
@@ -50,7 +50,7 @@ router.patch(
   '/:applicationId/status',
   authenticateJWT,
   ApplicationController.updateStatusValidation,
-  asyncHandler(controller.updateApplicationStatus.bind(controller))
+  asyncHandler(controller.updateApplicationStatus.bind(controller)),
 );
 
 /**
@@ -60,7 +60,7 @@ router.patch(
 router.get(
   '/:applicationId/history',
   authenticateJWT,
-  asyncHandler(controller.getApplicationHistory.bind(controller))
+  asyncHandler(controller.getApplicationHistory.bind(controller)),
 );
 
 /**
@@ -70,7 +70,7 @@ router.get(
 router.get(
   '/:applicationId/timeline',
   authenticateJWT,
-  asyncHandler(controller.getApplicationTimeline.bind(controller))
+  asyncHandler(controller.getApplicationTimeline.bind(controller)),
 );
 
 // ==================== BULK OPERATIONS ====================
@@ -83,7 +83,7 @@ router.post(
   '/bulk/apply',
   authenticateJWT,
   ApplicationController.bulkApplyValidation,
-  asyncHandler(controller.bulkApplyToJobs.bind(controller))
+  asyncHandler(controller.bulkApplyToJobs.bind(controller)),
 );
 
 /**
@@ -94,7 +94,7 @@ router.patch(
   '/bulk/status',
   authenticateJWT,
   ApplicationController.bulkUpdateStatusValidation,
-  asyncHandler(controller.bulkUpdateStatus.bind(controller))
+  asyncHandler(controller.bulkUpdateStatus.bind(controller)),
 );
 
 /**
@@ -105,7 +105,7 @@ router.get(
   '/',
   authenticateJWT,
   ApplicationController.filterValidation,
-  asyncHandler(controller.getApplicationsByFilter.bind(controller))
+  asyncHandler(controller.getApplicationsByFilter.bind(controller)),
 );
 
 // ==================== ANALYTICS ====================
@@ -117,7 +117,7 @@ router.get(
 router.get(
   '/:applicationId/analytics',
   authenticateJWT,
-  asyncHandler(controller.getApplicationAnalytics.bind(controller))
+  asyncHandler(controller.getApplicationAnalytics.bind(controller)),
 );
 
 /**
@@ -127,7 +127,7 @@ router.get(
 router.get(
   '/analytics/pipeline',
   authenticateJWT,
-  asyncHandler(controller.getPipelineAnalytics.bind(controller))
+  asyncHandler(controller.getPipelineAnalytics.bind(controller)),
 );
 
 /**
@@ -137,7 +137,7 @@ router.get(
 router.get(
   '/analytics/quality',
   authenticateJWT,
-  asyncHandler(controller.getQualityMetrics.bind(controller))
+  asyncHandler(controller.getQualityMetrics.bind(controller)),
 );
 
 export default router;

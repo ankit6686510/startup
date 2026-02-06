@@ -48,13 +48,13 @@ export class WebSocketServer {
 
   constructor(httpServer: HTTPServer, config: WebSocketConfig) {
     this.config = config;
-    
+
     // Initialize Socket.IO server
     this.io = new SocketIOServer(httpServer, {
       cors: config.cors,
       transports: ['websocket', 'polling'],
       pingTimeout: 60000,
-      pingInterval: 25000
+      pingInterval: 25000,
     });
 
     this.setupRedisAdapter();
@@ -71,14 +71,14 @@ export class WebSocketServer {
           port: this.config.redis.port,
           password: this.config.redis.password,
           retryDelayOnFailover: 100,
-          maxRetriesPerRequest: 3
+          maxRetriesPerRequest: 3,
         });
 
         const subClient = pubClient.duplicate();
-        
+
         this.redis = pubClient;
         this.io.adapter(createAdapter(pubClient, subClient));
-        
+
         console.log('✅ Redis adapter configured for WebSocket scaling');
       } catch (error) {
         console.error('❌ Failed to setup Redis adapter:', error);
@@ -90,19 +90,21 @@ export class WebSocketServer {
     // Authentication middleware
     this.io.use(async (socket, next) => {
       try {
-        const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
-        
+        const token =
+          socket.handshake.auth.token ||
+          socket.handshake.headers.authorization?.replace('Bearer ', '');
+
         if (!token) {
           return next(new Error('Authentication token required'));
         }
 
         const decoded = jwt.verify(token, this.config.jwt.secret) as any;
-        
+
         // Attach user info to socket
         socket.userId = decoded.userId || decoded.id;
         socket.userEmail = decoded.email;
         socket.userRole = decoded.role || 'user';
-        
+
         // Rate limiting check
         if (!this.checkRateLimit(socket.userId)) {
           return next(new Error('Rate limit exceeded'));
@@ -145,7 +147,7 @@ export class WebSocketServer {
       id: userId,
       email: userEmail,
       role: userRole,
-      rooms: []
+      rooms: [],
     });
 
     // Track user sockets
@@ -164,7 +166,7 @@ export class WebSocketServer {
     socket.emit('connected', {
       message: 'Connected to StartupCompass real-time service',
       userId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Broadcast user online status to relevant rooms
@@ -181,9 +183,12 @@ export class WebSocketServer {
     });
 
     // Handle private messages
-    socket.on('private_message', (data: { recipientId: string; message: string; type?: string }) => {
-      this.handlePrivateMessage(socket, data);
-    });
+    socket.on(
+      'private_message',
+      (data: { recipientId: string; message: string; type?: string }) => {
+        this.handlePrivateMessage(socket, data);
+      },
+    );
 
     // Handle room messages
     socket.on('room_message', (data: { room: string; message: string; type?: string }) => {
@@ -233,7 +238,7 @@ export class WebSocketServer {
     }
 
     socket.join(room);
-    
+
     const user = this.connectedUsers.get(socket.id);
     if (user) {
       user.rooms.push(room);
@@ -244,7 +249,7 @@ export class WebSocketServer {
       userId: socket.userId,
       userEmail: socket.userEmail,
       room,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     console.log(`👥 User ${socket.userEmail} joined room: ${room}`);
@@ -252,10 +257,10 @@ export class WebSocketServer {
 
   private handleLeaveRoom(socket: any, room: string): void {
     socket.leave(room);
-    
+
     const user = this.connectedUsers.get(socket.id);
     if (user) {
-      user.rooms = user.rooms.filter(r => r !== room);
+      user.rooms = user.rooms.filter((r) => r !== room);
     }
 
     socket.emit('room_left', { room, timestamp: Date.now() });
@@ -263,39 +268,45 @@ export class WebSocketServer {
       userId: socket.userId,
       userEmail: socket.userEmail,
       room,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     console.log(`👋 User ${socket.userEmail} left room: ${room}`);
   }
 
-  private handlePrivateMessage(socket: any, data: { recipientId: string; message: string; type?: string }): void {
+  private handlePrivateMessage(
+    socket: any,
+    data: { recipientId: string; message: string; type?: string },
+  ): void {
     const message: WebSocketMessage = {
       type: data.type || 'private_message',
       payload: {
         message: data.message,
         senderId: socket.userId,
         senderEmail: socket.userEmail,
-        recipientId: data.recipientId
+        recipientId: data.recipientId,
       },
       timestamp: Date.now(),
-      userId: socket.userId
+      userId: socket.userId,
     };
 
     // Send to recipient
     this.io.to(`user:${data.recipientId}`).emit('private_message', message);
-    
+
     // Send confirmation to sender
     socket.emit('message_sent', {
       messageId: this.generateMessageId(),
       recipientId: data.recipientId,
-      timestamp: message.timestamp
+      timestamp: message.timestamp,
     });
 
     console.log(`💬 Private message from ${socket.userEmail} to user ${data.recipientId}`);
   }
 
-  private handleRoomMessage(socket: any, data: { room: string; message: string; type?: string }): void {
+  private handleRoomMessage(
+    socket: any,
+    data: { room: string; message: string; type?: string },
+  ): void {
     // Check if user is in the room
     if (!socket.rooms.has(data.room)) {
       socket.emit('error', { message: 'Not a member of this room', room: data.room });
@@ -308,21 +319,21 @@ export class WebSocketServer {
         message: data.message,
         senderId: socket.userId,
         senderEmail: socket.userEmail,
-        room: data.room
+        room: data.room,
       },
       timestamp: Date.now(),
       userId: socket.userId,
-      room: data.room
+      room: data.room,
     };
 
     // Broadcast to room (excluding sender)
     socket.to(data.room).emit('room_message', message);
-    
+
     // Send confirmation to sender
     socket.emit('message_sent', {
       messageId: this.generateMessageId(),
       room: data.room,
-      timestamp: message.timestamp
+      timestamp: message.timestamp,
     });
 
     console.log(`💬 Room message from ${socket.userEmail} in room ${data.room}`);
@@ -332,13 +343,15 @@ export class WebSocketServer {
     const typingData = {
       userId: socket.userId,
       userEmail: socket.userEmail,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     if (data.room) {
       socket.to(data.room).emit('user_typing_start', { ...typingData, room: data.room });
     } else if (data.recipientId) {
-      this.io.to(`user:${data.recipientId}`).emit('user_typing_start', { ...typingData, senderId: socket.userId });
+      this.io
+        .to(`user:${data.recipientId}`)
+        .emit('user_typing_start', { ...typingData, senderId: socket.userId });
     }
   }
 
@@ -346,37 +359,39 @@ export class WebSocketServer {
     const typingData = {
       userId: socket.userId,
       userEmail: socket.userEmail,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     if (data.room) {
       socket.to(data.room).emit('user_typing_stop', { ...typingData, room: data.room });
     } else if (data.recipientId) {
-      this.io.to(`user:${data.recipientId}`).emit('user_typing_stop', { ...typingData, senderId: socket.userId });
+      this.io
+        .to(`user:${data.recipientId}`)
+        .emit('user_typing_stop', { ...typingData, senderId: socket.userId });
     }
   }
 
   private handleJobAlertSubscription(socket: any, filters: any): void {
     const alertRoom = `job_alerts:${this.hashFilters(filters)}`;
     socket.join(alertRoom);
-    
+
     socket.emit('subscribed_job_alerts', {
       filters,
       room: alertRoom,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     console.log(`🔔 User ${socket.userEmail} subscribed to job alerts`);
   }
 
   private handleStartupSubscription(socket: any, startupIds: string[]): void {
-    startupIds.forEach(startupId => {
+    startupIds.forEach((startupId) => {
       socket.join(`startup:${startupId}`);
     });
 
     socket.emit('subscribed_startup_updates', {
       startupIds,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     console.log(`🏢 User ${socket.userEmail} subscribed to ${startupIds.length} startup updates`);
@@ -389,7 +404,7 @@ export class WebSocketServer {
     socket.emit('subscribed_funding_updates', {
       filters,
       room: fundingRoom,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     console.log(`💰 User ${socket.userEmail} subscribed to funding updates`);
@@ -421,7 +436,7 @@ export class WebSocketServer {
   public sendNotificationToUser(userId: string, notification: any): void {
     this.io.to(`user:${userId}`).emit('notification', {
       ...notification,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -429,7 +444,7 @@ export class WebSocketServer {
     const alertRoom = `job_alerts:${this.hashFilters(filters)}`;
     this.io.to(alertRoom).emit('job_alert', {
       job: jobData,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -437,7 +452,7 @@ export class WebSocketServer {
     this.io.to(`startup:${startupId}`).emit('startup_update', {
       startupId,
       update: updateData,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -445,21 +460,21 @@ export class WebSocketServer {
     const fundingRoom = `funding_updates:${this.hashFilters(filters)}`;
     this.io.to(fundingRoom).emit('funding_update', {
       funding: fundingData,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
   public broadcastToRole(role: string, event: string, data: any): void {
     this.io.to(`role:${role}`).emit(event, {
       ...data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
   public broadcastToAll(event: string, data: any): void {
     this.io.emit(event, {
       ...data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -480,7 +495,7 @@ export class WebSocketServer {
   private canJoinRoom(socket: any, room: string): boolean {
     // Implement room access control logic
     const userRole = socket.userRole;
-    
+
     // Admin can join any room
     if (userRole === 'admin') {
       return true;
@@ -513,7 +528,7 @@ export class WebSocketServer {
     if (!limit || now > limit.resetTime) {
       this.rateLimiters.set(userId, {
         count: 1,
-        resetTime: now + 1000 // 1 second window
+        resetTime: now + 1000, // 1 second window
       });
       return true;
     }
@@ -532,7 +547,7 @@ export class WebSocketServer {
     this.io.emit('user_status_change', {
       userId,
       status,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 

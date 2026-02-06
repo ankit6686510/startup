@@ -20,12 +20,7 @@ export const Default: Story = {
     },
 };
 
-export const WithInitialValue: Story = {
-    args: {
-        ...Default.args,
-        defaultValue: 'Fintech startups',
-    },
-};
+
 
 export const SpecificPlaceholder: Story = {
     args: {

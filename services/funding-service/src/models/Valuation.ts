@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { Currency } from '@startup-platform/types';
 import { FundingRound } from './FundingRound';
@@ -17,7 +17,7 @@ export enum ValuationType {
   MARKET = 'market',
   FAIR_VALUE = 'fair_value',
   LIQUIDATION = 'liquidation',
-  BOOK_VALUE = 'book_value'
+  BOOK_VALUE = 'book_value',
 }
 
 export enum ValuationMethod {
@@ -31,7 +31,7 @@ export enum ValuationMethod {
   USER_MULTIPLE = 'user_multiple',
   BERKUS_METHOD = 'berkus',
   SCORECARD_METHOD = 'scorecard',
-  FIRST_CHICAGO = 'first_chicago'
+  FIRST_CHICAGO = 'first_chicago',
 }
 
 @Entity('valuations')
@@ -48,14 +48,14 @@ export class Valuation {
 
   @Column({
     type: 'enum',
-    enum: ValuationType
+    enum: ValuationType,
   })
   @Index()
   valuationType: ValuationType;
 
   @Column({
     type: 'enum',
-    enum: ValuationMethod
+    enum: ValuationMethod,
   })
   @Index()
   valuationMethod: ValuationMethod;
@@ -68,7 +68,7 @@ export class Valuation {
   @Column({
     type: 'enum',
     enum: Currency,
-    default: Currency.USD
+    default: Currency.USD,
   })
   currency: Currency;
 
@@ -194,7 +194,13 @@ export class Valuation {
   @Column({ name: 'control_premium', type: 'decimal', precision: 5, scale: 2, nullable: true })
   controlPremium?: number;
 
-  @Column({ name: 'marketability_discount', type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({
+    name: 'marketability_discount',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
   marketabilityDiscount?: number;
 
   @Column('text', { array: true, default: '{}' })
@@ -386,14 +392,18 @@ export class Valuation {
   }
 
   calculateWeightedValuation(): number {
-    if (!this.scenarioAnalysis.optimistic || !this.scenarioAnalysis.base || !this.scenarioAnalysis.pessimistic) {
+    if (
+      !this.scenarioAnalysis.optimistic ||
+      !this.scenarioAnalysis.base ||
+      !this.scenarioAnalysis.pessimistic
+    ) {
       return this.amount;
     }
 
     const weighted =
-      (this.scenarioAnalysis.optimistic.valuation * this.scenarioAnalysis.optimistic.probability) +
-      (this.scenarioAnalysis.base.valuation * this.scenarioAnalysis.base.probability) +
-      (this.scenarioAnalysis.pessimistic.valuation * this.scenarioAnalysis.pessimistic.probability);
+      this.scenarioAnalysis.optimistic.valuation * this.scenarioAnalysis.optimistic.probability +
+      this.scenarioAnalysis.base.valuation * this.scenarioAnalysis.base.probability +
+      this.scenarioAnalysis.pessimistic.valuation * this.scenarioAnalysis.pessimistic.probability;
 
     this.scenarioAnalysis.weightedAverage = weighted;
     return weighted;
@@ -429,19 +439,19 @@ export class Valuation {
     let adjustedValuation = this.amount;
 
     if (this.riskAdjustment) {
-      adjustedValuation *= (1 + this.riskAdjustment / 100);
+      adjustedValuation *= 1 + this.riskAdjustment / 100;
     }
 
     if (this.liquidityDiscount) {
-      adjustedValuation *= (1 - this.liquidityDiscount / 100);
+      adjustedValuation *= 1 - this.liquidityDiscount / 100;
     }
 
     if (this.marketabilityDiscount) {
-      adjustedValuation *= (1 - this.marketabilityDiscount / 100);
+      adjustedValuation *= 1 - this.marketabilityDiscount / 100;
     }
 
     if (this.controlPremium) {
-      adjustedValuation *= (1 + this.controlPremium / 100);
+      adjustedValuation *= 1 + this.controlPremium / 100;
     }
 
     return Math.round(adjustedValuation);
@@ -450,7 +460,7 @@ export class Valuation {
   setScenarioAnalysis(
     optimistic: { probability: number; valuation: number; assumptions: string[] },
     base: { probability: number; valuation: number; assumptions: string[] },
-    pessimistic: { probability: number; valuation: number; assumptions: string[] }
+    pessimistic: { probability: number; valuation: number; assumptions: string[] },
   ): void {
     this.scenarioAnalysis = {
       optimistic,
@@ -525,15 +535,32 @@ export class Valuation {
 
   isMethodAppropriate(companyStage: string, hasRevenue: boolean): boolean {
     const stageMethodMap = {
-      'idea': [ValuationMethod.BERKUS_METHOD, ValuationMethod.SCORECARD_METHOD],
-      'mvp': [ValuationMethod.BERKUS_METHOD, ValuationMethod.SCORECARD_METHOD, ValuationMethod.VENTURE_CAPITAL],
-      'growth': [ValuationMethod.REVENUE_MULTIPLE, ValuationMethod.DISCOUNTED_CASH_FLOW, ValuationMethod.COMPARABLE_COMPANIES],
-      'mature': [ValuationMethod.DISCOUNTED_CASH_FLOW, ValuationMethod.COMPARABLE_COMPANIES, ValuationMethod.PRECEDENT_TRANSACTIONS],
+      idea: [ValuationMethod.BERKUS_METHOD, ValuationMethod.SCORECARD_METHOD],
+      mvp: [
+        ValuationMethod.BERKUS_METHOD,
+        ValuationMethod.SCORECARD_METHOD,
+        ValuationMethod.VENTURE_CAPITAL,
+      ],
+      growth: [
+        ValuationMethod.REVENUE_MULTIPLE,
+        ValuationMethod.DISCOUNTED_CASH_FLOW,
+        ValuationMethod.COMPARABLE_COMPANIES,
+      ],
+      mature: [
+        ValuationMethod.DISCOUNTED_CASH_FLOW,
+        ValuationMethod.COMPARABLE_COMPANIES,
+        ValuationMethod.PRECEDENT_TRANSACTIONS,
+      ],
     };
 
     const appropriateMethods = stageMethodMap[companyStage as keyof typeof stageMethodMap] || [];
 
-    if (!hasRevenue && [ValuationMethod.REVENUE_MULTIPLE, ValuationMethod.DISCOUNTED_CASH_FLOW].includes(this.valuationMethod)) {
+    if (
+      !hasRevenue &&
+      [ValuationMethod.REVENUE_MULTIPLE, ValuationMethod.DISCOUNTED_CASH_FLOW].includes(
+        this.valuationMethod,
+      )
+    ) {
       return false;
     }
 

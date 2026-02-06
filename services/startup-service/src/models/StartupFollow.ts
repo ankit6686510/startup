@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { Startup } from './Startup';
 
@@ -48,8 +48,8 @@ export class StartupFollow {
   unfollowedAt: Date | null;
 
   // Relations
-  @ManyToOne(() => Startup, startup => startup.followers, {
-    onDelete: 'CASCADE'
+  @ManyToOne(() => Startup, (startup) => startup.followers, {
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'startup_id' })
   startup: Startup;
@@ -82,7 +82,7 @@ export class StartupFollow {
 
   removeTag(tag: string): void {
     if (this.metadata.tags) {
-      this.metadata.tags = this.metadata.tags.filter(t => t !== tag);
+      this.metadata.tags = this.metadata.tags.filter((t) => t !== tag);
     }
   }
 

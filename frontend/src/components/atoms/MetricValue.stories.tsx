@@ -13,10 +13,7 @@ const meta: Meta<typeof MetricValue> = {
             control: 'select',
             options: ['sm', 'md', 'lg', 'xl'],
         },
-        trend: {
-            control: 'select',
-            options: ['up', 'down', 'none'],
-        },
+
     },
 };
 
@@ -35,7 +32,6 @@ export const TrendingUp: Story = {
     args: {
         value: '+124%',
         label: 'User Growth',
-        trend: 'up',
         size: 'lg',
     },
 };
@@ -44,7 +40,6 @@ export const TrendingDown: Story = {
     args: {
         value: '-12%',
         label: 'Churn Rate',
-        trend: 'down',
         size: 'md',
     },
 };

@@ -5,12 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  Index
+  Index,
 } from 'typeorm';
-import {
-  FundingRound as FundingRoundType,
-  Currency
-} from '@startup-platform/types';
+import { FundingRound as FundingRoundType, Currency } from '@startup-platform/types';
 import { Investment } from './Investment';
 import { Valuation } from './Valuation';
 
@@ -28,7 +25,7 @@ export class FundingRound {
   @Column({
     type: 'enum',
     enum: FundingRoundType,
-    name: 'round_type'
+    name: 'round_type',
   })
   @Index()
   roundType: FundingRoundType;
@@ -47,7 +44,7 @@ export class FundingRound {
   @Column({
     type: 'enum',
     enum: Currency,
-    default: Currency.USD
+    default: Currency.USD,
   })
   currency: Currency;
 
@@ -202,10 +199,10 @@ export class FundingRound {
   updatedAt: Date;
 
   // Relations
-  @OneToMany(() => Investment, investment => investment.fundingRound, { cascade: true })
+  @OneToMany(() => Investment, (investment) => investment.fundingRound, { cascade: true })
   investments: Investment[];
 
-  @OneToMany(() => Valuation, valuation => valuation.fundingRound)
+  @OneToMany(() => Valuation, (valuation) => valuation.fundingRound)
   valuations: Valuation[];
 
   // Virtual getters

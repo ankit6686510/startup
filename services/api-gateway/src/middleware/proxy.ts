@@ -1,8 +1,12 @@
 import { createProxyMiddleware, Options } from 'http-proxy-middleware';
 import { config } from '@/config';
 import { logger } from '@/utils/logger';
+import { createResilientProxy } from '@/utils/resiliency';
 
-export const createServiceProxy = (target: string, pathRewrite?: Record<string, string>): Options => {
+export const createServiceProxy = (
+  target: string,
+  pathRewrite?: Record<string, string>,
+): Options => {
   return {
     target,
     changeOrigin: true,
@@ -42,7 +46,8 @@ export const createServiceProxy = (target: string, pathRewrite?: Record<string, 
       // Add CORS headers
       proxyRes.headers['Access-Control-Allow-Origin'] = '*';
       proxyRes.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS';
-      proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With';
+      proxyRes.headers['Access-Control-Allow-Headers'] =
+        'Content-Type, Authorization, Content-Length, X-Requested-With';
 
       logger.info(`Received response ${proxyRes.statusCode} for ${req.method} ${req.url}`);
     },
@@ -51,43 +56,61 @@ export const createServiceProxy = (target: string, pathRewrite?: Record<string, 
   };
 };
 
-// Service-specific proxy configurations
-export const startupServiceProxy = createProxyMiddleware(
-  createServiceProxy(config.services.startup, {
-    '^/api/v1/startups': '/api/v1/startups',
-    '^/api/v1/founders': '/api/v1/founders',
-  })
+// Service-specific proxy configurations with Circuit Breakers
+export const startupServiceProxy = createResilientProxy(
+  'startup-service',
+  createProxyMiddleware(
+    createServiceProxy(config.services.startup, {
+      '^/api/v1/startups': '/api/v1/startups',
+      '^/api/v1/founders': '/api/v1/founders',
+    }),
+  ),
 );
 
-export const userServiceProxy = createProxyMiddleware(
-  createServiceProxy(config.services.user, {
-    '^/api/v1/users': '/api/v1/users',
-    '^/api/v1/auth': '/api/v1/auth',
-  })
+export const userServiceProxy = createResilientProxy(
+  'user-service',
+  createProxyMiddleware(
+    createServiceProxy(config.services.user, {
+      '^/api/v1/users': '/api/v1/users',
+      '^/api/v1/auth': '/api/v1/auth',
+    }),
+  ),
 );
 
-export const jobServiceProxy = createProxyMiddleware(
-  createServiceProxy(config.services.job, {
-    '^/api/v1/jobs': '/api/v1/jobs',
-    '^/api/v1/applications': '/api/v1/applications',
-  })
+export const jobServiceProxy = createResilientProxy(
+  'job-service',
+  createProxyMiddleware(
+    createServiceProxy(config.services.job, {
+      '^/api/v1/jobs': '/api/v1/jobs',
+      '^/api/v1/applications': '/api/v1/applications',
+    }),
+  ),
 );
 
-export const fundingServiceProxy = createProxyMiddleware(
-  createServiceProxy(config.services.funding, {
-    '^/api/v1/funding': '/api/v1/funding',
-    '^/api/v1/investors': '/api/v1/investors',
-  })
+export const fundingServiceProxy = createResilientProxy(
+  'funding-service',
+  createProxyMiddleware(
+    createServiceProxy(config.services.funding, {
+      '^/api/v1/funding': '/api/v1/funding',
+      '^/api/v1/investors': '/api/v1/investors',
+    }),
+  ),
 );
 
-export const notificationServiceProxy = createProxyMiddleware(
-  createServiceProxy(config.services.notification, {
-    '^/api/v1/notifications': '/api/v1/notifications',
-  })
+export const notificationServiceProxy = createResilientProxy(
+  'notification-service',
+  createProxyMiddleware(
+    createServiceProxy(config.services.notification, {
+      '^/api/v1/notifications': '/api/v1/notifications',
+    }),
+  ),
 );
 
-export const newsAggregatorProxy = createProxyMiddleware(
-  createServiceProxy(config.services.newsAggregator, {
-    '^/api/v1/news': '/api/news',
-  })
+export const newsAggregatorProxy = createResilientProxy(
+  'news-aggregator',
+  createProxyMiddleware(
+    createServiceProxy(config.services.newsAggregator, {
+      '^/api/v1/news': '/api/news',
+    }),
+  ),
 );

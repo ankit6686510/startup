@@ -81,7 +81,15 @@ export interface UserStartupAffiliation {
 export interface UserActivity {
   id: string;
   userId: string;
-  type: 'profile_view' | 'startup_view' | 'job_view' | 'job_apply' | 'startup_save' | 'job_save' | 'search' | 'share';
+  type:
+    | 'profile_view'
+    | 'startup_view'
+    | 'job_view'
+    | 'job_apply'
+    | 'startup_save'
+    | 'job_save'
+    | 'search'
+    | 'share';
   entityType?: 'startup' | 'job' | 'investor' | 'user';
   entityId?: string;
   metadata?: Record<string, any>;

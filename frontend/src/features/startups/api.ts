@@ -1,4 +1,17 @@
 import axios, { AxiosInstance } from 'axios';
+import { z } from 'zod';
+
+import {
+  PaginatedStartupResponseSchema,
+  StartupDetailSchema,
+  StartupSearchResultSchema,
+  TrendingStartupSchema,
+  StartupSchema,
+  IndustryStatsSchema,
+  StartupComparisonSchema,
+  StartupJobSchema,
+  StartupNewsSchema,
+} from './schemas';
 import {
   Startup,
   StartupDetail,
@@ -11,18 +24,6 @@ import {
   StartupJob,
   StartupNews,
 } from './types';
-import {
-  PaginatedStartupResponseSchema,
-  StartupDetailSchema,
-  StartupSearchResultSchema,
-  TrendingStartupSchema,
-  StartupSchema,
-  IndustryStatsSchema,
-  StartupComparisonSchema,
-  StartupJobSchema,
-  StartupNewsSchema,
-} from './schemas';
-import { z } from 'zod';
 
 class StartupsAPI {
   private api: AxiosInstance;

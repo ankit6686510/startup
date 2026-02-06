@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+
 import { MarketDataService, MarketStat } from '@/services/market-data';
 
 export const homeKeys = {

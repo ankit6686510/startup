@@ -15,7 +15,11 @@ export class TemplateEngine {
     this.registerHelpers();
   }
 
-  async render(template: NotificationTemplate, data: Record<string, any>, language?: string): Promise<RenderedTemplate> {
+  async render(
+    template: NotificationTemplate,
+    data: Record<string, any>,
+    language?: string,
+  ): Promise<RenderedTemplate> {
     try {
       const templateContent = template.getContent(language);
 
@@ -42,7 +46,9 @@ export class TemplateEngine {
       return rendered;
     } catch (error) {
       logger.error(`Error rendering template ${template.id}:`, error);
-      throw new Error(`Template rendering failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Template rendering failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -65,7 +71,7 @@ export class TemplateEngine {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
-            day: 'numeric'
+            day: 'numeric',
           });
         case 'time':
           return d.toLocaleTimeString();
@@ -166,11 +172,14 @@ export class TemplateEngine {
     });
 
     // Percentage helper
-    Handlebars.registerHelper('percentage', (value: number, total: number, decimals: number = 1) => {
-      if (typeof value !== 'number' || typeof total !== 'number' || total === 0) return '0%';
-      const percentage = (value / total) * 100;
-      return percentage.toFixed(decimals) + '%';
-    });
+    Handlebars.registerHelper(
+      'percentage',
+      (value: number, total: number, decimals: number = 1) => {
+        if (typeof value !== 'number' || typeof total !== 'number' || total === 0) return '0%';
+        const percentage = (value / total) * 100;
+        return percentage.toFixed(decimals) + '%';
+      },
+    );
 
     // JSON helper
     Handlebars.registerHelper('json', (obj: any) => {
@@ -204,7 +213,9 @@ export class TemplateEngine {
     try {
       Handlebars.compile(templateString);
     } catch (error) {
-      errors.push(`Template compilation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      errors.push(
+        `Template compilation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
 
     return {
@@ -217,7 +228,9 @@ export class TemplateEngine {
     try {
       return Handlebars.precompile(templateString) as any as string;
     } catch (error) {
-      throw new Error(`Template precompilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Template precompilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -230,16 +243,24 @@ export class TemplateEngine {
       'uppercase',
       'lowercase',
       'truncate',
-      'eq', 'ne', 'gt', 'gte', 'lt', 'lte',
+      'eq',
+      'ne',
+      'gt',
+      'gte',
+      'lt',
+      'lte',
       'length',
       'join',
       'urlEncode',
       'default',
-      'add', 'subtract', 'multiply', 'divide',
+      'add',
+      'subtract',
+      'multiply',
+      'divide',
       'percentage',
       'json',
       'times',
-      'range'
+      'range',
     ];
   }
 }

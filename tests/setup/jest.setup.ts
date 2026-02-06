@@ -32,12 +32,12 @@ afterAll(() => {
 
 // Global test utilities
 global.testUtils = {
-  sleep: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),
-  
+  sleep: (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
+
   waitForCondition: async (
     condition: () => boolean | Promise<boolean>,
     timeout: number = 5000,
-    interval: number = 100
+    interval: number = 100,
   ) => {
     const start = Date.now();
     while (Date.now() - start < timeout) {
@@ -48,7 +48,7 @@ global.testUtils = {
     }
     throw new Error(`Condition not met within ${timeout}ms`);
   },
-  
+
   generateRandomString: (length: number = 10) => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
@@ -57,11 +57,11 @@ global.testUtils = {
     }
     return result;
   },
-  
+
   generateRandomEmail: () => {
     const randomString = global.testUtils.generateRandomString(8);
     return `test-${randomString}@example.com`;
-  }
+  },
 };
 
 // Declare global types
@@ -71,7 +71,7 @@ declare global {
     waitForCondition: (
       condition: () => boolean | Promise<boolean>,
       timeout?: number,
-      interval?: number
+      interval?: number,
     ) => Promise<boolean>;
     generateRandomString: (length?: number) => string;
     generateRandomEmail: () => string;

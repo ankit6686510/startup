@@ -17,7 +17,8 @@ const meta: Meta<typeof IconWrapper> = {
         },
         variant: {
             control: 'select',
-            options: ['primary', 'secondary', 'accent', 'muted', 'success', 'warning', 'error'],
+            options: ['default', 'primary', 'success', 'warning', 'danger'],
+
         },
     },
 };
@@ -36,7 +37,8 @@ export const Default: Story = {
 export const LargeAccent: Story = {
     args: {
         children: <ZapIcon className="h-6 w-6" />,
-        variant: 'accent',
+        variant: 'warning',
+
         size: 'lg',
     },
 };

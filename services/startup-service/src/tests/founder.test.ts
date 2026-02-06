@@ -1,7 +1,13 @@
 import request from 'supertest';
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import app from '../index';
-import { setupTestDatabase, cleanupTestDatabase, createTestStartup, createTestFounder, generateTestToken } from './setup';
+import {
+  setupTestDatabase,
+  cleanupTestDatabase,
+  createTestStartup,
+  createTestFounder,
+  generateTestToken,
+} from './setup';
 import { AppDataSource } from '../config/database';
 import { Startup } from '../models/Startup';
 import { Founder } from '../models/Founder';
@@ -36,34 +42,32 @@ describe('Founder Endpoints', () => {
   describe('GET /api/v1/founders/:startupId', () => {
     beforeEach(async () => {
       // Create test founders for the startup
-      const founder1 = createTestFounder({ 
-        name: 'John Doe', 
+      const founder1 = createTestFounder({
+        name: 'John Doe',
         title: 'CEO',
         isPrimary: true,
-        equity: 50.0
+        equity: 50.0,
       });
-      const founder2 = createTestFounder({ 
-        name: 'Jane Smith', 
+      const founder2 = createTestFounder({
+        name: 'Jane Smith',
         title: 'CTO',
         isPrimary: false,
-        equity: 30.0
+        equity: 30.0,
       });
 
       const founderRepo = AppDataSource.getRepository(Founder);
       await founderRepo.save([
         { id: uuidv4(), ...founder1, startupId: testStartupId },
-        { id: uuidv4(), ...founder2, startupId: testStartupId }
+        { id: uuidv4(), ...founder2, startupId: testStartupId },
       ]);
     });
 
     test('should return founders for a startup', async () => {
-      const response = await request(app)
-        .get(`/api/v1/founders/${testStartupId}`)
-        .expect(200);
+      const response = await request(app).get(`/api/v1/founders/${testStartupId}`).expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(2);
-      
+
       // Should be ordered by isPrimary DESC, then createdAt ASC
       expect(response.body.data[0].isPrimary).toBe(true);
       expect(response.body.data[0].name).toBe('John Doe');
@@ -75,26 +79,20 @@ describe('Founder Endpoints', () => {
       const startupRepo = AppDataSource.getRepository(Startup);
       const newStartup = await startupRepo.save({ id: uuidv4(), ...newStartupData });
 
-      const response = await request(app)
-        .get(`/api/v1/founders/${newStartup.id}`)
-        .expect(200);
+      const response = await request(app).get(`/api/v1/founders/${newStartup.id}`).expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual([]);
     });
 
     test('should return 400 for missing startup ID', async () => {
-      const response = await request(app)
-        .get('/api/v1/founders/')
-        .expect(404); // Route not found
+      const response = await request(app).get('/api/v1/founders/').expect(404); // Route not found
 
       // This endpoint structure expects startupId, so empty path should be 404
     });
 
     test('should handle invalid startup ID format', async () => {
-      const response = await request(app)
-        .get('/api/v1/founders/invalid-id')
-        .expect(200); // The route doesn't validate UUID format, it just returns empty array
+      const response = await request(app).get('/api/v1/founders/invalid-id').expect(200); // The route doesn't validate UUID format, it just returns empty array
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual([]);
@@ -106,10 +104,10 @@ describe('Founder Endpoints', () => {
       // Create test founder
       const founderData = createTestFounder();
       const founderRepo = AppDataSource.getRepository(Founder);
-      const founder = await founderRepo.save({ 
-        id: uuidv4(), 
-        ...founderData, 
-        startupId: testStartupId 
+      const founder = await founderRepo.save({
+        id: uuidv4(),
+        ...founderData,
+        startupId: testStartupId,
       });
       testFounderId = founder.id;
     });
@@ -128,7 +126,7 @@ describe('Founder Endpoints', () => {
 
     test('should return 404 for non-existent founder', async () => {
       const nonExistentId = uuidv4();
-      
+
       const response = await request(app)
         .get(`/api/v1/founders/detail/${nonExistentId}`)
         .expect(404);
@@ -138,9 +136,7 @@ describe('Founder Endpoints', () => {
     });
 
     test('should handle invalid founder ID format', async () => {
-      const response = await request(app)
-        .get('/api/v1/founders/detail/invalid-id')
-        .expect(404);
+      const response = await request(app).get('/api/v1/founders/detail/invalid-id').expect(404);
 
       expect(response.body.success).toBe(false);
       expect(response.body.message).toBe('Founder not found');
@@ -152,10 +148,10 @@ describe('Founder Endpoints', () => {
       // Create test founder
       const founderData = createTestFounder();
       const founderRepo = AppDataSource.getRepository(Founder);
-      const founder = await founderRepo.save({ 
-        id: uuidv4(), 
-        ...founderData, 
-        startupId: testStartupId 
+      const founder = await founderRepo.save({
+        id: uuidv4(),
+        ...founderData,
+        startupId: testStartupId,
       });
       testFounderId = founder.id;
     });
@@ -165,7 +161,7 @@ describe('Founder Endpoints', () => {
         name: 'Updated Founder Name',
         title: 'Updated Title',
         bio: 'Updated bio information',
-        equity: 45.0
+        equity: 45.0,
       };
 
       const response = await request(app)
@@ -188,7 +184,7 @@ describe('Founder Endpoints', () => {
 
     test('should update only provided fields', async () => {
       const updateData = {
-        name: 'Partially Updated Name'
+        name: 'Partially Updated Name',
       };
 
       const response = await request(app)
@@ -207,7 +203,7 @@ describe('Founder Endpoints', () => {
         id: 'should-be-ignored',
         startupId: 'should-be-ignored',
         createdAt: new Date(),
-        isPrimary: false // This field should be ignored as it's not in allowedFields
+        isPrimary: false, // This field should be ignored as it's not in allowedFields
       };
 
       const response = await request(app)
@@ -258,7 +254,7 @@ describe('Founder Endpoints', () => {
 
     test('should validate email format if provided', async () => {
       const updateData = {
-        email: 'invalid-email-format'
+        email: 'invalid-email-format',
       };
 
       const response = await request(app)
@@ -271,7 +267,7 @@ describe('Founder Endpoints', () => {
 
     test('should validate equity range if provided', async () => {
       const updateData = {
-        equity: 150.0 // Invalid: over 100%
+        equity: 150.0, // Invalid: over 100%
       };
 
       const response = await request(app)
@@ -286,7 +282,7 @@ describe('Founder Endpoints', () => {
       const updateData = {
         linkedinUrl: 'https://linkedin.com/in/updated-profile',
         twitterUrl: 'https://twitter.com/updated-handle',
-        imageUrl: 'https://example.com/updated-image.jpg'
+        imageUrl: 'https://example.com/updated-image.jpg',
       };
 
       const response = await request(app)
@@ -295,7 +291,9 @@ describe('Founder Endpoints', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.founder.linkedinUrl).toBe('https://linkedin.com/in/updated-profile');
+      expect(response.body.data.founder.linkedinUrl).toBe(
+        'https://linkedin.com/in/updated-profile',
+      );
       expect(response.body.data.founder.twitterUrl).toBe('https://twitter.com/updated-handle');
       expect(response.body.data.founder.imageUrl).toBe('https://example.com/updated-image.jpg');
     });
@@ -305,9 +303,7 @@ describe('Founder Endpoints', () => {
     test('should handle database connection errors gracefully', async () => {
       // This test would require mocking the database connection
       // For now, we'll test that the route exists and handles basic cases
-      const response = await request(app)
-        .get('/api/v1/founders/some-id')
-        .expect(200);
+      const response = await request(app).get('/api/v1/founders/some-id').expect(200);
 
       expect(response.body.success).toBe(true);
     });
@@ -315,10 +311,10 @@ describe('Founder Endpoints', () => {
     test('should handle malformed request data', async () => {
       const founderData = createTestFounder();
       const founderRepo = AppDataSource.getRepository(Founder);
-      const founder = await founderRepo.save({ 
-        id: uuidv4(), 
-        ...founderData, 
-        startupId: testStartupId 
+      const founder = await founderRepo.save({
+        id: uuidv4(),
+        ...founderData,
+        startupId: testStartupId,
       });
 
       // Send malformed JSON (this will be caught by express.json() middleware)
@@ -341,7 +337,7 @@ describe('Founder Endpoints', () => {
       const founderRepo = AppDataSource.getRepository(Founder);
       const [founder1, founder2] = await founderRepo.save([
         { id: uuidv4(), ...founder1Data, startupId: testStartupId },
-        { id: uuidv4(), ...founder2Data, startupId: testStartupId }
+        { id: uuidv4(), ...founder2Data, startupId: testStartupId },
       ]);
 
       // Update both founders
@@ -356,13 +352,15 @@ describe('Founder Endpoints', () => {
         .expect(200);
 
       // Verify both updates
-      const response = await request(app)
-        .get(`/api/v1/founders/${testStartupId}`)
-        .expect(200);
+      const response = await request(app).get(`/api/v1/founders/${testStartupId}`).expect(200);
 
       expect(response.body.data).toHaveLength(2);
-      expect(response.body.data.find((f: any) => f.id === founder1.id).name).toBe('Updated Founder 1');
-      expect(response.body.data.find((f: any) => f.id === founder2.id).name).toBe('Updated Founder 2');
+      expect(response.body.data.find((f: any) => f.id === founder1.id).name).toBe(
+        'Updated Founder 1',
+      );
+      expect(response.body.data.find((f: any) => f.id === founder2.id).name).toBe(
+        'Updated Founder 2',
+      );
     });
   });
 });

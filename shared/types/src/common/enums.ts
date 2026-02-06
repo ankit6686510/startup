@@ -3,7 +3,7 @@ export enum StartupStatus {
   ACTIVE = 'active',
   ACQUIRED = 'acquired',
   CLOSED = 'closed',
-  STEALTH = 'stealth'
+  STEALTH = 'stealth',
 }
 
 export enum StartupStage {
@@ -11,7 +11,7 @@ export enum StartupStage {
   MVP = 'mvp',
   GROWTH = 'growth',
   MATURE = 'mature',
-  SCALING = 'scaling'
+  SCALING = 'scaling',
 }
 
 export enum Industry {
@@ -32,7 +32,7 @@ export enum Industry {
   HARDWARE = 'hardware',
   ENTERPRISE = 'enterprise',
   CONSUMER = 'consumer',
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 // Funding related enums
@@ -50,7 +50,7 @@ export enum FundingRound {
   IPO = 'ipo',
   DEBT = 'debt',
   GRANT = 'grant',
-  BOOTSTRAPPED = 'bootstrapped'
+  BOOTSTRAPPED = 'bootstrapped',
 }
 
 export enum InvestorType {
@@ -62,7 +62,7 @@ export enum InvestorType {
   FAMILY_OFFICE = 'family_office',
   HEDGE_FUND = 'hedge_fund',
   PRIVATE_EQUITY = 'private_equity',
-  CROWDFUNDING = 'crowdfunding'
+  CROWDFUNDING = 'crowdfunding',
 }
 
 // Job related enums
@@ -71,13 +71,13 @@ export enum JobType {
   PART_TIME = 'part_time',
   CONTRACT = 'contract',
   INTERNSHIP = 'internship',
-  FREELANCE = 'freelance'
+  FREELANCE = 'freelance',
 }
 
 export enum WorkLocation {
   REMOTE = 'remote',
   ONSITE = 'onsite',
-  HYBRID = 'hybrid'
+  HYBRID = 'hybrid',
 }
 
 export enum ExperienceLevel {
@@ -88,7 +88,7 @@ export enum ExperienceLevel {
   PRINCIPAL = 'principal',
   DIRECTOR = 'director',
   VP = 'vp',
-  C_LEVEL = 'c_level'
+  C_LEVEL = 'c_level',
 }
 
 export enum JobCategory {
@@ -105,7 +105,7 @@ export enum JobCategory {
   DATA = 'data',
   RESEARCH = 'research',
   BUSINESS_DEVELOPMENT = 'business_development',
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 // User related enums
@@ -115,14 +115,14 @@ export enum UserRole {
   INVESTOR = 'investor',
   RECRUITER = 'recruiter',
   ADMIN = 'admin',
-  MODERATOR = 'moderator'
+  MODERATOR = 'moderator',
 }
 
 export enum UserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   SUSPENDED = 'suspended',
-  PENDING_VERIFICATION = 'pending_verification'
+  PENDING_VERIFICATION = 'pending_verification',
 }
 
 // News and update types
@@ -136,7 +136,7 @@ export enum NewsType {
   PIVOT = 'pivot',
   SHUTDOWN = 'shutdown',
   IPO = 'ipo',
-  GENERAL = 'general'
+  GENERAL = 'general',
 }
 
 // Data source enums
@@ -145,7 +145,7 @@ export enum DataSource {
   SCRAPED = 'scraped',
   API = 'api',
   USER_SUBMITTED = 'user_submitted',
-  VERIFIED = 'verified'
+  VERIFIED = 'verified',
 }
 
 // Currency enum
@@ -158,5 +158,5 @@ export enum Currency {
   AUD = 'AUD',
   SGD = 'SGD',
   JPY = 'JPY',
-  CNY = 'CNY'
+  CNY = 'CNY',
 }

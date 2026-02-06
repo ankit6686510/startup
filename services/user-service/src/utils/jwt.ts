@@ -18,9 +18,11 @@ export interface TokenPair {
   refreshExpiresIn: number;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
+import { config } from '@/config';
+
+const JWT_SECRET = config.jwt.secret;
+const JWT_EXPIRES_IN = config.jwt.expiresIn;
+const JWT_REFRESH_EXPIRES_IN = '30d'; // Keep as internal constant if not in config
 
 export class JWTUtil {
   static generateAccessToken(user: User): string {
@@ -30,7 +32,7 @@ export class JWTUtil {
       role: user.role,
     };
 
-    return jwt.sign(payload, JWT_SECRET as string, {
+    return jwt.sign(payload, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN as any,
       issuer: 'startupcompass',
       audience: 'startupcompass-users',

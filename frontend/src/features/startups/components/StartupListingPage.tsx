@@ -30,9 +30,8 @@ export function StartupListingPage() {
   // State management
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showFilters, setShowFilters] = useState(false);
-  const [startups, setStartups] = useState<Startup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasNextPage, setHasNextPage] = useState(true);
+
   const [loadingMore, setLoadingMore] = useState(false);
 
   // URL state management
@@ -256,17 +255,12 @@ export function StartupListingPage() {
   // Initial load simulation
   useEffect(() => {
     setLoading(true);
-    setTimeout(() => {
-      setStartups(paginatedStartups);
+    const timer = setTimeout(() => {
       setLoading(false);
     }, 800);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Update startups when filters change
-  useEffect(() => {
-    setStartups(paginatedStartups);
-    setHasNextPage(hasMore);
-  }, [paginatedStartups, hasMore]);
 
   const sortOptions = [
     { value: 'relevance', label: 'Relevance', icon: <SearchIcon className="h-4 w-4" /> },
@@ -390,7 +384,8 @@ export function StartupListingPage() {
                     ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
                     : 'space-y-4'
                 )}>
-                  {startups.map((startup, index) => (
+                  {paginatedStartups.map((startup, index) => (
+
                     viewMode === 'grid' ? (
                       <StartupCard
                         key={startup.id}

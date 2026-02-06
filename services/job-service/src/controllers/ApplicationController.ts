@@ -15,18 +15,41 @@ export class ApplicationController {
   static applyToJobValidation = [
     body('jobId').notEmpty().withMessage('Job ID is required'),
     body('emailAddress').isEmail().withMessage('Valid email address is required'),
-    body('fullName').isLength({ min: 1, max: 200 }).withMessage('Full name is required and must be less than 200 characters'),
-    body('coverLetter').optional().isLength({ max: 5000 }).withMessage('Cover letter must be less than 5000 characters'),
-    body('yearsOfExperience').optional().isInt({ min: 0, max: 50 }).withMessage('Years of experience must be between 0 and 50'),
-    body('salaryExpectation').optional().isInt({ min: 0 }).withMessage('Salary expectation must be a positive number'),
-    body('noticePeriodDays').optional().isInt({ min: 0, max: 365 }).withMessage('Notice period must be between 0 and 365 days'),
-    body('requiresVisaSponsorship').optional().isBoolean().withMessage('Visa sponsorship must be a boolean'),
-    body('willingToRelocate').optional().isBoolean().withMessage('Willing to relocate must be a boolean'),
+    body('fullName')
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Full name is required and must be less than 200 characters'),
+    body('coverLetter')
+      .optional()
+      .isLength({ max: 5000 })
+      .withMessage('Cover letter must be less than 5000 characters'),
+    body('yearsOfExperience')
+      .optional()
+      .isInt({ min: 0, max: 50 })
+      .withMessage('Years of experience must be between 0 and 50'),
+    body('salaryExpectation')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Salary expectation must be a positive number'),
+    body('noticePeriodDays')
+      .optional()
+      .isInt({ min: 0, max: 365 })
+      .withMessage('Notice period must be between 0 and 365 days'),
+    body('requiresVisaSponsorship')
+      .optional()
+      .isBoolean()
+      .withMessage('Visa sponsorship must be a boolean'),
+    body('willingToRelocate')
+      .optional()
+      .isBoolean()
+      .withMessage('Willing to relocate must be a boolean'),
   ];
 
   static updateApplicationStatusValidation = [
     body('status').isIn(Object.values(ApplicationStatus)).withMessage('Invalid application status'),
-    body('notes').optional().isLength({ max: 1000 }).withMessage('Notes must be less than 1000 characters'),
+    body('notes')
+      .optional()
+      .isLength({ max: 1000 })
+      .withMessage('Notes must be less than 1000 characters'),
   ];
 
   applyToJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -114,7 +137,11 @@ export class ApplicationController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
 
-      const { applications, total } = await this.jobService.getUserApplications(userId, page, limit);
+      const { applications, total } = await this.jobService.getUserApplications(
+        userId,
+        page,
+        limit,
+      );
 
       res.json({
         success: true,
@@ -135,7 +162,11 @@ export class ApplicationController {
     }
   };
 
-  updateApplicationStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  updateApplicationStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -165,7 +196,7 @@ export class ApplicationController {
         applicationId,
         status,
         userId,
-        notes
+        notes,
       );
 
       res.json({

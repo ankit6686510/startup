@@ -78,7 +78,7 @@ export const STARTUP_COUNTRIES = [
   { code: 'AR', name: 'Argentina' },
   { code: 'ZA', name: 'South Africa' },
   { code: 'NG', name: 'Nigeria' },
-  { code: 'KE', name: 'Kenya' }
+  { code: 'KE', name: 'Kenya' },
 ] as const;
 
 // Major startup hubs
@@ -102,5 +102,5 @@ export const STARTUP_HUBS = [
   { city: 'Zurich', country: 'CH', region: 'Europe' },
   { city: 'Tokyo', country: 'JP', region: 'Asia' },
   { city: 'Shanghai', country: 'CN', region: 'Asia' },
-  { city: 'Beijing', country: 'CN', region: 'Asia' }
+  { city: 'Beijing', country: 'CN', region: 'Asia' },
 ] as const;

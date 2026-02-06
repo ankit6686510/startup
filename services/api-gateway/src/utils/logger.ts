@@ -4,7 +4,7 @@ import { config } from '@/config';
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
-  winston.format.json()
+  winston.format.json(),
 );
 
 const consoleFormat = winston.format.combine(
@@ -14,7 +14,7 @@ const consoleFormat = winston.format.combine(
     return `${timestamp} [${level}]: ${message} ${
       Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ''
     }`;
-  })
+  }),
 );
 
 export const logger = winston.createLogger({
@@ -37,7 +37,7 @@ if (config.server.env !== 'production') {
   logger.add(
     new winston.transports.Console({
       format: consoleFormat,
-    })
+    }),
   );
 }
 

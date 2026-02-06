@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { User } from './User';
 
@@ -112,7 +112,7 @@ export class UserProfile {
   updatedAt: Date;
 
   // Relations
-  @OneToOne(() => User, user => user.profile, { onDelete: 'CASCADE' })
+  @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   @Index()
   user: User;
@@ -145,20 +145,12 @@ export class UserProfile {
 
   // Calculate profile completion percentage
   calculateCompletionPercentage(): number {
-    const fields = [
-      'firstName',
-      'lastName',
-      'bio',
-      'title',
-      'location',
-      'skills',
-      'interests',
-    ];
+    const fields = ['firstName', 'lastName', 'bio', 'title', 'location', 'skills', 'interests'];
 
     let completed = 0;
     const total = fields.length;
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       const value = this[field as keyof this];
       if (value) {
         if (Array.isArray(value) && value.length > 0) {

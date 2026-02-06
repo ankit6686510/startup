@@ -46,7 +46,7 @@ export class EmailProvider {
         replyTo: data.replyTo,
         cc: data.cc,
         bcc: data.bcc,
-        attachments: data.attachments?.map(url => ({ path: url })),
+        attachments: data.attachments?.map((url) => ({ path: url })),
         headers: {
           'X-Tracking-ID': data.trackingId || '',
           'X-Metadata': JSON.stringify(data.metadata || {}),

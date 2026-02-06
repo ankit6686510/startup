@@ -24,13 +24,13 @@ export class TestHelpers {
 
   static generateAuthToken(user: TestUser): string {
     return jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
       },
       process.env.JWT_SECRET || 'test-secret',
-      { expiresIn: '1h' }
+      { expiresIn: '1h' },
     );
   }
 
@@ -39,30 +39,28 @@ export class TestHelpers {
     method: 'get' | 'post' | 'put' | 'delete',
     path: string,
     user?: TestUser,
-    data?: any
+    data?: any,
   ) {
     const testUser = user || this.generateTestUser();
     const token = this.generateAuthToken(testUser);
-    
-    const req = request(app)[method](path)
+
+    const req = request(app)
+      [method](path)
       .set('Authorization', `Bearer ${token}`)
       .set('Content-Type', 'application/json');
-    
+
     if (data && (method === 'post' || method === 'put')) {
       req.send(data);
     }
-    
+
     return req;
   }
 
-  static async expectValidationError(
-    response: request.Response,
-    field?: string
-  ) {
+  static async expectValidationError(response: request.Response, field?: string) {
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty('success', false);
     expect(response.body).toHaveProperty('error');
-    
+
     if (field) {
       expect(response.body.error).toContain(field);
     }
@@ -86,10 +84,7 @@ export class TestHelpers {
     expect(response.body).toHaveProperty('error');
   }
 
-  static async expectSuccess(
-    response: request.Response,
-    expectedStatus: number = 200
-  ) {
+  static async expectSuccess(response: request.Response, expectedStatus: number = 200) {
     expect(response.status).toBe(expectedStatus);
     expect(response.body).toHaveProperty('success', true);
   }
@@ -105,7 +100,7 @@ export class TestHelpers {
         website: 'https://test-startup.com',
         ...overrides,
       }),
-      
+
       job: () => ({
         title: `Test Job ${Date.now()}`,
         description: 'A test job posting for automated testing',
@@ -116,7 +111,7 @@ export class TestHelpers {
         requirements: ['JavaScript', 'Node.js', 'TypeScript'],
         ...overrides,
       }),
-      
+
       funding: () => ({
         startupId: `startup-${Date.now()}`,
         round: 'Series A',
@@ -126,7 +121,7 @@ export class TestHelpers {
         valuation: 25000000,
         ...overrides,
       }),
-      
+
       user: () => ({
         email: `test${Date.now()}@example.com`,
         password: 'TestPassword123!',
@@ -141,29 +136,29 @@ export class TestHelpers {
     if (!generator) {
       throw new Error(`Unknown test data type: ${type}`);
     }
-    
+
     return generator();
   }
 
   static async waitFor(
     condition: () => Promise<boolean> | boolean,
     timeout: number = 5000,
-    interval: number = 100
+    interval: number = 100,
   ): Promise<void> {
     const start = Date.now();
-    
+
     while (Date.now() - start < timeout) {
       if (await condition()) {
         return;
       }
-      await new Promise(resolve => setTimeout(resolve, interval));
+      await new Promise((resolve) => setTimeout(resolve, interval));
     }
-    
+
     throw new Error(`Condition not met within ${timeout}ms`);
   }
 
   static async sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

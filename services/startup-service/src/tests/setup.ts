@@ -8,10 +8,10 @@ export const setupTestDatabase = async () => {
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
     }
-    
+
     // Run migrations
     await AppDataSource.runMigrations();
-    
+
     logger.info('Test database setup completed');
   } catch (error) {
     logger.error('Test database setup failed:', error);
@@ -25,15 +25,15 @@ export const cleanupTestDatabase = async () => {
     if (AppDataSource.isInitialized) {
       // Clear all tables
       const entities = AppDataSource.entityMetadatas;
-      
+
       for (const entity of entities) {
         const repository = AppDataSource.getRepository(entity.name);
         await repository.delete({});
       }
-      
+
       await AppDataSource.destroy();
     }
-    
+
     logger.info('Test database cleanup completed');
   } catch (error) {
     logger.error('Test database cleanup failed:', error);
@@ -63,7 +63,7 @@ export const createTestStartup = (overrides: any = {}) => ({
   tags: ['AI', 'Testing'],
   dataSource: 'USER_SUBMITTED',
   verified: false,
-  ...overrides
+  ...overrides,
 });
 
 export const createTestFounder = (overrides: any = {}) => ({
@@ -74,38 +74,38 @@ export const createTestFounder = (overrides: any = {}) => ({
   linkedinUrl: 'https://linkedin.com/in/johndoe',
   isPrimary: true,
   equity: 50.0,
-  ...overrides
+  ...overrides,
 });
 
 // JWT token generation for tests
 export const generateTestToken = () => {
   const jwt = require('jsonwebtoken');
   const JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
-  
+
   return jwt.sign(
     {
       id: 'test-user-id',
       email: 'test@example.com',
       role: 'user',
-      verified: true
+      verified: true,
     },
     JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '1h' },
   );
 };
 
 export const generateAdminToken = () => {
   const jwt = require('jsonwebtoken');
   const JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
-  
+
   return jwt.sign(
     {
       id: 'admin-user-id',
       email: 'admin@example.com',
       role: 'admin',
-      verified: true
+      verified: true,
     },
     JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '1h' },
   );
 };

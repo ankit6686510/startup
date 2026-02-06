@@ -19,10 +19,11 @@ export const Funding: Story = {
     args: {
         label: 'Total Funding',
         value: '$45.2M',
-        trend: '+12.5%',
-        trendType: 'up',
+        change: '+12.5%',
+        trend: 'up',
         icon: <DollarSignIcon className="h-5 w-5" />,
-        variant: 'primary',
+        iconColor: 'text-blue-600',
+        iconBgColor: 'bg-blue-100',
     },
 };
 
@@ -30,10 +31,11 @@ export const Users: Story = {
     args: {
         label: 'Active Investors',
         value: '25,000+',
-        trend: '+5.2%',
-        trendType: 'up',
+        change: '+5.2%',
+        trend: 'up',
         icon: <UsersIcon className="h-5 w-5" />,
-        variant: 'success',
+        iconColor: 'text-green-600',
+        iconBgColor: 'bg-green-100',
     },
 };
 
@@ -41,9 +43,10 @@ export const Growth: Story = {
     args: {
         label: 'Market Growth',
         value: '+24%',
-        trend: '+8.1%',
-        trendType: 'up',
+        change: '+8.1%',
+        trend: 'up',
         icon: <TrendingUpIcon className="h-5 w-5" />,
-        variant: 'accent',
+        iconColor: 'text-purple-600',
+        iconBgColor: 'bg-purple-100',
     },
 };

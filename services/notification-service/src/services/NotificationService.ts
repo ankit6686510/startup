@@ -1,6 +1,12 @@
 import { Repository } from 'typeorm';
 import { AppDataSource } from '@/config/database';
-import { Notification, NotificationType, NotificationStatus, NotificationPriority, NotificationCategory } from '@/models/Notification';
+import {
+  Notification,
+  NotificationType,
+  NotificationStatus,
+  NotificationPriority,
+  NotificationCategory,
+} from '@/models/Notification';
 import { NotificationTemplate } from '@/models/NotificationTemplate';
 import { NotificationPreference } from '@/models/NotificationPreference';
 import { NotificationLog, LogAction, LogLevel } from '@/models/NotificationLog';
@@ -86,11 +92,13 @@ export class NotificationService {
     // Check user preferences
     const preferences = await this.getUserPreferences(data.recipientId, data.type, data.category);
 
-    if (!preferences?.canReceiveNotification({
-      senderId: undefined,
-      priority: data.priority || NotificationPriority.NORMAL,
-      content: data.content
-    })) {
+    if (
+      !preferences?.canReceiveNotification({
+        senderId: undefined,
+        priority: data.priority || NotificationPriority.NORMAL,
+        content: data.content,
+      })
+    ) {
       throw new Error('User has disabled notifications for this type/category');
     }
 
@@ -111,25 +119,24 @@ export class NotificationService {
     const savedNotification = await this.notificationRepository.save(notification);
 
     // Log creation
-    await this.createLog(
-      savedNotification.id,
-      LogAction.CREATED,
-      'Notification created',
-      { notificationType: savedNotification.type }
-    );
+    await this.createLog(savedNotification.id, LogAction.CREATED, 'Notification created', {
+      notificationType: savedNotification.type,
+    });
 
     // Queue for delivery
     if (savedNotification.shouldSendNow()) {
       await this.queueNotification(savedNotification);
     }
 
-    logger.info(`Notification created: ${savedNotification.id} for user ${savedNotification.recipientId}`);
+    logger.info(
+      `Notification created: ${savedNotification.id} for user ${savedNotification.recipientId}`,
+    );
     return savedNotification;
   }
 
   async sendNotification(notificationId: string): Promise<boolean> {
     const notification = await this.notificationRepository.findOne({
-      where: { id: notificationId }
+      where: { id: notificationId },
     });
 
     if (!notification) {
@@ -182,7 +189,7 @@ export class NotificationService {
           notification.id,
           LogAction.SENT,
           `Notification sent via ${notification.type}`,
-          { processingTimeMs: processingTime }
+          { processingTimeMs: processingTime },
         );
       } else {
         notification.markAsFailed('Failed to send notification');
@@ -190,18 +197,17 @@ export class NotificationService {
           notification.id,
           LogAction.FAILED,
           `Failed to send notification via ${notification.type}`,
-          { processingTimeMs: processingTime }
+          { processingTimeMs: processingTime },
         );
       }
 
       await this.notificationRepository.save(notification);
       return success;
-
     } catch (error) {
       notification.markAsFailed(
         error instanceof Error ? error.message : 'Unknown error',
         'SEND_ERROR',
-        error
+        error,
       );
       await this.notificationRepository.save(notification);
 
@@ -209,7 +215,7 @@ export class NotificationService {
         notification.id,
         LogAction.FAILED,
         `Error sending notification: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        { error }
+        { error },
       );
 
       logger.error(`Error sending notification ${notificationId}:`, error);
@@ -219,7 +225,7 @@ export class NotificationService {
 
   async retryNotification(notificationId: string): Promise<boolean> {
     const notification = await this.notificationRepository.findOne({
-      where: { id: notificationId }
+      where: { id: notificationId },
     });
 
     if (!notification) {
@@ -233,7 +239,7 @@ export class NotificationService {
     await this.createLog(
       notification.id,
       LogAction.RETRIED,
-      `Retrying notification (attempt ${notification.retryCount + 1})`
+      `Retrying notification (attempt ${notification.retryCount + 1})`,
     );
 
     return await this.sendNotification(notificationId);
@@ -241,7 +247,7 @@ export class NotificationService {
 
   async cancelNotification(notificationId: string, reason?: string): Promise<void> {
     const notification = await this.notificationRepository.findOne({
-      where: { id: notificationId }
+      where: { id: notificationId },
     });
 
     if (!notification) {
@@ -254,7 +260,7 @@ export class NotificationService {
     await this.createLog(
       notification.id,
       LogAction.CANCELLED,
-      `Notification cancelled: ${reason || 'No reason provided'}`
+      `Notification cancelled: ${reason || 'No reason provided'}`,
     );
 
     logger.info(`Notification cancelled: ${notificationId}`);
@@ -263,12 +269,14 @@ export class NotificationService {
   async getNotifications(
     filters: NotificationFilters,
     page: number = 1,
-    limit: number = 20
-  ): Promise<{ notifications: Notification[], total: number }> {
+    limit: number = 20,
+  ): Promise<{ notifications: Notification[]; total: number }> {
     const queryBuilder = this.notificationRepository.createQueryBuilder('notification');
 
     if (filters.recipientIds && filters.recipientIds.length > 0) {
-      queryBuilder.andWhere('notification.recipientId IN (:...recipientIds)', { recipientIds: filters.recipientIds });
+      queryBuilder.andWhere('notification.recipientId IN (:...recipientIds)', {
+        recipientIds: filters.recipientIds,
+      });
     }
 
     if (filters.types && filters.types.length > 0) {
@@ -276,15 +284,21 @@ export class NotificationService {
     }
 
     if (filters.statuses && filters.statuses.length > 0) {
-      queryBuilder.andWhere('notification.status IN (:...statuses)', { statuses: filters.statuses });
+      queryBuilder.andWhere('notification.status IN (:...statuses)', {
+        statuses: filters.statuses,
+      });
     }
 
     if (filters.priorities && filters.priorities.length > 0) {
-      queryBuilder.andWhere('notification.priority IN (:...priorities)', { priorities: filters.priorities });
+      queryBuilder.andWhere('notification.priority IN (:...priorities)', {
+        priorities: filters.priorities,
+      });
     }
 
     if (filters.categories && filters.categories.length > 0) {
-      queryBuilder.andWhere('notification.category IN (:...categories)', { categories: filters.categories });
+      queryBuilder.andWhere('notification.category IN (:...categories)', {
+        categories: filters.categories,
+      });
     }
 
     if (filters.dateFrom) {
@@ -296,7 +310,9 @@ export class NotificationService {
     }
 
     if (filters.campaignId) {
-      queryBuilder.andWhere('notification.campaignId = :campaignId', { campaignId: filters.campaignId });
+      queryBuilder.andWhere('notification.campaignId = :campaignId', {
+        campaignId: filters.campaignId,
+      });
     }
 
     if (filters.tags && filters.tags.length > 0) {
@@ -317,24 +333,20 @@ export class NotificationService {
   async getUserNotifications(
     userId: string,
     page: number = 1,
-    limit: number = 20
-  ): Promise<{ notifications: Notification[], total: number }> {
-    return await this.getNotifications(
-      { recipientIds: [userId] },
-      page,
-      limit
-    );
+    limit: number = 20,
+  ): Promise<{ notifications: Notification[]; total: number }> {
+    return await this.getNotifications({ recipientIds: [userId] }, page, limit);
   }
 
   async getNotificationById(id: string): Promise<Notification | null> {
     return await this.notificationRepository.findOne({
-      where: { id }
+      where: { id },
     });
   }
 
   async markAsDelivered(notificationId: string, providerData?: any): Promise<void> {
     const notification = await this.notificationRepository.findOne({
-      where: { id: notificationId }
+      where: { id: notificationId },
     });
 
     if (!notification) {
@@ -348,16 +360,12 @@ export class NotificationService {
 
     await this.notificationRepository.save(notification);
 
-    await this.createLog(
-      notification.id,
-      LogAction.DELIVERED,
-      'Notification delivered'
-    );
+    await this.createLog(notification.id, LogAction.DELIVERED, 'Notification delivered');
   }
 
   async markAsOpened(notificationId: string, trackingData?: any): Promise<void> {
     const notification = await this.notificationRepository.findOne({
-      where: { id: notificationId }
+      where: { id: notificationId },
     });
 
     if (!notification) {
@@ -367,17 +375,12 @@ export class NotificationService {
     notification.markAsOpened();
     await this.notificationRepository.save(notification);
 
-    await this.createLog(
-      notification.id,
-      LogAction.OPENED,
-      'Notification opened',
-      trackingData
-    );
+    await this.createLog(notification.id, LogAction.OPENED, 'Notification opened', trackingData);
   }
 
   async markAsClicked(notificationId: string, trackingData?: any): Promise<void> {
     const notification = await this.notificationRepository.findOne({
-      where: { id: notificationId }
+      where: { id: notificationId },
     });
 
     if (!notification) {
@@ -387,12 +390,7 @@ export class NotificationService {
     notification.markAsClicked();
     await this.notificationRepository.save(notification);
 
-    await this.createLog(
-      notification.id,
-      LogAction.CLICKED,
-      'Notification clicked',
-      trackingData
-    );
+    await this.createLog(notification.id, LogAction.CLICKED, 'Notification clicked', trackingData);
   }
 
   // Private helper methods
@@ -400,7 +398,7 @@ export class NotificationService {
     if (!data.templateId) return data;
 
     const template = await this.templateRepository.findOne({
-      where: { id: data.templateId, isActive: true }
+      where: { id: data.templateId, isActive: true },
     });
 
     if (!template) {
@@ -438,37 +436,37 @@ export class NotificationService {
   private async getUserPreferences(
     userId: string,
     type: NotificationType,
-    category?: NotificationCategory
+    category?: NotificationCategory,
   ): Promise<NotificationPreference | null> {
     return await this.preferenceRepository.findOne({
       where: {
         userId,
         type,
-        category: category || NotificationCategory.SYSTEM
-      }
+        category: category || NotificationCategory.SYSTEM,
+      },
     });
   }
 
   private async queueNotification(notification: Notification): Promise<void> {
-    await this.notificationQueue.add('send-notification', {
-      notificationId: notification.id
-    }, {
-      delay: notification.scheduledAt ? notification.scheduledAt.getTime() - Date.now() : 0,
-      attempts: notification.maxRetries + 1,
-      backoff: {
-        type: 'exponential',
-        delay: notification.retryDelay,
+    await this.notificationQueue.add(
+      'send-notification',
+      {
+        notificationId: notification.id,
       },
-    });
+      {
+        delay: notification.scheduledAt ? notification.scheduledAt.getTime() - Date.now() : 0,
+        attempts: notification.maxRetries + 1,
+        backoff: {
+          type: 'exponential',
+          delay: notification.retryDelay,
+        },
+      },
+    );
 
     notification.status = NotificationStatus.QUEUED;
     await this.notificationRepository.save(notification);
 
-    await this.createLog(
-      notification.id,
-      LogAction.QUEUED,
-      'Notification queued for delivery'
-    );
+    await this.createLog(notification.id, LogAction.QUEUED, 'Notification queued for delivery');
   }
 
   private async sendEmail(notification: Notification): Promise<boolean> {
@@ -534,7 +532,7 @@ export class NotificationService {
     notificationId: string,
     action: LogAction,
     message: string,
-    details?: any
+    details?: any,
   ): Promise<void> {
     const log = this.logRepository.create({
       notificationId,
@@ -555,20 +553,28 @@ export class NotificationService {
       queryBuilder.where('notification.recipientId = :userId', { userId });
     }
 
-    const [
-      total,
-      sent,
-      delivered,
-      opened,
-      clicked,
-      failed
-    ] = await Promise.all([
+    const [total, sent, delivered, opened, clicked, failed] = await Promise.all([
       queryBuilder.getCount(),
-      queryBuilder.clone().andWhere('notification.status = :status', { status: NotificationStatus.SENT }).getCount(),
-      queryBuilder.clone().andWhere('notification.status = :status', { status: NotificationStatus.DELIVERED }).getCount(),
-      queryBuilder.clone().andWhere('notification.status = :status', { status: NotificationStatus.OPENED }).getCount(),
-      queryBuilder.clone().andWhere('notification.status = :status', { status: NotificationStatus.CLICKED }).getCount(),
-      queryBuilder.clone().andWhere('notification.status = :status', { status: NotificationStatus.FAILED }).getCount(),
+      queryBuilder
+        .clone()
+        .andWhere('notification.status = :status', { status: NotificationStatus.SENT })
+        .getCount(),
+      queryBuilder
+        .clone()
+        .andWhere('notification.status = :status', { status: NotificationStatus.DELIVERED })
+        .getCount(),
+      queryBuilder
+        .clone()
+        .andWhere('notification.status = :status', { status: NotificationStatus.OPENED })
+        .getCount(),
+      queryBuilder
+        .clone()
+        .andWhere('notification.status = :status', { status: NotificationStatus.CLICKED })
+        .getCount(),
+      queryBuilder
+        .clone()
+        .andWhere('notification.status = :status', { status: NotificationStatus.FAILED })
+        .getCount(),
     ]);
 
     return {

@@ -6,11 +6,7 @@ import { Investment } from '@/models/Investment';
 import { Valuation, ValuationType, ValuationMethod } from '@/models/Valuation';
 import { MarketData, MarketDataType } from '@/models/MarketData';
 import { logger } from '@/utils/logger';
-import {
-  FundingRound as FundingRoundType,
-  InvestorType,
-  Currency
-} from '@startup-platform/types';
+import { FundingRound as FundingRoundType, InvestorType, Currency } from '@startup-platform/types';
 
 export interface FundingRoundFilters {
   startupIds?: string[];
@@ -189,7 +185,10 @@ export class FundingService {
     return savedRound;
   }
 
-  async updateFundingRound(id: string, data: Partial<FundingRoundCreateData>): Promise<FundingRound> {
+  async updateFundingRound(
+    id: string,
+    data: Partial<FundingRoundCreateData>,
+  ): Promise<FundingRound> {
     const fundingRound = await this.fundingRoundRepository.findOne({ where: { id } });
 
     if (!fundingRound) {
@@ -206,15 +205,15 @@ export class FundingService {
   async getFundingRoundById(id: string): Promise<FundingRound | null> {
     return await this.fundingRoundRepository.findOne({
       where: { id },
-      relations: ['investments', 'investments.investor', 'valuations']
+      relations: ['investments', 'investments.investor', 'valuations'],
     });
   }
 
   async getFundingRounds(
     filters: FundingRoundFilters,
     page: number = 1,
-    limit: number = 20
-  ): Promise<{ rounds: FundingRound[], total: number }> {
+    limit: number = 20,
+  ): Promise<{ rounds: FundingRound[]; total: number }> {
     const queryBuilder = this.createFundingRoundQueryBuilder(filters);
 
     // Pagination
@@ -222,8 +221,7 @@ export class FundingService {
     queryBuilder.skip(offset).take(limit);
 
     // Default sorting by announced date (newest first)
-    queryBuilder.orderBy('round.announcedDate', 'DESC')
-      .addOrderBy('round.createdAt', 'DESC');
+    queryBuilder.orderBy('round.announcedDate', 'DESC').addOrderBy('round.createdAt', 'DESC');
 
     const [rounds, total] = await queryBuilder.getManyAndCount();
     return { rounds, total };
@@ -233,7 +231,7 @@ export class FundingService {
     return await this.fundingRoundRepository.find({
       where: { startupId },
       relations: ['investments', 'investments.investor'],
-      order: { announcedDate: 'DESC' }
+      order: { announcedDate: 'DESC' },
     });
   }
 
@@ -242,7 +240,7 @@ export class FundingService {
       where: { isConfirmed: true },
       order: { announcedDate: 'DESC' },
       take: limit,
-      relations: ['investments', 'investments.investor']
+      relations: ['investments', 'investments.investor'],
     });
   }
 
@@ -266,7 +264,7 @@ export class FundingService {
 
     const investor = this.investorRepository.create({
       ...data,
-      slug
+      slug,
     });
 
     const savedInvestor = await this.investorRepository.save(investor);
@@ -292,22 +290,22 @@ export class FundingService {
   async getInvestorById(id: string): Promise<Investor | null> {
     return await this.investorRepository.findOne({
       where: { id },
-      relations: ['investments', 'investments.fundingRound']
+      relations: ['investments', 'investments.fundingRound'],
     });
   }
 
   async getInvestorBySlug(slug: string): Promise<Investor | null> {
     return await this.investorRepository.findOne({
       where: { slug },
-      relations: ['investments', 'investments.fundingRound']
+      relations: ['investments', 'investments.fundingRound'],
     });
   }
 
   async getInvestors(
     filters: InvestorFilters,
     page: number = 1,
-    limit: number = 20
-  ): Promise<{ investors: Investor[], total: number }> {
+    limit: number = 20,
+  ): Promise<{ investors: Investor[]; total: number }> {
     const queryBuilder = this.createInvestorQueryBuilder(filters);
 
     // Pagination
@@ -315,7 +313,8 @@ export class FundingService {
     queryBuilder.skip(offset).take(limit);
 
     // Default sorting by credibility score and verification status
-    queryBuilder.orderBy('investor.isVerified', 'DESC')
+    queryBuilder
+      .orderBy('investor.isVerified', 'DESC')
       .addOrderBy('investor.credibilityScore', 'DESC')
       .addOrderBy('investor.totalInvestmentsCount', 'DESC');
 
@@ -323,7 +322,12 @@ export class FundingService {
     return { investors, total };
   }
 
-  async searchInvestors(query: string, filters: InvestorFilters, page: number = 1, limit: number = 20): Promise<{ investors: Investor[], total: number }> {
+  async searchInvestors(
+    query: string,
+    filters: InvestorFilters,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ investors: Investor[]; total: number }> {
     const searchFilters = { ...filters, search: query };
     return await this.getInvestors(searchFilters, page, limit);
   }
@@ -335,7 +339,7 @@ export class FundingService {
 
     // Update funding round investor count
     const fundingRound = await this.fundingRoundRepository.findOne({
-      where: { id: data.fundingRoundId }
+      where: { id: data.fundingRoundId },
     });
 
     if (fundingRound) {
@@ -354,7 +358,7 @@ export class FundingService {
     return await this.investmentRepository.find({
       where: { fundingRoundId },
       relations: ['investor'],
-      order: { investmentDate: 'DESC' }
+      order: { investmentDate: 'DESC' },
     });
   }
 
@@ -362,14 +366,14 @@ export class FundingService {
     return await this.investmentRepository.find({
       where: { investorId },
       relations: ['fundingRound'],
-      order: { investmentDate: 'DESC' }
+      order: { investmentDate: 'DESC' },
     });
   }
 
   // Valuation methods
   async createValuation(data: Partial<Valuation>): Promise<Valuation> {
     const valuation = this.valuationRepository.create(data);
-    const savedValuation = await this.valuationRepository.save(valuation) as Valuation;
+    const savedValuation = (await this.valuationRepository.save(valuation)) as Valuation;
 
     logger.info(`Valuation created: ${savedValuation.id} for startup ${savedValuation.startupId}`);
     return savedValuation;
@@ -378,7 +382,7 @@ export class FundingService {
   async getValuationsByStartup(startupId: string): Promise<Valuation[]> {
     return await this.valuationRepository.find({
       where: { startupId },
-      order: { valuationDate: 'DESC' }
+      order: { valuationDate: 'DESC' },
     });
   }
 
@@ -390,14 +394,14 @@ export class FundingService {
 
     return await this.valuationRepository.findOne({
       where,
-      order: { valuationDate: 'DESC' }
+      order: { valuationDate: 'DESC' },
     });
   }
 
   // Market Data methods
   async createMarketData(data: Partial<MarketData>): Promise<MarketData> {
     const marketData = this.marketDataRepository.create(data);
-    const savedData = await this.marketDataRepository.save(marketData) as MarketData;
+    const savedData = (await this.marketDataRepository.save(marketData)) as MarketData;
 
     logger.info(`Market data created: ${savedData.id} - ${savedData.dataType}`);
     return savedData;
@@ -408,7 +412,7 @@ export class FundingService {
     industry?: string,
     geography?: string,
     stage?: string,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<MarketData[]> {
     const where: any = { dataType };
     if (industry) where.industry = industry;
@@ -418,14 +422,14 @@ export class FundingService {
     return await this.marketDataRepository.find({
       where,
       order: { date: 'DESC' },
-      take: limit
+      take: limit,
     });
   }
 
   async getLatestMarketData(dataType: MarketDataType): Promise<MarketData | null> {
     return await this.marketDataRepository.findOne({
       where: { dataType },
-      order: { date: 'DESC' }
+      order: { date: 'DESC' },
     });
   }
 
@@ -437,22 +441,20 @@ export class FundingService {
       queryBuilder.where('round.startupId = :startupId', { startupId });
     }
 
-    const [
-      totalRounds,
-      totalAmount,
-      averageAmount,
-      confirmedRounds
-    ] = await Promise.all([
+    const [totalRounds, totalAmount, averageAmount, confirmedRounds] = await Promise.all([
       queryBuilder.getCount(),
       queryBuilder
         .select('SUM(round.amount)', 'total')
         .getRawOne()
-        .then(result => parseInt(result.total) || 0),
+        .then((result) => parseInt(result.total) || 0),
       queryBuilder
         .select('AVG(round.amount)', 'average')
         .getRawOne()
-        .then(result => parseInt(result.average) || 0),
-      queryBuilder.clone().andWhere('round.isConfirmed = :confirmed', { confirmed: true }).getCount()
+        .then((result) => parseInt(result.average) || 0),
+      queryBuilder
+        .clone()
+        .andWhere('round.isConfirmed = :confirmed', { confirmed: true })
+        .getCount(),
     ]);
 
     return {
@@ -460,7 +462,7 @@ export class FundingService {
       totalAmount,
       averageAmount,
       confirmedRounds,
-      confirmationRate: totalRounds > 0 ? (confirmedRounds / totalRounds) * 100 : 0
+      confirmationRate: totalRounds > 0 ? (confirmedRounds / totalRounds) * 100 : 0,
     };
   }
 
@@ -471,22 +473,17 @@ export class FundingService {
       queryBuilder.where('investment.investorId = :investorId', { investorId });
     }
 
-    const [
-      totalInvestments,
-      totalAmount,
-      averageAmount,
-      activeInvestments
-    ] = await Promise.all([
+    const [totalInvestments, totalAmount, averageAmount, activeInvestments] = await Promise.all([
       queryBuilder.getCount(),
       queryBuilder
         .select('SUM(investment.amount)', 'total')
         .getRawOne()
-        .then(result => parseInt(result.total) || 0),
+        .then((result) => parseInt(result.total) || 0),
       queryBuilder
         .select('AVG(investment.amount)', 'average')
         .getRawOne()
-        .then(result => parseInt(result.average) || 0),
-      queryBuilder.clone().andWhere('investment.isActive = :active', { active: true }).getCount()
+        .then((result) => parseInt(result.average) || 0),
+      queryBuilder.clone().andWhere('investment.isActive = :active', { active: true }).getCount(),
     ]);
 
     return {
@@ -494,36 +491,36 @@ export class FundingService {
       totalAmount,
       averageAmount,
       activeInvestments,
-      activeRate: totalInvestments > 0 ? (activeInvestments / totalInvestments) * 100 : 0
+      activeRate: totalInvestments > 0 ? (activeInvestments / totalInvestments) * 100 : 0,
     };
   }
 
   async getFundingTrends(
     period: 'monthly' | 'quarterly' | 'yearly' = 'quarterly',
     industry?: string,
-    geography?: string
+    geography?: string,
   ): Promise<any[]> {
     const marketData = await this.getMarketData(
       MarketDataType.FUNDING_TRENDS,
       industry,
       geography,
       undefined,
-      12
+      12,
     );
 
-    return marketData.map(data => ({
+    return marketData.map((data) => ({
       period: data.date,
       totalFunding: data.totalFundingAmount,
       numberOfDeals: data.numberOfDeals,
       averageDealSize: data.averageDealSize,
       growth: data.quarterOverQuarterGrowth || data.yearOverYearGrowth,
-      trendDirection: data.trendDirection
+      trendDirection: data.trendDirection,
     }));
   }
 
   async getValuationBenchmarks(
     industry: string,
-    stage?: string
+    stage?: string,
   ): Promise<{
     averageValuation: number;
     medianValuation: number;
@@ -537,7 +534,7 @@ export class FundingService {
         averageValuation: 0,
         medianValuation: 0,
         revenueMultiple: 0,
-        sampleSize: 0
+        sampleSize: 0,
       };
     }
 
@@ -545,23 +542,29 @@ export class FundingService {
       averageValuation: marketData.averagePreMoneyValuation || 0,
       medianValuation: marketData.medianPreMoneyValuation || 0,
       revenueMultiple: marketData.averageRevenueMultiple || 0,
-      sampleSize: marketData.sampleSize || 0
+      sampleSize: marketData.sampleSize || 0,
     };
   }
 
   // Helper methods
-  private createFundingRoundQueryBuilder(filters: FundingRoundFilters): SelectQueryBuilder<FundingRound> {
+  private createFundingRoundQueryBuilder(
+    filters: FundingRoundFilters,
+  ): SelectQueryBuilder<FundingRound> {
     const queryBuilder = this.fundingRoundRepository
       .createQueryBuilder('round')
       .leftJoinAndSelect('round.investments', 'investments')
       .leftJoinAndSelect('investments.investor', 'investor');
 
     if (filters.startupIds && filters.startupIds.length > 0) {
-      queryBuilder.andWhere('round.startupId IN (:...startupIds)', { startupIds: filters.startupIds });
+      queryBuilder.andWhere('round.startupId IN (:...startupIds)', {
+        startupIds: filters.startupIds,
+      });
     }
 
     if (filters.roundTypes && filters.roundTypes.length > 0) {
-      queryBuilder.andWhere('round.roundType IN (:...roundTypes)', { roundTypes: filters.roundTypes });
+      queryBuilder.andWhere('round.roundType IN (:...roundTypes)', {
+        roundTypes: filters.roundTypes,
+      });
     }
 
     if (filters.minAmount) {
@@ -585,11 +588,15 @@ export class FundingService {
     }
 
     if (filters.isConfirmed !== undefined) {
-      queryBuilder.andWhere('round.isConfirmed = :isConfirmed', { isConfirmed: filters.isConfirmed });
+      queryBuilder.andWhere('round.isConfirmed = :isConfirmed', {
+        isConfirmed: filters.isConfirmed,
+      });
     }
 
     if (filters.investorIds && filters.investorIds.length > 0) {
-      queryBuilder.andWhere('investor.id IN (:...investorIds)', { investorIds: filters.investorIds });
+      queryBuilder.andWhere('investor.id IN (:...investorIds)', {
+        investorIds: filters.investorIds,
+      });
     }
 
     return queryBuilder;
@@ -599,10 +606,9 @@ export class FundingService {
     const queryBuilder = this.investorRepository.createQueryBuilder('investor');
 
     if (filters.search) {
-      queryBuilder.andWhere(
-        '(investor.name ILIKE :search OR investor.description ILIKE :search)',
-        { search: `%${filters.search}%` }
-      );
+      queryBuilder.andWhere('(investor.name ILIKE :search OR investor.description ILIKE :search)', {
+        search: `%${filters.search}%`,
+      });
     }
 
     if (filters.types && filters.types.length > 0) {
@@ -610,27 +616,39 @@ export class FundingService {
     }
 
     if (filters.industries && filters.industries.length > 0) {
-      queryBuilder.andWhere('investor.industries && :industries', { industries: filters.industries });
+      queryBuilder.andWhere('investor.industries && :industries', {
+        industries: filters.industries,
+      });
     }
 
     if (filters.geographies && filters.geographies.length > 0) {
-      queryBuilder.andWhere('investor.geographies && :geographies', { geographies: filters.geographies });
+      queryBuilder.andWhere('investor.geographies && :geographies', {
+        geographies: filters.geographies,
+      });
     }
 
     if (filters.minInvestment) {
-      queryBuilder.andWhere('investor.maxInvestment >= :minInvestment', { minInvestment: filters.minInvestment });
+      queryBuilder.andWhere('investor.maxInvestment >= :minInvestment', {
+        minInvestment: filters.minInvestment,
+      });
     }
 
     if (filters.maxInvestment) {
-      queryBuilder.andWhere('investor.minInvestment <= :maxInvestment', { maxInvestment: filters.maxInvestment });
+      queryBuilder.andWhere('investor.minInvestment <= :maxInvestment', {
+        maxInvestment: filters.maxInvestment,
+      });
     }
 
     if (filters.isVerified !== undefined) {
-      queryBuilder.andWhere('investor.isVerified = :isVerified', { isVerified: filters.isVerified });
+      queryBuilder.andWhere('investor.isVerified = :isVerified', {
+        isVerified: filters.isVerified,
+      });
     }
 
     if (filters.isActivelyInvesting !== undefined) {
-      queryBuilder.andWhere('investor.isActivelyInvesting = :isActivelyInvesting', { isActivelyInvesting: filters.isActivelyInvesting });
+      queryBuilder.andWhere('investor.isActivelyInvesting = :isActivelyInvesting', {
+        isActivelyInvesting: filters.isActivelyInvesting,
+      });
     }
 
     return queryBuilder;

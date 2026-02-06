@@ -4,7 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Index
+  Index,
 } from 'typeorm';
 
 export enum MarketDataType {
@@ -15,7 +15,7 @@ export enum MarketDataType {
   VENTURE_CAPITAL_ACTIVITY = 'vc_activity',
   IPO_ACTIVITY = 'ipo_activity',
   M_A_ACTIVITY = 'ma_activity',
-  CURRENCY_RATES = 'currency_rates'
+  CURRENCY_RATES = 'currency_rates',
 }
 
 @Entity('market_data')
@@ -26,7 +26,7 @@ export class MarketData {
   @Column({
     type: 'enum',
     enum: MarketDataType,
-    name: 'data_type'
+    name: 'data_type',
   })
   @Index()
   dataType: MarketDataType;
@@ -85,19 +85,49 @@ export class MarketData {
   medianPostMoneyValuation?: number;
 
   // Valuation multiples
-  @Column({ name: 'average_revenue_multiple', type: 'decimal', precision: 8, scale: 2, nullable: true })
+  @Column({
+    name: 'average_revenue_multiple',
+    type: 'decimal',
+    precision: 8,
+    scale: 2,
+    nullable: true,
+  })
   averageRevenueMultiple?: number;
 
-  @Column({ name: 'median_revenue_multiple', type: 'decimal', precision: 8, scale: 2, nullable: true })
+  @Column({
+    name: 'median_revenue_multiple',
+    type: 'decimal',
+    precision: 8,
+    scale: 2,
+    nullable: true,
+  })
   medianRevenueMultiple?: number;
 
-  @Column({ name: 'average_ebitda_multiple', type: 'decimal', precision: 8, scale: 2, nullable: true })
+  @Column({
+    name: 'average_ebitda_multiple',
+    type: 'decimal',
+    precision: 8,
+    scale: 2,
+    nullable: true,
+  })
   averageEbitdaMultiple?: number;
 
-  @Column({ name: 'median_ebitda_multiple', type: 'decimal', precision: 8, scale: 2, nullable: true })
+  @Column({
+    name: 'median_ebitda_multiple',
+    type: 'decimal',
+    precision: 8,
+    scale: 2,
+    nullable: true,
+  })
   medianEbitdaMultiple?: number;
 
-  @Column({ name: 'average_user_multiple', type: 'decimal', precision: 8, scale: 2, nullable: true })
+  @Column({
+    name: 'average_user_multiple',
+    type: 'decimal',
+    precision: 8,
+    scale: 2,
+    nullable: true,
+  })
   averageUserMultiple?: number;
 
   @Column({ name: 'median_user_multiple', type: 'decimal', precision: 8, scale: 2, nullable: true })
@@ -145,7 +175,13 @@ export class MarketData {
   @Column({ name: 'stock_market_index', type: 'decimal', precision: 10, scale: 2, nullable: true })
   stockMarketIndex?: number;
 
-  @Column({ name: 'venture_capital_index', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'venture_capital_index',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   ventureCapitalIndex?: number;
 
   // Currency exchange rates
@@ -167,10 +203,22 @@ export class MarketData {
   };
 
   // Trend indicators
-  @Column({ name: 'quarter_over_quarter_growth', type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({
+    name: 'quarter_over_quarter_growth',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
   quarterOverQuarterGrowth?: number;
 
-  @Column({ name: 'year_over_year_growth', type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({
+    name: 'year_over_year_growth',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
   yearOverYearGrowth?: number;
 
   @Column({ name: 'trend_direction', nullable: true })
@@ -180,17 +228,35 @@ export class MarketData {
   volatilityIndex?: number;
 
   // Market sentiment
-  @Column({ name: 'investor_sentiment_score', type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({
+    name: 'investor_sentiment_score',
+    type: 'decimal',
+    precision: 3,
+    scale: 2,
+    nullable: true,
+  })
   investorSentimentScore?: number; // -1 to 1 scale
 
-  @Column({ name: 'market_confidence_index', type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({
+    name: 'market_confidence_index',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
   marketConfidenceIndex?: number; // 0-100 scale
 
   @Column({ name: 'risk_appetite_score', type: 'decimal', precision: 3, scale: 2, nullable: true })
   riskAppetiteScore?: number; // 0-1 scale
 
   // Competition and market dynamics
-  @Column({ name: 'market_concentration_index', type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({
+    name: 'market_concentration_index',
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
   marketConcentrationIndex?: number; // Herfindahl-Hirschman Index
 
   @Column({ name: 'new_entrants_count', nullable: true })
@@ -199,7 +265,13 @@ export class MarketData {
   @Column({ name: 'market_exits_count', nullable: true })
   marketExitsCount?: number;
 
-  @Column({ name: 'competitive_intensity_score', type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({
+    name: 'competitive_intensity_score',
+    type: 'decimal',
+    precision: 3,
+    scale: 2,
+    nullable: true,
+  })
   competitiveIntensityScore?: number; // 0-1 scale
 
   // Data quality and source
@@ -238,12 +310,18 @@ export class MarketData {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     switch (this.periodType) {
-      case 'daily': return diffDays <= 7;
-      case 'weekly': return diffDays <= 30;
-      case 'monthly': return diffDays <= 90;
-      case 'quarterly': return diffDays <= 180;
-      case 'yearly': return diffDays <= 365;
-      default: return diffDays <= 90;
+      case 'daily':
+        return diffDays <= 7;
+      case 'weekly':
+        return diffDays <= 30;
+      case 'monthly':
+        return diffDays <= 90;
+      case 'quarterly':
+        return diffDays <= 180;
+      case 'yearly':
+        return diffDays <= 365;
+      default:
+        return diffDays <= 90;
     }
   }
 
@@ -343,8 +421,8 @@ export class MarketData {
     }
 
     const values = historicalData
-      .map(data => data.totalFundingAmount)
-      .filter(val => val !== null && val !== undefined) as number[];
+      .map((data) => data.totalFundingAmount)
+      .filter((val) => val !== null && val !== undefined);
 
     if (values.length === 0) {
       return { percentile: 50, isAboveAverage: false, historicalAverage: 0 };
@@ -353,7 +431,7 @@ export class MarketData {
     values.sort((a, b) => a - b);
     const historicalAverage = values.reduce((sum, val) => sum + val, 0) / values.length;
 
-    const belowCount = values.filter(val => val < this.totalFundingAmount!).length;
+    const belowCount = values.filter((val) => val < this.totalFundingAmount!).length;
     const percentile = (belowCount / values.length) * 100;
 
     return {
@@ -378,8 +456,8 @@ export class MarketData {
 
     // Simple linear trend prediction
     const values = historicalData
-      .map(data => data.totalFundingAmount)
-      .filter(val => val !== null && val !== undefined) as number[];
+      .map((data) => data.totalFundingAmount)
+      .filter((val) => val !== null && val !== undefined);
 
     const n = values.length;
     const sumX = (n * (n + 1)) / 2;
@@ -411,8 +489,8 @@ export class MarketData {
     if (!this.totalFundingAmount || historicalData.length < 5) return false;
 
     const values = historicalData
-      .map(data => data.totalFundingAmount)
-      .filter(val => val !== null && val !== undefined) as number[];
+      .map((data) => data.totalFundingAmount)
+      .filter((val) => val !== null && val !== undefined);
 
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
     const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;

@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
-  Unique
+  Unique,
 } from 'typeorm';
 import { NotificationType, NotificationCategory } from './Notification';
 
@@ -21,14 +21,14 @@ export class NotificationPreference {
 
   @Column({
     type: 'enum',
-    enum: NotificationType
+    enum: NotificationType,
   })
   @Index()
   type: NotificationType;
 
   @Column({
     type: 'enum',
-    enum: NotificationCategory
+    enum: NotificationCategory,
   })
   @Index()
   category: NotificationCategory;
@@ -272,7 +272,7 @@ export class NotificationPreference {
   }
 
   removeBlockedKeyword(keyword: string): void {
-    this.blockedKeywords = this.blockedKeywords.filter(k => k !== keyword.toLowerCase());
+    this.blockedKeywords = this.blockedKeywords.filter((k) => k !== keyword.toLowerCase());
   }
 
   addAllowedSender(sender: string): void {
@@ -282,7 +282,7 @@ export class NotificationPreference {
   }
 
   removeAllowedSender(sender: string): void {
-    this.allowedSenders = this.allowedSenders.filter(s => s !== sender);
+    this.allowedSenders = this.allowedSenders.filter((s) => s !== sender);
   }
 
   addBlockedSender(sender: string): void {
@@ -292,7 +292,7 @@ export class NotificationPreference {
   }
 
   removeBlockedSender(sender: string): void {
-    this.blockedSenders = this.blockedSenders.filter(s => s !== sender);
+    this.blockedSenders = this.blockedSenders.filter((s) => s !== sender);
   }
 
   shouldReceiveFromSender(senderId: string): boolean {
@@ -328,7 +328,7 @@ export class NotificationPreference {
     }
 
     const contentLower = content.toLowerCase();
-    return !this.blockedKeywords.some(keyword => contentLower.includes(keyword));
+    return !this.blockedKeywords.some((keyword) => contentLower.includes(keyword));
   }
 
   canReceiveNotification(notification: {

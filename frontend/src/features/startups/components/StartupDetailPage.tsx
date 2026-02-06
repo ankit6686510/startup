@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
+import {
   ArrowLeftIcon,
   ExternalLinkIcon,
   ShareIcon,
@@ -26,6 +26,12 @@ import { JobOpenings } from './detail/JobOpenings';
 import { NewsUpdates } from './detail/NewsUpdates';
 import { SimilarStartups } from './detail/SimilarStartups';
 import { ShareBookmark } from './detail/ShareBookmark';
+import { CompanyFeed } from './detail/CompanyFeed';
+import { FinancialsView } from './detail/FinancialsView';
+import { TeamManager } from './detail/TeamManager';
+import { MessageSquareIcon, BarChart3Icon, SettingsIcon } from 'lucide-react';
+
+
 
 interface StartupDetailPageProps {
   slug: string;
@@ -297,7 +303,12 @@ export function StartupDetailPage({ slug }: StartupDetailPageProps) {
     { id: 'funding', label: 'Funding', icon: <TrendingUpIcon className="h-4 w-4" /> },
     { id: 'jobs', label: 'Jobs', icon: <BriefcaseIcon className="h-4 w-4" />, count: startup.jobs.length },
     { id: 'news', label: 'News', icon: <NewspaperIcon className="h-4 w-4" />, count: startup.news.length },
+    { id: 'feed', label: 'Feed', icon: <MessageSquareIcon className="h-4 w-4" /> },
+
+    { id: 'financials', label: 'Financials', icon: <BarChart3Icon className="h-4 w-4" /> },
+    { id: 'team', label: 'Team', icon: <SettingsIcon className="h-4 w-4" /> }, // In real app, check permissions
   ];
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -306,7 +317,7 @@ export function StartupDetailPage({ slug }: StartupDetailPageProps) {
         <div className="container mx-auto px-4 py-6">
           {/* Breadcrumb */}
           <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-            <button 
+            <button
               onClick={() => window.location.href = '/startups'}
               className="hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
             >
@@ -404,7 +415,11 @@ export function StartupDetailPage({ slug }: StartupDetailPageProps) {
             {activeTab === 'funding' && <FundingTimeline fundingRounds={startup.fundingRounds} />}
             {activeTab === 'jobs' && <JobOpenings jobs={startup.jobs} companyName={startup.name} />}
             {activeTab === 'news' && <NewsUpdates news={startup.news} />}
+            {activeTab === 'feed' && <CompanyFeed startupId={startup.id} />}
+            {activeTab === 'financials' && <FinancialsView startupId={startup.id} />}
+            {activeTab === 'team' && <TeamManager startupId={startup.id} />}
           </div>
+
 
           {/* Sidebar */}
           <div className="space-y-6">

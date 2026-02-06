@@ -19,12 +19,7 @@ export class AppError extends Error implements ApiError {
   }
 }
 
-export const errorHandler = (
-  error: ApiError,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const errorHandler = (error: ApiError, req: Request, res: Response, next: NextFunction) => {
   let { statusCode = 500, message } = error;
 
   // Log error

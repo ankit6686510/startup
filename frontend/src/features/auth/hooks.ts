@@ -1,6 +1,8 @@
 import { useCallback, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+
 import { authAPI } from './api';
 import { useAuthStore } from './store';
 import { LoginCredentials, RegisterCredentials, PasswordResetRequest, PasswordReset } from './types';

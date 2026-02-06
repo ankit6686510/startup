@@ -5,8 +5,16 @@ const router = Router();
 const notificationController = new NotificationController();
 
 // Notification CRUD routes
-router.post('/', NotificationController.createNotificationValidation, notificationController.createNotification);
-router.get('/', NotificationController.getNotificationsValidation, notificationController.getNotifications);
+router.post(
+  '/',
+  NotificationController.createNotificationValidation,
+  notificationController.createNotification,
+);
+router.get(
+  '/',
+  NotificationController.getNotificationsValidation,
+  notificationController.getNotifications,
+);
 router.get('/stats', notificationController.getNotificationStats);
 router.get('/user/:userId', notificationController.getUserNotifications);
 router.get('/:id', notificationController.getNotificationById);

@@ -22,7 +22,7 @@ export class TestRedis {
 
     // Clear test database
     await this.client.flushdb();
-    
+
     return this.client;
   }
 

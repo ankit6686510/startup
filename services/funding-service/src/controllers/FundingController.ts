@@ -2,10 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { body, query, validationResult } from 'express-validator';
 import { FundingService, FundingRoundFilters } from '@/services/FundingService';
 import { logger } from '@/utils/logger';
-import { 
-  FundingRound as FundingRoundType, 
-  Currency 
-} from '@startup-platform/types';
+import { FundingRound as FundingRoundType, Currency } from '@startup-platform/types';
 
 export class FundingController {
   private fundingService: FundingService;
@@ -17,40 +14,69 @@ export class FundingController {
   // Validation rules
   static createFundingRoundValidation = [
     body('startupId').notEmpty().withMessage('Startup ID is required'),
-    body('roundType').isIn(Object.values(FundingRoundType)).withMessage('Invalid funding round type'),
+    body('roundType')
+      .isIn(Object.values(FundingRoundType))
+      .withMessage('Invalid funding round type'),
     body('amount').isInt({ min: 1 }).withMessage('Amount must be a positive integer'),
     body('currency').optional().isIn(Object.values(Currency)).withMessage('Invalid currency'),
-    body('preMoneyValuation').optional().isInt({ min: 0 }).withMessage('Pre-money valuation must be a positive integer'),
-    body('postMoneyValuation').optional().isInt({ min: 0 }).withMessage('Post-money valuation must be a positive integer'),
+    body('preMoneyValuation')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Pre-money valuation must be a positive integer'),
+    body('postMoneyValuation')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Post-money valuation must be a positive integer'),
     body('announcedDate').optional().isISO8601().withMessage('Invalid announced date'),
     body('closedDate').optional().isISO8601().withMessage('Invalid closed date'),
   ];
 
   static updateFundingRoundValidation = [
-    body('roundType').optional().isIn(Object.values(FundingRoundType)).withMessage('Invalid funding round type'),
+    body('roundType')
+      .optional()
+      .isIn(Object.values(FundingRoundType))
+      .withMessage('Invalid funding round type'),
     body('amount').optional().isInt({ min: 1 }).withMessage('Amount must be a positive integer'),
     body('currency').optional().isIn(Object.values(Currency)).withMessage('Invalid currency'),
-    body('preMoneyValuation').optional().isInt({ min: 0 }).withMessage('Pre-money valuation must be a positive integer'),
-    body('postMoneyValuation').optional().isInt({ min: 0 }).withMessage('Post-money valuation must be a positive integer'),
+    body('preMoneyValuation')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Pre-money valuation must be a positive integer'),
+    body('postMoneyValuation')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Post-money valuation must be a positive integer'),
     body('announcedDate').optional().isISO8601().withMessage('Invalid announced date'),
     body('closedDate').optional().isISO8601().withMessage('Invalid closed date'),
   ];
 
   static getFundingRoundsValidation = [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-    query('roundTypes').optional().custom((value) => {
-      if (typeof value === 'string') {
-        return Object.values(FundingRoundType).includes(value as FundingRoundType);
-      }
-      if (Array.isArray(value)) {
-        return value.every(type => Object.values(FundingRoundType).includes(type));
-      }
-      return false;
-    }).withMessage('Invalid round types'),
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
+    query('roundTypes')
+      .optional()
+      .custom((value) => {
+        if (typeof value === 'string') {
+          return Object.values(FundingRoundType).includes(value as FundingRoundType);
+        }
+        if (Array.isArray(value)) {
+          return value.every((type) => Object.values(FundingRoundType).includes(type));
+        }
+        return false;
+      })
+      .withMessage('Invalid round types'),
     query('currency').optional().isIn(Object.values(Currency)).withMessage('Invalid currency'),
-    query('minAmount').optional().isInt({ min: 0 }).withMessage('Minimum amount must be a positive integer'),
-    query('maxAmount').optional().isInt({ min: 0 }).withMessage('Maximum amount must be a positive integer'),
+    query('minAmount')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Minimum amount must be a positive integer'),
+    query('maxAmount')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Maximum amount must be a positive integer'),
   ];
 
   createFundingRound = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -159,13 +185,13 @@ export class FundingController {
 
       const filters: FundingRoundFilters = {};
       if (req.query.startupIds) {
-        filters.startupIds = Array.isArray(req.query.startupIds) 
-          ? req.query.startupIds as string[] 
+        filters.startupIds = Array.isArray(req.query.startupIds)
+          ? (req.query.startupIds as string[])
           : [req.query.startupIds as string];
       }
       if (req.query.roundTypes) {
-        filters.roundTypes = Array.isArray(req.query.roundTypes) 
-          ? req.query.roundTypes as FundingRoundType[] 
+        filters.roundTypes = Array.isArray(req.query.roundTypes)
+          ? (req.query.roundTypes as FundingRoundType[])
           : [req.query.roundTypes as FundingRoundType];
       }
       if (req.query.minAmount) filters.minAmount = parseInt(req.query.minAmount as string);
@@ -175,8 +201,8 @@ export class FundingController {
       if (req.query.dateTo) filters.dateTo = new Date(req.query.dateTo as string);
       if (req.query.isConfirmed) filters.isConfirmed = req.query.isConfirmed === 'true';
       if (req.query.investorIds) {
-        filters.investorIds = Array.isArray(req.query.investorIds) 
-          ? req.query.investorIds as string[] 
+        filters.investorIds = Array.isArray(req.query.investorIds)
+          ? (req.query.investorIds as string[])
           : [req.query.investorIds as string];
       }
 
@@ -202,7 +228,11 @@ export class FundingController {
     }
   };
 
-  getFundingRoundsByStartup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getFundingRoundsByStartup = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { startupId } = req.params;
       const rounds = await this.fundingService.getFundingRoundsByStartup(startupId);
@@ -218,7 +248,11 @@ export class FundingController {
     }
   };
 
-  getRecentFundingRounds = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getRecentFundingRounds = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
       const rounds = await this.fundingService.getRecentFundingRounds(limit);
@@ -280,7 +314,7 @@ export class FundingController {
       const trends = await this.fundingService.getFundingTrends(
         period as 'monthly' | 'quarterly' | 'yearly',
         industry as string,
-        geography as string
+        geography as string,
       );
 
       res.json({
@@ -294,10 +328,14 @@ export class FundingController {
     }
   };
 
-  getValuationBenchmarks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getValuationBenchmarks = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { industry, stage } = req.query;
-      
+
       if (!industry) {
         res.status(400).json({
           success: false,
@@ -309,7 +347,7 @@ export class FundingController {
 
       const benchmarks = await this.fundingService.getValuationBenchmarks(
         industry as string,
-        stage as string
+        stage as string,
       );
 
       res.json({

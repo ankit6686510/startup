@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Index
+  Index,
 } from 'typeorm';
 import { Currency } from '@startup-platform/types';
 import { FundingRound } from './FundingRound';
@@ -33,7 +33,7 @@ export class Investment {
   @Column({
     type: 'enum',
     enum: Currency,
-    default: Currency.USD
+    default: Currency.USD,
   })
   currency: Currency;
 
@@ -79,7 +79,13 @@ export class Investment {
   @Column({ name: 'conversion_terms', nullable: true })
   conversionTerms?: string;
 
-  @Column({ name: 'liquidation_preference', type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({
+    name: 'liquidation_preference',
+    type: 'decimal',
+    precision: 3,
+    scale: 2,
+    nullable: true,
+  })
   liquidationPreference?: number; // 1.0 = 1x preference
 
   @Column({ name: 'dividend_rate', type: 'decimal', precision: 5, scale: 2, nullable: true })
@@ -136,7 +142,13 @@ export class Investment {
   @Column({ name: 'realized_gain_loss', type: 'bigint', nullable: true })
   realizedGainLoss?: number;
 
-  @Column({ name: 'internal_rate_of_return', type: 'decimal', precision: 8, scale: 4, nullable: true })
+  @Column({
+    name: 'internal_rate_of_return',
+    type: 'decimal',
+    precision: 8,
+    scale: 4,
+    nullable: true,
+  })
   internalRateOfReturn?: number; // IRR percentage
 
   @Column({ name: 'money_multiple', type: 'decimal', precision: 8, scale: 4, nullable: true })
@@ -198,7 +210,13 @@ export class Investment {
   @Column({ name: 'investor_feedback', nullable: true })
   investorFeedback?: string;
 
-  @Column({ name: 'investor_satisfaction_score', type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({
+    name: 'investor_satisfaction_score',
+    type: 'decimal',
+    precision: 3,
+    scale: 2,
+    nullable: true,
+  })
   investorSatisfactionScore?: number; // 1-10 scale
 
   // Commitment and milestones
@@ -247,11 +265,13 @@ export class Investment {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => FundingRound, fundingRound => fundingRound.investments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => FundingRound, (fundingRound) => fundingRound.investments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'funding_round_id' })
   fundingRound: FundingRound;
 
-  @ManyToOne(() => Investor, investor => investor.investments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Investor, (investor) => investor.investments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'investor_id' })
   investor: Investor;
 
@@ -345,7 +365,8 @@ export class Investment {
 
       // Calculate final IRR
       if (this.investmentDate) {
-        const years = (this.exitDate.getTime() - this.investmentDate.getTime()) / (365 * 24 * 60 * 60 * 1000);
+        const years =
+          (this.exitDate.getTime() - this.investmentDate.getTime()) / (365 * 24 * 60 * 60 * 1000);
         if (years > 0) {
           this.internalRateOfReturn = Math.pow(this.exitMultiple, 1 / years) - 1;
         }
@@ -428,7 +449,11 @@ export class Investment {
   }
 
   calculateOwnershipDilution(newFundingRound: FundingRound): number {
-    if (!this.ownershipPercentage || !newFundingRound.amount || !newFundingRound.preMoneyValuation) {
+    if (
+      !this.ownershipPercentage ||
+      !newFundingRound.amount ||
+      !newFundingRound.preMoneyValuation
+    ) {
       return 0;
     }
 
@@ -448,7 +473,9 @@ export class Investment {
 
   getDaysToExit(): number | null {
     if (!this.isExited || !this.investmentDate || !this.exitDate) return null;
-    return Math.ceil((this.exitDate.getTime() - this.investmentDate.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.ceil(
+      (this.exitDate.getTime() - this.investmentDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
   }
 
   toSummary() {
