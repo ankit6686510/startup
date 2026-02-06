@@ -20,6 +20,10 @@ const envSchema = z.object({
   REDIS_PORT: common.redisConfig.shape.port,
   REDIS_PASSWORD: z.string().optional(),
 
+  // JWT
+  JWT_SECRET: commonSchemas.jwtConfig.shape.secret,
+  JWT_EXPIRES_IN: commonSchemas.jwtConfig.shape.expiresIn,
+
   // Service URLs
   STARTUP_SERVICE_URL: z.string().url().default('http://localhost:3001'),
   USER_SERVICE_URL: z.string().url().default('http://localhost:3002'),
@@ -46,6 +50,10 @@ export const config = {
     host: env.REDIS_HOST,
     port: env.REDIS_PORT,
     password: env.REDIS_PASSWORD,
+  },
+  jwt: {
+    secret: env.JWT_SECRET,
+    expiresIn: env.JWT_EXPIRES_IN,
   },
   services: {
     startup: env.STARTUP_SERVICE_URL,

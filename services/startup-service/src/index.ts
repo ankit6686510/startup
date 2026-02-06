@@ -16,7 +16,9 @@ import {
 } from './middleware/validation';
 import { optionalAuth } from './middleware/auth';
 import startupRoutes from './routes/startup.routes';
+import companyRoutes from './routes/company.routes';
 import founderRoutes from './routes/founder.routes';
+
 import healthRoutes from './routes/health.routes';
 
 const app = express();
@@ -54,8 +56,10 @@ app.use(optionalAuth); // Add optional authentication to all routes
 app.use('/health', healthRoutes);
 
 // API Routes
+app.use('/api/v1/startups', companyRoutes); // Mount company sub-routes first (e.g. /:id/members)
 app.use('/api/v1/startups', startupRoutes);
 app.use('/api/v1/founders', founderRoutes);
+
 
 // Global error handler
 app.use(errorHandler);

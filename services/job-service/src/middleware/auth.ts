@@ -16,8 +16,9 @@ declare global {
   }
 }
 
-// JWT secret (should be in environment variables)
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+import { config } from '@/config';
+
+const JWT_SECRET = config.jwt.secret;
 
 /**
  * Authentication middleware

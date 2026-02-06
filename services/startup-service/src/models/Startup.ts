@@ -15,6 +15,11 @@ import { StartupTeam } from './StartupTeam';
 import { StartupPhoto } from './StartupPhoto';
 import { StartupVerification } from './StartupVerification';
 import { StartupFollow } from './StartupFollow';
+import { StartupMember } from './StartupMember';
+import { StartupPost } from './StartupPost';
+import { StartupFinancials } from './StartupFinancials';
+import { StartupMilestone } from './StartupMilestone';
+
 
 @Entity('startups')
 @Index(['industry', 'status'])
@@ -171,6 +176,19 @@ export class Startup {
   @OneToMany(() => StartupFollow, (follow) => follow.startup)
   followers: StartupFollow[];
 
+  @OneToMany(() => StartupMember, (member) => member.startup)
+  members: StartupMember[];
+
+  @OneToMany(() => StartupPost, (post) => post.startup)
+  posts: StartupPost[];
+
+  @OneToMany(() => StartupFinancials, (financial) => financial.startup)
+  financials: StartupFinancials[];
+
+  @OneToMany(() => StartupMilestone, (milestone) => milestone.startup)
+  milestones: StartupMilestone[];
+
+
   // Virtual getters for location object
   get location() {
     return {
@@ -183,9 +201,9 @@ export class Startup {
       coordinates:
         this.locationLatitude && this.locationLongitude
           ? {
-              latitude: Number(this.locationLatitude),
-              longitude: Number(this.locationLongitude),
-            }
+            latitude: Number(this.locationLatitude),
+            longitude: Number(this.locationLongitude),
+          }
           : undefined,
     };
   }

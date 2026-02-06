@@ -23,7 +23,7 @@ export const Default: Story = {
     args: {
         src: 'https://ui-avatars.com/api/?name=Neural+Flow&background=6366f1&color=fff',
         alt: 'Neural Flow',
-        fallback: 'NF',
+
         size: 'md',
     },
 };
@@ -49,10 +49,4 @@ export const ExtraLarge: Story = {
     },
 };
 
-export const Fallback: Story = {
-    args: {
-        src: '',
-        fallback: 'JD',
-        size: 'md',
-    },
-};
+

@@ -7,6 +7,11 @@ import { StartupTeam } from '../models/StartupTeam';
 import { StartupPhoto } from '../models/StartupPhoto';
 import { StartupVerification } from '../models/StartupVerification';
 import { StartupFollow } from '../models/StartupFollow';
+import { StartupMember } from '../models/StartupMember';
+import { StartupPost } from '../models/StartupPost';
+import { StartupFinancials } from '../models/StartupFinancials';
+import { StartupMilestone } from '../models/StartupMilestone';
+
 import { config } from './index';
 
 export const AppDataSource = new DataSource({
@@ -28,6 +33,11 @@ export const AppDataSource = new DataSource({
     StartupPhoto,
     StartupVerification,
     StartupFollow,
+    StartupMember,
+    StartupPost,
+    StartupFinancials,
+    StartupMilestone,
+
   ],
   migrations: ['src/migrations/*.ts'],
   subscribers: ['src/subscribers/*.ts'],

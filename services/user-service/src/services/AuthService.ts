@@ -10,6 +10,7 @@ import { EmailService } from './EmailService';
 import { logger } from '@/utils/logger';
 import { UserRole, UserStatus } from '@startup-platform/types';
 import crypto from 'crypto';
+import { KafkaProducer, KAFKA_TOPICS, UserRegisteredEvent, UserProfileUpdatedEvent, UserDeletedEvent } from '@startup/kafka-client';
 
 export interface RegisterData {
   email: string;
@@ -39,6 +40,7 @@ export class AuthService {
   private emailVerificationRepository: Repository<EmailVerification>;
   private passwordResetRepository: Repository<PasswordReset>;
   private emailService: EmailService;
+  private kafkaProducer: KafkaProducer;
 
   constructor() {
     this.userRepository = AppDataSource.getRepository(User);
@@ -47,6 +49,18 @@ export class AuthService {
     this.emailVerificationRepository = AppDataSource.getRepository(EmailVerification);
     this.passwordResetRepository = AppDataSource.getRepository(PasswordReset);
     this.emailService = new EmailService();
+
+    // Initialize Kafka producer
+    this.kafkaProducer = new KafkaProducer({
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+      clientId: 'user-service',
+      logger: logger,
+    });
+
+    // Connect to Kafka
+    this.kafkaProducer.connect().catch((error) => {
+      logger.error('Failed to connect Kafka producer in AuthService', error);
+    });
   }
 
   async register(data: RegisterData): Promise<User> {
@@ -83,6 +97,30 @@ export class AuthService {
 
     // Send verification email
     await this.sendEmailVerification(savedUser);
+
+    // Publish UserRegisteredEvent to Kafka
+    try {
+      await this.kafkaProducer.publish<UserRegisteredEvent>(
+        KAFKA_TOPICS.USER_EVENTS,
+        {
+          eventType: 'UserRegistered',
+          data: {
+            userId: savedUser.id,
+            email: savedUser.email,
+            role: savedUser.role as any,
+            firstName: data.firstName,
+            lastName: data.lastName,
+          },
+        },
+        {
+          key: savedUser.id, // Partition by userId for ordering
+        },
+      );
+      logger.info(`UserRegisteredEvent published for user: ${savedUser.email}`);
+    } catch (error) {
+      // Log error but don't fail registration
+      logger.error('Failed to publish UserRegisteredEvent', error);
+    }
 
     logger.info(`User registered: ${savedUser.email}`);
     return savedUser;

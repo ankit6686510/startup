@@ -16,12 +16,26 @@ import {
 } from '@startup-platform/types';
 import { ValidationError, NotFoundError, ConflictError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
+import { KafkaProducer, KAFKA_TOPICS, StartupCreatedEvent, StartupUpdatedEvent, StartupDeletedEvent } from '@startup/kafka-client';
 
 export class StartupService {
   private startupRepository: StartupRepository;
+  private kafkaProducer: KafkaProducer;
 
   constructor() {
     this.startupRepository = new StartupRepository();
+
+    // Initialize Kafka producer
+    this.kafkaProducer = new KafkaProducer({
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+      clientId: 'startup-service',
+      logger: logger,
+    });
+
+    // Connect to Kafka
+    this.kafkaProducer.connect().catch((error: any) => {
+      logger.error('Failed to connect Kafka producer in StartupService', error);
+    });
   }
 
   async getAllStartups(params: GetStartupsRequest): Promise<PaginatedResponse<StartupSummary>> {
@@ -128,6 +142,29 @@ export class StartupService {
       }
 
       const startup = await this.startupRepository.create(startupData, foundersData);
+
+      // Publish StartupCreatedEvent to Kafka
+      try {
+        await this.kafkaProducer.publish<StartupCreatedEvent>(
+          KAFKA_TOPICS.STARTUP_EVENTS,
+          {
+            eventType: 'StartupCreated',
+            data: {
+              startupId: startup.id,
+              name: startup.name,
+              founderId: foundersData.find(f => f.isPrimary)?.id || foundersData[0]?.id || '',
+              industry: startup.industry,
+              stage: startup.stage,
+            },
+          },
+          {
+            key: startup.id, // Partition by startupId
+          },
+        );
+        logger.info(`StartupCreatedEvent published for startup: ${startup.name}`);
+      } catch (error) {
+        logger.error('Failed to publish StartupCreatedEvent', error);
+      }
 
       logger.info(`Created startup: ${startup.name} (${startup.id})`);
       return startup;

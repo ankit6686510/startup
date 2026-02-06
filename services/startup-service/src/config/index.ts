@@ -18,6 +18,10 @@ const envSchema = z.object({
   REDIS_PORT: commonSchemas.redisConfig.shape.port,
   REDIS_PASSWORD: z.string().optional(),
 
+  // JWT
+  JWT_SECRET: commonSchemas.jwtConfig.shape.secret,
+  JWT_EXPIRES_IN: commonSchemas.jwtConfig.shape.expiresIn,
+
   // Service URLs
   ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
 });
@@ -41,6 +45,10 @@ export const config = {
     host: env.REDIS_HOST,
     port: env.REDIS_PORT,
     password: env.REDIS_PASSWORD,
+  },
+  jwt: {
+    secret: env.JWT_SECRET,
+    expiresIn: env.JWT_EXPIRES_IN,
   },
   cors: {
     allowedOrigins: env.ALLOWED_ORIGINS.split(','),

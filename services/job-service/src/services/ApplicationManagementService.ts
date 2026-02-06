@@ -9,6 +9,7 @@ import { ApplicationDocument } from '@/models/ApplicationDocument';
 import { ApplicationAnalytics } from '@/models/ApplicationAnalytics';
 import { Job } from '@/models/Job';
 import { logger } from '@/utils/logger';
+import { KafkaProducer, KAFKA_TOPICS, ApplicationStatusChangedEvent } from '@startup/kafka-client';
 
 export interface UploadedFile {
   originalName: string;
@@ -40,6 +41,7 @@ export class ApplicationManagementService {
   private documentRepository: Repository<ApplicationDocument>;
   private analyticsRepository: Repository<ApplicationAnalytics>;
   private jobRepository: Repository<Job>;
+  private kafkaProducer: KafkaProducer;
 
   constructor() {
     this.applicationRepository = AppDataSource.getRepository(JobApplication);
@@ -47,6 +49,18 @@ export class ApplicationManagementService {
     this.documentRepository = AppDataSource.getRepository(ApplicationDocument);
     this.analyticsRepository = AppDataSource.getRepository(ApplicationAnalytics);
     this.jobRepository = AppDataSource.getRepository(Job);
+
+    // Initialize Kafka producer
+    this.kafkaProducer = new KafkaProducer({
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+      clientId: 'job-service',
+      logger: logger,
+    });
+
+    // Connect to Kafka
+    this.kafkaProducer.connect().catch((error: any) => {
+      logger.error('Failed to connect Kafka producer in ApplicationManagementService', error);
+    });
   }
 
   // ==================== DOCUMENT MANAGEMENT ====================
@@ -195,6 +209,31 @@ export class ApplicationManagementService {
       statusChange: true,
       newStatus,
     });
+
+    // Publish ApplicationStatusChangedEvent to Kafka
+    try {
+      await this.kafkaProducer.publish<ApplicationStatusChangedEvent>(
+        KAFKA_TOPICS.JOB_EVENTS,
+        {
+          eventType: 'ApplicationStatusChanged',
+          data: {
+            applicationId: application.id,
+            jobId: application.jobId,
+            applicantId: application.applicantId,
+            previousStatus: previousStatus as any,
+            newStatus: newStatus as any,
+            changedBy,
+            changeReason,
+          },
+        },
+        {
+          key: application.id, // Partition by applicationId
+        },
+      );
+      logger.info(`ApplicationStatusChangedEvent published for application: ${applicationId}`);
+    } catch (error) {
+      logger.error('Failed to publish ApplicationStatusChangedEvent', error);
+    }
 
     // Trigger notification (integrate with notification service)
     await this.triggerStatusNotification(applicationId, newStatus, previousStatus);

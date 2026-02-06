@@ -16,8 +16,9 @@ declare global {
   }
 }
 
-// JWT secret (should be in environment variables)
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+import { config } from '@/config';
+
+const JWT_SECRET = config.jwt.secret;
 
 // Authentication middleware
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
@@ -143,7 +144,7 @@ export const generateToken = (user: {
   };
 
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+    expiresIn: config.jwt.expiresIn,
     issuer: 'startupcompass-api',
     audience: 'startupcompass-users',
   } as any);
@@ -154,7 +155,7 @@ export const generateRefreshToken = (userId: string) => {
   const payload = { userId, type: 'refresh' };
 
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    expiresIn: '7d', // Set a default or add to config if needed
     issuer: 'startupcompass-api',
     audience: 'startupcompass-users',
   } as any);
